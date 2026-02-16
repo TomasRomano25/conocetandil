@@ -17,89 +17,40 @@
     @endphp
 
     {{-- ========================================
-         DESKTOP GALLERY (md+)
+         GALLERY (all breakpoints)
          ======================================== --}}
     @if ($imageCount > 0)
-        <section class="hidden md:block py-6">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-3 gap-3 h-[500px]">
-                    {{-- Primary image --}}
-                    <div class="col-span-2 relative rounded-2xl overflow-hidden shadow-xl cursor-pointer" onclick="LugarLightbox.open(0)">
-                        <img src="{{ asset('storage/' . $allImages->first()) }}" alt="{{ $lugar->title }}"
-                            class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
-                        @if ($imageCount > 1)
-                            <div class="absolute top-4 right-4 bg-black/60 text-white text-sm px-3 py-1 rounded-full backdrop-blur-sm">
-                                <svg class="w-4 h-4 inline -mt-0.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                {{ $imageCount }} fotos
-                            </div>
-                        @endif
-                    </div>
-                    {{-- Right column thumbnails --}}
-                    <div class="flex flex-col gap-3">
-                        @foreach ($allImages->slice(1, 3) as $index => $imagePath)
-                            <div class="relative flex-1 rounded-2xl overflow-hidden shadow-lg cursor-pointer" onclick="LugarLightbox.open({{ $index + 1 }})">
-                                <img src="{{ asset('storage/' . $imagePath) }}" alt="{{ $lugar->title }}"
-                                    class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
-                                @if ($loop->last && $imageCount > 4)
-                                    <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                        <span class="text-white text-2xl font-bold">+{{ $imageCount - 4 }}</span>
-                                    </div>
-                                @endif
-                            </div>
-                        @endforeach
-                        @if ($imageCount === 1)
-                            <div class="flex-1 rounded-2xl bg-gray-100 flex items-center justify-center">
-                                <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </section>
-    @endif
-
-    {{-- ========================================
-         MOBILE CAROUSEL (<md)
-         ======================================== --}}
-    @if ($imageCount > 0)
-        <section class="md:hidden relative">
-            <div id="mobile-carousel" class="relative h-80 overflow-hidden bg-gray-900">
-                <div id="carousel-track" class="flex h-full transition-transform duration-300 ease-out" style="width: {{ $imageCount * 100 }}%;">
-                    @foreach ($allImages as $imagePath)
-                        <div class="h-full flex-shrink-0" style="width: {{ 100 / $imageCount }}%;">
-                            <img src="{{ asset('storage/' . $imagePath) }}" alt="{{ $lugar->title }}"
-                                class="w-full h-full object-cover" onclick="LugarLightbox.open({{ $loop->index }})">
+        <section class="pt-6 pb-2">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                {{-- Main selected image --}}
+                <div class="relative rounded-xl overflow-hidden shadow-lg cursor-pointer bg-gray-100" onclick="LugarLightbox.open(window._gallerySelected || 0)">
+                    <img id="gallery-main" src="{{ asset('storage/' . $allImages->first()) }}" alt="{{ $lugar->title }}"
+                        class="w-full h-56 sm:h-72 md:h-80 object-cover">
+                    {{-- Image counter badge --}}
+                    @if ($imageCount > 1)
+                        <div class="absolute top-3 right-3 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm">
+                            <span id="gallery-counter">1</span>/{{ $imageCount }}
                         </div>
-                    @endforeach
+                    @endif
                 </div>
-                {{-- Image counter --}}
-                <div class="absolute top-4 right-4 bg-black/60 text-white text-sm px-3 py-1 rounded-full backdrop-blur-sm">
-                    <span id="carousel-current">1</span>/{{ $imageCount }}
-                </div>
-                {{-- Prev/Next arrows --}}
+                {{-- Thumbnails row --}}
                 @if ($imageCount > 1)
-                    <button onclick="MobileCarousel.prev()" class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                    </button>
-                    <button onclick="MobileCarousel.next()" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-                @endif
-                {{-- Dots --}}
-                @if ($imageCount > 1 && $imageCount <= 10)
-                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                        @for ($i = 0; $i < $imageCount; $i++)
-                            <button onclick="MobileCarousel.goTo({{ $i }})"
-                                class="carousel-dot w-2 h-2 rounded-full transition {{ $i === 0 ? 'bg-white' : 'bg-white/50' }}"></button>
-                        @endfor
+                    <div class="flex gap-2 mt-2 overflow-x-auto pb-1">
+                        @foreach ($allImages as $index => $imagePath)
+                            <button onclick="selectGalleryImage({{ $index }})"
+                                class="gallery-thumb flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition {{ $index === 0 ? 'border-[#2D6A4F]' : 'border-transparent hover:border-gray-300' }}">
+                                <img src="{{ asset('storage/' . $imagePath) }}" alt="{{ $lugar->title }}"
+                                    class="w-full h-full object-cover">
+                            </button>
+                        @endforeach
                     </div>
                 @endif
             </div>
         </section>
-    @elseif (!$imageCount)
+    @else
         {{-- No images placeholder --}}
-        <section class="bg-gradient-to-br from-[#2D6A4F]/20 to-[#52B788]/20 h-48 md:h-64 flex items-center justify-center">
-            <svg class="w-16 h-16 text-[#2D6A4F]/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <section class="bg-gradient-to-br from-[#2D6A4F]/20 to-[#52B788]/20 h-40 md:h-52 flex items-center justify-center">
+            <svg class="w-14 h-14 text-[#2D6A4F]/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
@@ -399,9 +350,27 @@
          ======================================== --}}
     <script>
     (function() {
-        // Image data
         var images = @json($allImages->values());
         var imageBaseUrl = '{{ asset('storage') }}/';
+        window._gallerySelected = 0;
+
+        // ── Gallery thumbnail selector ──
+        window.selectGalleryImage = function(index) {
+            window._gallerySelected = index;
+            var mainImg = document.getElementById('gallery-main');
+            if (mainImg) mainImg.src = imageBaseUrl + images[index];
+            var counter = document.getElementById('gallery-counter');
+            if (counter) counter.textContent = index + 1;
+            document.querySelectorAll('.gallery-thumb').forEach(function(thumb, i) {
+                if (i === index) {
+                    thumb.classList.add('border-[#2D6A4F]');
+                    thumb.classList.remove('border-transparent', 'hover:border-gray-300');
+                } else {
+                    thumb.classList.remove('border-[#2D6A4F]');
+                    thumb.classList.add('border-transparent', 'hover:border-gray-300');
+                }
+            });
+        };
 
         // ── Lightbox ──
         window.LugarLightbox = (function() {
@@ -435,9 +404,7 @@
                     show((currentIndex + 1) % images.length);
                 },
                 backdropClick: function(e) {
-                    if (e.target === lightbox) {
-                        LugarLightbox.close();
-                    }
+                    if (e.target === lightbox) LugarLightbox.close();
                 }
             };
         })();
@@ -451,59 +418,12 @@
             if (e.key === 'ArrowRight') LugarLightbox.next();
         });
 
-        // ── Mobile Carousel ──
-        window.MobileCarousel = (function() {
-            var current = 0;
-            var total = images.length;
-            var track = document.getElementById('carousel-track');
-            var counterEl = document.getElementById('carousel-current');
-            var dots = document.querySelectorAll('.carousel-dot');
-
-            function update() {
-                if (!track) return;
-                track.style.transform = 'translateX(-' + (current * (100 / total)) + '%)';
-                if (counterEl) counterEl.textContent = current + 1;
-                dots.forEach(function(dot, i) {
-                    dot.classList.toggle('bg-white', i === current);
-                    dot.classList.toggle('bg-white/50', i !== current);
-                });
-            }
-
-            // Touch support
-            var startX = 0, startY = 0, isDragging = false;
-            var carousel = document.getElementById('mobile-carousel');
-            if (carousel) {
-                carousel.addEventListener('touchstart', function(e) {
-                    startX = e.touches[0].clientX;
-                    startY = e.touches[0].clientY;
-                    isDragging = true;
-                }, { passive: true });
-                carousel.addEventListener('touchend', function(e) {
-                    if (!isDragging) return;
-                    isDragging = false;
-                    var diffX = startX - e.changedTouches[0].clientX;
-                    var diffY = startY - e.changedTouches[0].clientY;
-                    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
-                        if (diffX > 0 && current < total - 1) { current++; update(); }
-                        else if (diffX < 0 && current > 0) { current--; update(); }
-                    }
-                }, { passive: true });
-            }
-
-            return {
-                prev: function() { if (current > 0) { current--; update(); } },
-                next: function() { if (current < total - 1) { current++; update(); } },
-                goTo: function(i) { current = i; update(); }
-            };
-        })();
-
         // ── Collapsible Description ──
         window.toggleDescription = function() {
             var container = document.getElementById('description-container');
             var fade = document.getElementById('description-fade');
             var toggle = document.getElementById('description-toggle');
             if (!container) return;
-
             if (container.style.maxHeight === 'none') {
                 container.style.maxHeight = '150px';
                 fade.style.display = '';
@@ -521,19 +441,12 @@
             if (!stickyCta) return;
             var lastScroll = 0;
             var shown = false;
-
             window.addEventListener('scroll', function() {
                 var scrollY = window.scrollY;
                 if (scrollY > 500 && scrollY > lastScroll) {
-                    if (!shown) {
-                        stickyCta.style.transform = 'translateY(0)';
-                        shown = true;
-                    }
+                    if (!shown) { stickyCta.style.transform = 'translateY(0)'; shown = true; }
                 } else if (scrollY < lastScroll) {
-                    if (shown) {
-                        stickyCta.style.transform = 'translateY(100%)';
-                        shown = false;
-                    }
+                    if (shown) { stickyCta.style.transform = 'translateY(100%)'; shown = false; }
                 }
                 lastScroll = scrollY;
             }, { passive: true });
