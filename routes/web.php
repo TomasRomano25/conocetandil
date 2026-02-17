@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\LugarController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\InicioSectionController;
 use App\Http\Controllers\Admin\NavItemController;
+use App\Http\Controllers\Admin\ConfigurationController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -41,4 +42,10 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('nav', [NavItemController::class, 'index'])->name('nav.index');
     Route::post('nav/reorder', [NavItemController::class, 'reorder'])->name('nav.reorder');
     Route::put('nav/{navItem}', [NavItemController::class, 'update'])->name('nav.update');
+
+    // Configuraciones
+    Route::get('configuraciones', [ConfigurationController::class, 'index'])->name('configuraciones.index');
+    Route::post('configuraciones/backup', [ConfigurationController::class, 'updateBackup'])->name('configuraciones.backup.update');
+    Route::post('configuraciones/backup/run', [ConfigurationController::class, 'runBackup'])->name('configuraciones.backup.run');
+    Route::get('configuraciones/backup/download', [ConfigurationController::class, 'downloadBackup'])->name('configuraciones.backup.download');
 });
