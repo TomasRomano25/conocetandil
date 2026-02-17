@@ -17,9 +17,26 @@ class PageController extends Controller
 
     public function lugares()
     {
-        $lugares = Lugar::with('images')->ordered()->get();
+        $q        = trim(request('q', ''));
+        $category = trim(request('category', ''));
 
-        return view('pages.lugares', compact('lugares'));
+        $query = Lugar::with('images')->ordered();
+
+        if ($q !== '') {
+            $query->search($q);
+        }
+
+        if ($category !== '') {
+            $query->where('category', $category);
+        }
+
+        $lugares    = $query->get();
+        $categories = Lugar::whereNotNull('category')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
+
+        return view('pages.lugares', compact('lugares', 'categories', 'q', 'category'));
     }
 
     public function lugar(Lugar $lugar)

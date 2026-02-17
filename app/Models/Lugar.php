@@ -93,4 +93,15 @@ class Lugar extends Model
     {
         return $query->orderBy('order');
     }
+
+    public function scopeSearch($query, string $term)
+    {
+        $like = '%' . $term . '%';
+
+        return $query->where(function ($q) use ($like) {
+            $q->where('title', 'like', $like)
+              ->orWhere('direction', 'like', $like)
+              ->orWhere('description', 'like', $like);
+        });
+    }
 }

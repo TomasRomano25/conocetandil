@@ -8,12 +8,12 @@
             </p>
 
             <div class="max-w-xl mx-auto">
-                <div class="flex bg-white rounded-lg shadow-lg overflow-hidden">
-                    <input type="text" placeholder="Buscá lugares, guías, experiencias..." class="flex-1 px-5 py-4 text-[#1A1A1A] focus:outline-none">
-                    <button class="bg-[#52B788] hover:bg-[#2D6A4F] text-white px-6 py-4 transition font-semibold">
+                <form action="{{ route('lugares') }}" method="GET" class="flex bg-white rounded-lg shadow-lg overflow-hidden">
+                    <input type="text" name="q" placeholder="Buscá lugares, experiencias..." class="flex-1 px-5 py-4 text-[#1A1A1A] focus:outline-none" autocomplete="off">
+                    <button type="submit" class="bg-[#52B788] hover:bg-[#2D6A4F] text-white px-6 py-4 transition font-semibold">
                         Buscar
                     </button>
-                </div>
+                </form>
             </div>
         </div>
     </div>
