@@ -7,6 +7,9 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-white text-[#1A1A1A] min-h-screen flex flex-col">
+    @php
+        $navItems = \App\Models\NavItem::ordered()->visible()->get();
+    @endphp
 
     {{-- Navbar --}}
     <nav class="bg-[#2D6A4F] text-white shadow-lg sticky top-0 z-50">
@@ -18,10 +21,12 @@
 
                 {{-- Desktop menu --}}
                 <div class="hidden md:flex space-x-8">
-                    <a href="{{ route('inicio') }}" class="hover:text-[#52B788] transition {{ request()->routeIs('inicio') ? 'text-[#52B788] font-semibold' : '' }}">Inicio</a>
-                    <a href="{{ route('lugares') }}" class="hover:text-[#52B788] transition {{ request()->routeIs('lugares') ? 'text-[#52B788] font-semibold' : '' }}">Lugares</a>
-                    <a href="{{ route('guias') }}" class="hover:text-[#52B788] transition {{ request()->routeIs('guias') ? 'text-[#52B788] font-semibold' : '' }}">Guías</a>
-                    <a href="{{ route('contacto') }}" class="hover:text-[#52B788] transition {{ request()->routeIs('contacto') ? 'text-[#52B788] font-semibold' : '' }}">Contacto</a>
+                    @foreach ($navItems as $navItem)
+                        <a href="{{ route($navItem->route_name) }}"
+                           class="hover:text-[#52B788] transition {{ request()->routeIs($navItem->route_name) ? 'text-[#52B788] font-semibold' : '' }}">
+                            {{ $navItem->label }}
+                        </a>
+                    @endforeach
                     <a href="{{ url('/login') }}" class="hover:text-[#52B788] transition text-[#52B788]/70">Iniciar Sesión</a>
                 </div>
 
@@ -37,10 +42,12 @@
         {{-- Mobile menu --}}
         <div id="mobile-menu" class="hidden md:hidden bg-[#2D6A4F] border-t border-[#52B788]/30">
             <div class="px-4 py-3 space-y-2">
-                <a href="{{ route('inicio') }}" class="block py-2 hover:text-[#52B788] transition">Inicio</a>
-                <a href="{{ route('lugares') }}" class="block py-2 hover:text-[#52B788] transition">Lugares</a>
-                <a href="{{ route('guias') }}" class="block py-2 hover:text-[#52B788] transition">Guías</a>
-                <a href="{{ route('contacto') }}" class="block py-2 hover:text-[#52B788] transition">Contacto</a>
+                @foreach ($navItems as $navItem)
+                    <a href="{{ route($navItem->route_name) }}"
+                       class="block py-2 hover:text-[#52B788] transition {{ request()->routeIs($navItem->route_name) ? 'text-[#52B788] font-semibold' : '' }}">
+                        {{ $navItem->label }}
+                    </a>
+                @endforeach
                 <a href="{{ url('/login') }}" class="block py-2 hover:text-[#52B788] transition text-[#52B788]/70">Iniciar Sesión</a>
             </div>
         </div>
@@ -62,10 +69,13 @@
                 <div>
                     <h3 class="text-lg font-bold mb-4 text-[#52B788]">Enlaces</h3>
                     <ul class="space-y-2 text-sm text-gray-400">
-                        <li><a href="{{ route('inicio') }}" class="hover:text-[#52B788] transition">Inicio</a></li>
-                        <li><a href="{{ route('lugares') }}" class="hover:text-[#52B788] transition">Lugares</a></li>
-                        <li><a href="{{ route('guias') }}" class="hover:text-[#52B788] transition">Guías</a></li>
-                        <li><a href="{{ route('contacto') }}" class="hover:text-[#52B788] transition">Contacto</a></li>
+                        @foreach ($navItems as $navItem)
+                            <li>
+                                <a href="{{ route($navItem->route_name) }}" class="hover:text-[#52B788] transition">
+                                    {{ $navItem->label }}
+                                </a>
+                            </li>
+                        @endforeach
                     </ul>
                 </div>
                 <div>

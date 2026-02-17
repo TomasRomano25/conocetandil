@@ -4,22 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class InicioSection extends Model
+class NavItem extends Model
 {
-    protected $fillable = [
-        'key',
-        'title',
-        'subtitle',
-        'content',
-        'image',
-        'order',
-        'is_visible',
-    ];
+    protected $fillable = ['key', 'label', 'route_name', 'order', 'is_visible'];
 
     protected function casts(): array
     {
         return [
-            'order' => 'integer',
+            'order'      => 'integer',
             'is_visible' => 'boolean',
         ];
     }

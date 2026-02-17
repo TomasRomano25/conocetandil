@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\InicioSection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class InicioSectionController extends Controller
 {
@@ -28,6 +29,38 @@ class InicioSectionController extends Controller
         $inicioSection->update($validated);
 
         return redirect()->route('admin.inicio.index')->with('success', 'Sección actualizada correctamente.');
+    }
+
+    public function updateHeroImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
+        ]);
+
+        $hero = InicioSection::where('key', 'hero')->firstOrFail();
+
+        if ($hero->image) {
+            Storage::disk('public')->delete($hero->image);
+        }
+
+        $path = $request->file('image')->store('hero', 'public');
+        $hero->update(['image' => $path]);
+
+        return redirect()->route('admin.inicio.index')
+            ->with('success', 'Imagen del hero actualizada correctamente.');
+    }
+
+    public function deleteHeroImage()
+    {
+        $hero = InicioSection::where('key', 'hero')->firstOrFail();
+
+        if ($hero->image) {
+            Storage::disk('public')->delete($hero->image);
+            $hero->update(['image' => null]);
+        }
+
+        return redirect()->route('admin.inicio.index')
+            ->with('success', 'Imagen del hero eliminada.');
     }
 
     public function reorder(Request $request)

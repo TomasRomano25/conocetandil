@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LugarController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\InicioSectionController;
+use App\Http\Controllers\Admin\NavItemController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -28,7 +29,16 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('lugares', LugarController::class)->parameters(['lugares' => 'lugar']);
     Route::resource('usuarios', UserController::class)->except(['show']);
+
+    // Inicio sections (specific routes before parameterised)
     Route::get('inicio', [InicioSectionController::class, 'index'])->name('inicio.index');
-    Route::put('inicio/{inicioSection}', [InicioSectionController::class, 'update'])->name('inicio.update');
     Route::post('inicio/reorder', [InicioSectionController::class, 'reorder'])->name('inicio.reorder');
+    Route::post('inicio/hero-image', [InicioSectionController::class, 'updateHeroImage'])->name('inicio.hero-image');
+    Route::delete('inicio/hero-image', [InicioSectionController::class, 'deleteHeroImage'])->name('inicio.hero-image.delete');
+    Route::put('inicio/{inicioSection}', [InicioSectionController::class, 'update'])->name('inicio.update');
+
+    // Nav menu management
+    Route::get('nav', [NavItemController::class, 'index'])->name('nav.index');
+    Route::post('nav/reorder', [NavItemController::class, 'reorder'])->name('nav.reorder');
+    Route::put('nav/{navItem}', [NavItemController::class, 'update'])->name('nav.update');
 });

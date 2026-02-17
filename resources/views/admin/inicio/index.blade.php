@@ -4,6 +4,66 @@
 @section('header', 'Editar Página de Inicio')
 
 @section('content')
+
+    {{-- ── Hero Banner Image ───────────────────────────────────────────── --}}
+    @php $hero = $sections->firstWhere('key', 'hero'); @endphp
+    @if ($hero)
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8 max-w-2xl">
+            <h2 class="text-base font-bold text-[#1A1A1A] mb-1">Imagen del hero</h2>
+            <p class="text-sm text-gray-500 mb-4">
+                Esta imagen se muestra como fondo de la sección principal de la página de inicio.
+                Si no hay imagen, se usa el fondo de color verde.
+            </p>
+
+            {{-- Current image preview --}}
+            @if ($hero->image)
+                <div class="mb-4 relative inline-block">
+                    <img src="{{ asset('storage/' . $hero->image) }}"
+                         alt="Hero banner actual"
+                         class="w-full max-w-sm h-40 object-cover rounded-lg border border-gray-200">
+                    <span class="absolute top-2 left-2 bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        Activa
+                    </span>
+                </div>
+                {{-- Delete form --}}
+                <form method="POST" action="{{ route('admin.inicio.hero-image.delete') }}"
+                      onsubmit="return confirm('¿Eliminar la imagen del hero?')" class="mb-4">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit"
+                        class="text-red-600 hover:text-red-800 text-sm font-medium transition-colors">
+                        Eliminar imagen actual
+                    </button>
+                </form>
+            @else
+                <div class="mb-4 w-full max-w-sm h-40 bg-gradient-to-br from-[#2D6A4F]/15 to-[#52B788]/15 rounded-lg border border-dashed border-gray-300 flex items-center justify-center">
+                    <span class="text-sm text-gray-400">Sin imagen — se usa fondo verde</span>
+                </div>
+            @endif
+
+            {{-- Upload form --}}
+            <form method="POST" action="{{ route('admin.inicio.hero-image') }}"
+                  enctype="multipart/form-data" class="flex items-center gap-3 flex-wrap">
+                @csrf
+                <label class="flex-1 min-w-0">
+                    <input type="file" name="image" accept="image/*" required
+                        class="block w-full text-sm text-gray-600
+                               file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
+                               file:text-sm file:font-semibold
+                               file:bg-[#2D6A4F]/10 file:text-[#2D6A4F]
+                               hover:file:bg-[#2D6A4F]/20 file:cursor-pointer cursor-pointer">
+                </label>
+                <button type="submit"
+                    class="flex-shrink-0 bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2 px-5 rounded-lg transition text-sm">
+                    {{ $hero->image ? 'Reemplazar' : 'Subir imagen' }}
+                </button>
+            </form>
+            @error('image')
+                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+    @endif
+
     <p class="text-gray-600 mb-6">Arrastrá las secciones para reordenarlas. Podés editar el contenido y togglear la visibilidad.</p>
 
     <div id="sections-list" class="space-y-4">
