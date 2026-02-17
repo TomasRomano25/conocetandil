@@ -242,6 +242,9 @@ sudo nginx -t
 # Reload Nginx
 sudo systemctl reload nginx
 ```
+ssh ssh root@72.60.155.87 "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
+cat ~/.ssh/deploy_conocetandil.pub | ssh root@72.60.155.87 "cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+ssh -i ~/.ssh/deploy_conocetandil root@72.60.155.87 "echo 'SSH works'"
 
 ---
 
