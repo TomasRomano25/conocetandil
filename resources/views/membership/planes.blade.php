@@ -41,12 +41,23 @@
                 <p class="text-xs text-gray-400 mb-4">{{ $plan->description }}</p>
 
                 <div class="mb-5">
-                    <span class="text-3xl font-bold text-[#2D6A4F]">{{ $plan->formattedPrice() }}</span>
-                    <span class="text-sm text-gray-400 ml-1">/ {{ $plan->durationLabel() }}</span>
-                    @if ($plan->duration_months > 1)
-                    <p class="text-xs text-gray-400 mt-0.5">
-                        ≈ ${{ number_format($plan->price / $plan->duration_months, 0, ',', '.') }} por mes
-                    </p>
+                    @if ($plan->hasSale())
+                        <div class="flex items-baseline gap-2 flex-wrap">
+                            <s class="text-gray-400 text-base">{{ $plan->formattedPrice() }}</s>
+                            <span class="text-3xl font-bold text-[#2D6A4F]">{{ $plan->formattedEffectivePrice() }}</span>
+                            @if ($plan->sale_label)
+                                <span class="bg-amber-100 text-amber-700 text-xs rounded-full px-2 py-0.5 font-semibold">{{ $plan->sale_label }}</span>
+                            @endif
+                        </div>
+                        <span class="text-sm text-gray-400">/ {{ $plan->durationLabel() }}</span>
+                    @else
+                        <span class="text-3xl font-bold text-[#2D6A4F]">{{ $plan->formattedEffectivePrice() }}</span>
+                        <span class="text-sm text-gray-400 ml-1">/ {{ $plan->durationLabel() }}</span>
+                        @if ($plan->duration_months > 1)
+                        <p class="text-xs text-gray-400 mt-0.5">
+                            ≈ ${{ number_format($plan->effective_price / $plan->duration_months, 0, ',', '.') }} por mes
+                        </p>
+                        @endif
                     @endif
                 </div>
 

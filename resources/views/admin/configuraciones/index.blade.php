@@ -392,6 +392,61 @@
         </div>
     </div>
 
+    {{-- ══════════════════════════════════════════════════════════
+         reCAPTCHA
+         ══════════════════════════════════════════════════════════ --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <button type="button" onclick="toggleSection('recaptcha')"
+            class="w-full px-6 py-4 flex items-center gap-3 text-left hover:bg-gray-50 transition group">
+            <div class="w-9 h-9 bg-[#2D6A4F]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-[#1A1A1A]">reCAPTCHA v3</p>
+                <p class="text-xs text-gray-500 mt-0.5">Protección contra bots en formularios públicos</p>
+            </div>
+            @if (Configuration::get('recaptcha_site_key'))
+                <span class="text-xs font-medium bg-green-100 text-green-700 px-2 py-1 rounded-full flex-shrink-0">Configurado</span>
+            @else
+                <span class="text-xs font-medium bg-gray-100 text-gray-500 px-2 py-1 rounded-full flex-shrink-0">Sin configurar</span>
+            @endif
+            <svg id="chevron-recaptcha" class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+
+        <div id="section-recaptcha" class="hidden border-t border-gray-100">
+            <form method="POST" action="{{ route('admin.configuraciones.recaptcha.update') }}" class="px-6 py-5 space-y-5">
+                @csrf
+                <p class="text-xs text-gray-500">Registrá tu sitio en Google reCAPTCHA v3 y pegá aquí las claves. Si no configurás las claves, los formularios funcionarán sin verificación.</p>
+                <div class="grid grid-cols-1 gap-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Site Key (clave pública)</label>
+                        <input type="text" name="recaptcha_site_key" value="{{ old('recaptcha_site_key', $recaptcha['site_key']) }}"
+                            placeholder="6Lc..."
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Secret Key (clave privada)</label>
+                        <input type="password" name="recaptcha_secret_key" placeholder="Dejar vacío para no cambiar"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                        @if (Configuration::get('recaptcha_secret_key'))
+                            <p class="text-xs text-green-600 mt-1">✓ Secret key guardada</p>
+                        @endif
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit"
+                        class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm">
+                        Guardar reCAPTCHA
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 
 <script>

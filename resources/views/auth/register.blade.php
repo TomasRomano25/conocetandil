@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear cuenta - Conoce Tandil</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @php $rcKey = \App\Models\Configuration::get('recaptcha_site_key'); @endphp
+    @if($rcKey)
+    <script src="https://www.google.com/recaptcha/api.js?render={{ $rcKey }}" async defer></script>
+    @endif
 </head>
 <body class="min-h-screen bg-[#2D6A4F] flex items-center justify-center px-4 py-12">
     <div class="w-full max-w-md">
@@ -24,8 +28,9 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('register') }}">
+            <form id="register-form" method="POST" action="{{ route('register') }}">
                 @csrf
+                <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-register">
 
                 <div class="mb-4">
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
@@ -56,6 +61,20 @@
                     Crear cuenta
                 </button>
             </form>
+            @if(isset($rcKey) && $rcKey)
+            <script>
+            document.getElementById('register-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                var form = this;
+                grecaptcha.ready(function() {
+                    grecaptcha.execute('{{ $rcKey }}', {action: 'register'}).then(function(token) {
+                        document.getElementById('g-recaptcha-register').value = token;
+                        form.submit();
+                    });
+                });
+            });
+            </script>
+            @endif
 
             <p class="text-center text-sm text-gray-500 mt-6">
                 ¿Ya tenés cuenta?

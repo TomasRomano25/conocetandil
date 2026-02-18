@@ -25,6 +25,11 @@
     @endif
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    @php $rcSiteKey = \App\Models\Configuration::get('recaptcha_site_key'); @endphp
+    @if($rcSiteKey)
+    <script src="https://www.google.com/recaptcha/api.js?render={{ $rcSiteKey }}" async defer></script>
+    @endif
 </head>
 <body class="bg-white text-[#1A1A1A] min-h-screen flex flex-col">
 

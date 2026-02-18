@@ -7,12 +7,17 @@ use App\Models\Configuration;
 use App\Models\Form;
 use App\Models\Message;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 class MessageController extends Controller
 {
     public function store(Request $request, string $slug)
     {
+        if (!$this->verifyCaptcha($request)) {
+            return back()->withErrors(['captcha' => 'Verificación de seguridad fallida. Intentá de nuevo.'])->withInput();
+        }
+
         $form = Form::where('slug', $slug)->where('active', true)->firstOrFail();
 
         // Build validation rules from visible + required fields
@@ -58,6 +63,18 @@ class MessageController extends Controller
         }
 
         return back()->with('success', '¡Mensaje enviado correctamente! Te responderemos a la brevedad.');
+    }
+
+    private function verifyCaptcha(Request $request): bool
+    {
+        $secret = Configuration::get('recaptcha_secret_key');
+        if (!$secret) return true;
+        $resp = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret'   => $secret,
+            'response' => $request->input('g-recaptcha-response', ''),
+        ]);
+        $data = $resp->json();
+        return ($data['success'] ?? false) && ($data['score'] ?? 0) >= 0.5;
     }
 
     private function applySmtpConfig(): void

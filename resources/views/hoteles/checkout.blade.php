@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Checkout — ' . $plan->name)
+@section('title', 'Checkout — ' . $order->hotel->name)
 
 @section('content')
 
@@ -7,16 +7,16 @@
 <div class="max-w-3xl mx-auto px-4 sm:px-6">
 
     <div class="mb-6">
-        <a href="{{ route('membership.planes') }}"
+        <a href="{{ route('hoteles.owner.panel') }}"
             class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#2D6A4F] transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
-            Volver a los planes
+            Volver al panel
         </a>
     </div>
 
-    <h1 class="text-2xl font-bold text-[#1A1A1A] mb-8">Finalizar compra</h1>
+    <h1 class="text-2xl font-bold text-[#1A1A1A] mb-8">Finalizar registro del hotel</h1>
 
     <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
 
@@ -86,18 +86,18 @@
             {{-- Transfer amount reminder --}}
             <div class="bg-[#2D6A4F]/5 border border-[#2D6A4F]/20 rounded-2xl p-5">
                 <p class="text-sm text-[#2D6A4F] font-semibold mb-1">Monto a transferir</p>
-                @if ($plan->hasSale())
+                @if ($order->plan->hasSale())
                     <div class="flex items-baseline gap-2">
-                        <s class="text-gray-400 text-lg">{{ $plan->formattedPrice() }}</s>
-                        <span class="text-3xl font-bold text-[#2D6A4F]">{{ $plan->formattedEffectivePrice() }}</span>
-                        @if ($plan->sale_label)
-                            <span class="bg-amber-100 text-amber-700 text-xs rounded-full px-2 py-0.5 font-semibold">{{ $plan->sale_label }}</span>
+                        <s class="text-gray-400 text-lg">{{ $order->plan->formattedPrice() }}</s>
+                        <span class="text-3xl font-bold text-[#2D6A4F]" id="checkout-total-display">{{ $order->plan->formattedEffectivePrice() }}</span>
+                        @if ($order->plan->sale_label)
+                            <span class="bg-amber-100 text-amber-700 text-xs rounded-full px-2 py-0.5 font-semibold">{{ $order->plan->sale_label }}</span>
                         @endif
                     </div>
                 @else
-                    <p class="text-3xl font-bold text-[#2D6A4F]" id="checkout-total-display">{{ $plan->formattedEffectivePrice() }}</p>
+                    <p class="text-3xl font-bold text-[#2D6A4F]" id="checkout-total-display">{{ $order->plan->formattedEffectivePrice() }}</p>
                 @endif
-                <p class="text-xs text-gray-500 mt-1">Plan {{ $plan->name }} · {{ $plan->durationLabel() }}</p>
+                <p class="text-xs text-gray-500 mt-1">Plan {{ $order->plan->name }} · {{ $order->plan->durationLabel() }}</p>
             </div>
 
             {{-- Submit form --}}
@@ -107,27 +107,27 @@
                     Confirmá tu pedido
                 </h2>
                 <p class="text-sm text-gray-500 mb-5">
-                    Podés incluir el número de comprobante de la transferencia para que podamos verificarla más rápido.
+                    Una vez verificada la transferencia activaremos tu hotel en el directorio.
                 </p>
 
-                <form id="membership-checkout-form" method="POST" action="{{ route('membership.store', $plan->slug) }}">
+                <form id="hotel-checkout-form" method="POST" action="{{ route('hoteles.owner.storeCheckout', $order) }}">
                     @csrf
-                    <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-membership">
-                    <input type="hidden" name="promotion_id" id="promotion-id-input">
+                    <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-hotel-checkout">
+                    <input type="hidden" name="promotion_id" id="hotel-promotion-id-input">
 
                     {{-- Coupon code --}}
                     <div class="mb-5 border border-gray-200 rounded-xl p-4">
                         <p class="text-sm font-semibold text-gray-700 mb-2">¿Tenés un código de descuento?</p>
                         <div class="flex gap-2">
-                            <input type="text" id="coupon-code"
+                            <input type="text" id="hotel-coupon-code"
                                 placeholder="CODIGO"
                                 class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-[#52B788]">
-                            <button type="button" onclick="validateCoupon()"
+                            <button type="button" onclick="validateHotelCoupon()"
                                 class="bg-[#2D6A4F] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#1A1A1A] transition">
                                 Aplicar
                             </button>
                         </div>
-                        <div id="coupon-result" class="hidden mt-2 text-sm"></div>
+                        <div id="hotel-coupon-result" class="hidden mt-2 text-sm"></div>
                     </div>
 
                     <div class="mb-5">
@@ -149,7 +149,7 @@
                         Confirmar pedido →
                     </button>
                     <p class="text-xs text-gray-400 text-center mt-3">
-                        Al confirmar, aceptás que revisaremos la transferencia y activaremos tu cuenta en menos de 24 hs.
+                        Al confirmar, revisaremos la transferencia y activaremos tu hotel en el directorio.
                     </p>
                 </form>
             </div>
@@ -160,33 +160,24 @@
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sticky top-24">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Resumen</p>
 
-                <div class="flex items-center justify-between mb-3 pb-3 border-b border-gray-100">
-                    <div>
-                        <p class="font-bold text-[#1A1A1A]">{{ $plan->name }}</p>
-                        <p class="text-xs text-gray-400">{{ $plan->durationLabel() }} de acceso Premium</p>
-                    </div>
-                    <span class="font-bold text-[#2D6A4F]">{{ $plan->formattedEffectivePrice() }}</span>
+                <div class="mb-3 pb-3 border-b border-gray-100">
+                    <p class="font-bold text-[#1A1A1A]">{{ $order->hotel->name }}</p>
+                    <p class="text-xs text-gray-400 mt-0.5">{{ $order->plan->name }} · {{ $order->plan->durationLabel() }}</p>
                 </div>
 
-                <div id="discount-row" class="hidden flex justify-between text-sm text-green-600 pb-2">
+                <div class="flex justify-between text-sm py-1.5">
+                    <span class="text-gray-500">Precio base</span>
+                    <span class="font-semibold text-[#1A1A1A]">{{ $order->plan->formattedEffectivePrice() }}</span>
+                </div>
+
+                <div id="hotel-discount-row" class="hidden flex justify-between text-sm py-1.5 text-green-600">
                     <span>Descuento</span>
-                    <span id="discount-display">-$0</span>
+                    <span id="hotel-discount-display">-$0</span>
                 </div>
 
-                <div class="flex justify-between text-sm font-bold text-[#1A1A1A] pt-1">
+                <div class="flex justify-between text-sm font-bold text-[#1A1A1A] pt-2 border-t border-gray-100 mt-2">
                     <span>Total</span>
-                    <span id="total-display">{{ $plan->formattedEffectivePrice() }}</span>
-                </div>
-
-                <div class="mt-5 pt-4 border-t border-gray-100 space-y-2">
-                    @foreach ($plan->features ?? [] as $feature)
-                    <div class="flex items-start gap-2 text-xs text-gray-500">
-                        <svg class="w-3.5 h-3.5 text-[#2D6A4F] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        {{ $feature }}
-                    </div>
-                    @endforeach
+                    <span id="hotel-total-display">{{ $order->plan->formattedEffectivePrice() }}</span>
                 </div>
 
                 <div class="mt-5 pt-4 border-t border-gray-100 text-center">
@@ -194,6 +185,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 
 </div>
@@ -208,47 +200,49 @@ function copyText(text, btn) {
     });
 }
 
-var baseAmount = {{ $plan->effective_price }};
-var appliedDiscount = 0;
+var hotelBaseAmount = {{ $order->amount }};
+var hotelAppliedDiscount = 0;
 
-function validateCoupon() {
-    var code = document.getElementById('coupon-code').value.trim();
+function validateHotelCoupon() {
+    var code = document.getElementById('hotel-coupon-code').value.trim();
     if (!code) return;
-    var result = document.getElementById('coupon-result');
+    var result = document.getElementById('hotel-coupon-result');
     result.className = 'mt-2 text-sm text-gray-500';
     result.textContent = 'Validando...';
     result.classList.remove('hidden');
 
-    fetch('/api/validate-coupon?code=' + encodeURIComponent(code) + '&type=membership&plan_id={{ $plan->id }}&amount=' + baseAmount)
+    fetch('/api/validate-coupon?code=' + encodeURIComponent(code) + '&type=hotel&plan_id={{ $order->plan_id }}&amount=' + hotelBaseAmount)
         .then(r => r.json())
         .then(data => {
             if (data.valid) {
-                appliedDiscount = data.discount;
-                document.getElementById('promotion-id-input').value = data.promotion_id;
+                hotelAppliedDiscount = data.discount;
+                document.getElementById('hotel-promotion-id-input').value = data.promotion_id;
                 result.className = 'mt-2 text-sm text-green-600 font-semibold';
                 result.textContent = '✓ ' + data.message;
-                document.getElementById('discount-row').classList.remove('hidden');
-                document.getElementById('discount-display').textContent = '-' + data.discount_formatted;
-                var total = baseAmount - appliedDiscount;
-                document.getElementById('total-display').textContent = '$' + total.toLocaleString('es-AR');
+                document.getElementById('hotel-discount-row').classList.remove('hidden');
+                document.getElementById('hotel-discount-display').textContent = '-' + data.discount_formatted;
+                var total = hotelBaseAmount - hotelAppliedDiscount;
+                document.getElementById('hotel-total-display').textContent = '$' + total.toLocaleString('es-AR');
+                document.getElementById('checkout-total-display').textContent = '$' + total.toLocaleString('es-AR');
             } else {
-                appliedDiscount = 0;
-                document.getElementById('promotion-id-input').value = '';
+                hotelAppliedDiscount = 0;
+                document.getElementById('hotel-promotion-id-input').value = '';
                 result.className = 'mt-2 text-sm text-red-600';
                 result.textContent = data.message;
-                document.getElementById('discount-row').classList.add('hidden');
-                document.getElementById('total-display').textContent = '$' + baseAmount.toLocaleString('es-AR');
+                document.getElementById('hotel-discount-row').classList.add('hidden');
+                document.getElementById('hotel-total-display').textContent = '$' + hotelBaseAmount.toLocaleString('es-AR');
+                document.getElementById('checkout-total-display').textContent = '$' + hotelBaseAmount.toLocaleString('es-AR');
             }
         });
 }
 
 @if(\App\Models\Configuration::get('recaptcha_site_key'))
-document.getElementById('membership-checkout-form').addEventListener('submit', function(e) {
+document.getElementById('hotel-checkout-form').addEventListener('submit', function(e) {
     e.preventDefault();
     var form = this;
     grecaptcha.ready(function() {
-        grecaptcha.execute('{{ \App\Models\Configuration::get("recaptcha_site_key") }}', {action: 'checkout'}).then(function(token) {
-            document.getElementById('g-recaptcha-membership').value = token;
+        grecaptcha.execute('{{ \App\Models\Configuration::get("recaptcha_site_key") }}', {action: 'hotel_checkout'}).then(function(token) {
+            document.getElementById('g-recaptcha-hotel-checkout').value = token;
             form.submit();
         });
     });

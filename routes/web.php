@@ -22,6 +22,8 @@ use App\Http\Controllers\Admin\HotelController as AdminHotelController;
 use App\Http\Controllers\Admin\HotelContactController as AdminHotelContactController;
 use App\Http\Controllers\Admin\HotelPlanController;
 use App\Http\Controllers\Admin\HotelOrderController;
+use App\Http\Controllers\Admin\PromotionController;
+use App\Http\Controllers\CouponController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\HotelOwnerController;
 use Illuminate\Support\Facades\Route;
@@ -37,11 +39,16 @@ Route::middleware('auth')->prefix('hoteles')->name('hoteles.')->group(function (
     Route::get('/planes', [HotelOwnerController::class, 'planes'])->name('owner.planes');
     Route::get('/registrar/{plan:slug}', [HotelOwnerController::class, 'create'])->name('owner.create');
     Route::post('/registrar/{plan:slug}', [HotelOwnerController::class, 'store'])->name('owner.store');
+    Route::get('/checkout/{order}', [HotelOwnerController::class, 'checkout'])->name('owner.checkout');
+    Route::post('/checkout/{order}', [HotelOwnerController::class, 'storeCheckout'])->name('owner.storeCheckout');
     Route::get('/mi-hotel', [HotelOwnerController::class, 'panel'])->name('owner.panel');
     Route::get('/mi-hotel/editar', [HotelOwnerController::class, 'edit'])->name('owner.edit');
     Route::put('/mi-hotel', [HotelOwnerController::class, 'update'])->name('owner.update');
     Route::get('/pedido/{order}', [HotelOwnerController::class, 'confirmacion'])->name('owner.confirmacion');
 });
+
+// Coupon AJAX validation (public)
+Route::get('/api/validate-coupon', [CouponController::class, 'validate'])->name('coupon.validate');
 
 // Public routes
 Route::get('/', [PageController::class, 'inicio'])->name('inicio');
@@ -107,6 +114,7 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::get('configuraciones/backup/download', [ConfigurationController::class, 'downloadBackup'])->name('configuraciones.backup.download');
     Route::post('configuraciones/smtp', [ConfigurationController::class, 'updateSmtp'])->name('configuraciones.smtp.update');
     Route::post('configuraciones/payment', [ConfigurationController::class, 'updatePayment'])->name('configuraciones.payment.update');
+    Route::post('configuraciones/recaptcha', [ConfigurationController::class, 'updateRecaptcha'])->name('configuraciones.recaptcha.update');
 
     // Mensajes
     Route::get('mensajes', [AdminMessageController::class, 'index'])->name('mensajes.index');
@@ -142,6 +150,7 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::post('planes', [MembershipPlanController::class, 'store'])->name('planes.store');
     Route::put('planes/{plan}', [MembershipPlanController::class, 'update'])->name('planes.update');
     Route::delete('planes/{plan}', [MembershipPlanController::class, 'destroy'])->name('planes.destroy');
+    Route::post('planes/{plan}/sale', [MembershipPlanController::class, 'updateSale'])->name('planes.sale.update');
 
     // Secciones (editor de páginas)
     Route::get('secciones', [SeccionesController::class, 'index'])->name('secciones.index');
@@ -167,6 +176,13 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::post('hotel-planes', [HotelPlanController::class, 'store'])->name('hotel-planes.store');
     Route::put('hotel-planes/{hotelPlan}', [HotelPlanController::class, 'update'])->name('hotel-planes.update');
     Route::delete('hotel-planes/{hotelPlan}', [HotelPlanController::class, 'destroy'])->name('hotel-planes.destroy');
+    Route::post('hotel-planes/{hotelPlan}/sale', [HotelPlanController::class, 'updateSale'])->name('hotel-planes.sale.update');
+
+    // Promociones
+    Route::get('promociones', [PromotionController::class, 'index'])->name('promociones.index');
+    Route::post('promociones', [PromotionController::class, 'store'])->name('promociones.store');
+    Route::put('promociones/{promo}', [PromotionController::class, 'update'])->name('promociones.update');
+    Route::delete('promociones/{promo}', [PromotionController::class, 'destroy'])->name('promociones.destroy');
 
     // Contactos de hotel
     Route::get('hotel-contactos', [AdminHotelContactController::class, 'index'])->name('hotel-contactos.index');

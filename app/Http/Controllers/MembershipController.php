@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Configuration;
 use App\Models\MembershipPlan;
 use App\Models\Order;
+use App\Models\Promotion;
+use App\Models\PromotionUse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class MembershipController extends Controller
 {
@@ -28,17 +31,49 @@ class MembershipController extends Controller
     {
         abort_if(! $plan->active, 404);
 
+        if (!$this->verifyCaptcha($request)) {
+            return back()->withErrors(['captcha' => 'Verificación de seguridad fallida. Intentá de nuevo.'])->withInput();
+        }
+
         $request->validate([
             'transfer_reference' => 'nullable|string|max:255',
+            'promotion_id'       => 'nullable|integer|exists:promotions,id',
         ]);
+
+        $discount = 0;
+        $promotionId = null;
+
+        if ($request->filled('promotion_id')) {
+            $promo = Promotion::find($request->promotion_id);
+            if ($promo) {
+                $result = $promo->validateForCheckout('membership', $plan->id, (float) $plan->effective_price, auth()->id());
+                if ($result['valid']) {
+                    $discount    = $result['discount'];
+                    $promotionId = $promo->id;
+                }
+            }
+        }
 
         $order = Order::create([
             'user_id'            => auth()->id(),
             'plan_id'            => $plan->id,
             'status'             => 'pending',
-            'total'              => $plan->price,
+            'total'              => $plan->effective_price,
+            'discount'           => $discount,
+            'promotion_id'       => $promotionId,
             'transfer_reference' => $request->transfer_reference,
         ]);
+
+        if ($promotionId) {
+            PromotionUse::create([
+                'promotion_id'    => $promotionId,
+                'user_id'         => auth()->id(),
+                'orderable_type'  => 'membership',
+                'orderable_id'    => $order->id,
+                'discount_amount' => $discount,
+            ]);
+            Promotion::find($promotionId)->increment('uses_count');
+        }
 
         return redirect()->route('membership.confirmacion', $order);
     }
@@ -50,6 +85,18 @@ class MembershipController extends Controller
             'order'      => $order->load('plan'),
             'bankConfig' => $this->bankConfig(),
         ]);
+    }
+
+    private function verifyCaptcha(Request $request): bool
+    {
+        $secret = Configuration::get('recaptcha_secret_key');
+        if (!$secret) return true;
+        $resp = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret'   => $secret,
+            'response' => $request->input('g-recaptcha-response', ''),
+        ]);
+        $data = $resp->json();
+        return ($data['success'] ?? false) && ($data['score'] ?? 0) >= 0.5;
     }
 
     private function bankConfig(): array

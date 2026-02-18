@@ -74,4 +74,20 @@ class HotelPlanController extends Controller
         return redirect()->route('admin.hotel-planes.index')
             ->with('success', 'Plan eliminado.');
     }
+
+    public function updateSale(Request $request, HotelPlan $hotelPlan)
+    {
+        $request->validate([
+            'sale_price' => 'nullable|numeric|min:0',
+            'sale_label' => 'nullable|string|max:50',
+        ]);
+
+        $hotelPlan->update([
+            'sale_price' => $request->filled('sale_price') ? $request->input('sale_price') : null,
+            'sale_label' => $request->input('sale_label') ?: null,
+        ]);
+
+        return redirect()->route('admin.hotel-planes.index')
+            ->with('success', "Precio especial del plan \"{$hotelPlan->name}\" actualizado.");
+    }
 }

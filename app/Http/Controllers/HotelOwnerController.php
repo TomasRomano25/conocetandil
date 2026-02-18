@@ -6,7 +6,10 @@ use App\Models\Configuration;
 use App\Models\Hotel;
 use App\Models\HotelOrder;
 use App\Models\HotelPlan;
+use App\Models\Promotion;
+use App\Models\PromotionUse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -52,6 +55,10 @@ class HotelOwnerController extends Controller
             return redirect()->route('hoteles.owner.panel');
         }
 
+        if (!$this->verifyCaptcha($request)) {
+            return back()->withErrors(['captcha' => 'Verificación de seguridad fallida. Intentá de nuevo.'])->withInput();
+        }
+
         $rules = [
             'name'               => 'required|string|max:150',
             'hotel_type'         => 'nullable|string|max:100',
@@ -61,7 +68,6 @@ class HotelOwnerController extends Controller
             'phone'              => 'nullable|string|max:30',
             'email'              => 'required|email|max:150',
             'cover_image'        => 'nullable|image|max:3072',
-            'transfer_reference' => 'nullable|string|max:255',
         ];
 
         if ($plan->tier >= 2) {
@@ -154,17 +160,16 @@ class HotelOwnerController extends Controller
             }
         }
 
-        // Create order
+        // Create order (no transfer_reference yet — collected on checkout page)
         $order = HotelOrder::create([
-            'hotel_id'           => $hotel->id,
-            'user_id'            => auth()->id(),
-            'plan_id'            => $plan->id,
-            'amount'             => $plan->price,
-            'status'             => 'pending',
-            'transfer_reference' => $request->transfer_reference ?? null,
+            'hotel_id' => $hotel->id,
+            'user_id'  => auth()->id(),
+            'plan_id'  => $plan->id,
+            'amount'   => $plan->effective_price,
+            'status'   => 'pending',
         ]);
 
-        return redirect()->route('hoteles.owner.confirmacion', $order);
+        return redirect()->route('hoteles.owner.checkout', $order);
     }
 
     /** Owner hotel management panel */
@@ -268,6 +273,65 @@ class HotelOwnerController extends Controller
             ->with('success', 'Tu hotel fue actualizado. Revisaremos los cambios pronto.');
     }
 
+    /** Hotel checkout page — bank transfer details + coupon + transfer reference */
+    public function checkout(HotelOrder $order)
+    {
+        abort_if($order->user_id !== auth()->id(), 403);
+        abort_if(! $order->isPending(), 404);
+
+        $order->load(['hotel', 'plan']);
+
+        return view('hoteles.checkout', [
+            'order'      => $order,
+            'bankConfig' => $this->bankConfig(),
+        ]);
+    }
+
+    /** Process hotel checkout — apply coupon + save transfer reference */
+    public function storeCheckout(Request $request, HotelOrder $order)
+    {
+        abort_if($order->user_id !== auth()->id(), 403);
+        abort_if(! $order->isPending(), 404);
+
+        if (!$this->verifyCaptcha($request)) {
+            return back()->withErrors(['captcha' => 'Verificación de seguridad fallida. Intentá de nuevo.'])->withInput();
+        }
+
+        $request->validate([
+            'transfer_reference' => 'nullable|string|max:255',
+            'promotion_id'       => 'nullable|integer|exists:promotions,id',
+        ]);
+
+        $order->load('plan');
+        $updates = ['transfer_reference' => $request->transfer_reference];
+
+        // Apply promotion if provided
+        if ($request->filled('promotion_id')) {
+            $promo = Promotion::find($request->promotion_id);
+            if ($promo) {
+                $result = $promo->validateForCheckout('hotel', $order->plan_id, (float) $order->amount, auth()->id());
+                if ($result['valid']) {
+                    $updates['promotion_id'] = $promo->id;
+                    $updates['discount']     = $result['discount'];
+
+                    PromotionUse::create([
+                        'promotion_id'   => $promo->id,
+                        'user_id'        => auth()->id(),
+                        'orderable_type' => 'hotel',
+                        'orderable_id'   => $order->id,
+                        'discount_amount'=> $result['discount'],
+                    ]);
+
+                    $promo->increment('uses_count');
+                }
+            }
+        }
+
+        $order->update($updates);
+
+        return redirect()->route('hoteles.owner.confirmacion', $order);
+    }
+
     /** Confirmation page after registration */
     public function confirmacion(HotelOrder $order)
     {
@@ -277,6 +341,18 @@ class HotelOwnerController extends Controller
             'order'      => $order->load(['hotel', 'plan']),
             'bankConfig' => $this->bankConfig(),
         ]);
+    }
+
+    private function verifyCaptcha(Request $request): bool
+    {
+        $secret = Configuration::get('recaptcha_secret_key');
+        if (!$secret) return true;
+        $resp = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret'   => $secret,
+            'response' => $request->input('g-recaptcha-response', ''),
+        ]);
+        $data = $resp->json();
+        return ($data['success'] ?? false) && ($data['score'] ?? 0) >= 0.5;
     }
 
     private function bankConfig(): array

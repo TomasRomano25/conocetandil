@@ -8,11 +8,12 @@ class Order extends Model
 {
     protected $fillable = [
         'user_id', 'plan_id', 'status', 'total',
-        'transfer_reference', 'admin_notes', 'completed_at',
+        'transfer_reference', 'promotion_id', 'discount', 'admin_notes', 'completed_at',
     ];
 
     protected $casts = [
         'total'        => 'decimal:2',
+        'discount'     => 'decimal:2',
         'completed_at' => 'datetime',
     ];
 

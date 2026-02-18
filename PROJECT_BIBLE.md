@@ -1,6 +1,6 @@
 # Conoce Tandil — Project Bible
 
-> **Last updated:** 2026-02-18 (Hotel catalog improvements — hotel_type filters, amenity search, daily shuffle, view/contact tracking, reveal-email, admin analytics dashboard, contacts grid, SampleHotelSeeder)
+> **Last updated:** 2026-02-18 (Promotion/discount system + Hotel checkout flow + reCAPTCHA v3 on all public forms)
 > **Purpose:** Single source of truth for the entire project. Share this file with developers or AI assistants to provide full context.
 
 ---

@@ -34,8 +34,9 @@
                     @endif
 
                     @if ($form)
-                        <form action="{{ route('formulario.submit', $form->slug) }}" method="POST" class="space-y-5">
+                        <form id="contact-form" action="{{ route('formulario.submit', $form->slug) }}" method="POST" class="space-y-5">
                             @csrf
+                            <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-contact">
 
                             @foreach ($form->visibleFields as $field)
                                 <div>
@@ -84,11 +85,29 @@
                                 </div>
                             @endforeach
 
+                            @error('captcha')
+                                <p class="text-red-500 text-xs">{{ $message }}</p>
+                            @enderror
+
                             <button type="submit"
                                 class="w-full bg-[#2D6A4F] hover:bg-[#52B788] text-white font-bold py-3 rounded-lg transition">
                                 Enviar Mensaje
                             </button>
                         </form>
+                        @if(\App\Models\Configuration::get('recaptcha_site_key'))
+                        <script>
+                        document.getElementById('contact-form').addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            var form = this;
+                            grecaptcha.ready(function() {
+                                grecaptcha.execute('{{ \App\Models\Configuration::get("recaptcha_site_key") }}', {action: 'contact'}).then(function(token) {
+                                    document.getElementById('g-recaptcha-contact').value = token;
+                                    form.submit();
+                                });
+                            });
+                        });
+                        </script>
+                        @endif
                     @else
                         <p class="text-gray-500">El formulario de contacto no está disponible en este momento.</p>
                     @endif

@@ -15,6 +15,7 @@
         </div>
 
         <form
+            id="hotel-register-form"
             method="POST"
             action="{{ isset($hotel) ? route('hoteles.owner.update') : route('hoteles.owner.store', $plan) }}"
             enctype="multipart/form-data"
@@ -23,6 +24,7 @@
             @isset($hotel)
                 @method('PUT')
             @endisset
+            <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-hotel-register">
 
             {{-- Basic info --}}
             <div>
@@ -203,18 +205,6 @@
             </div>
             @endif
 
-            {{-- Transfer reference (only on create) --}}
-            @unless (isset($hotel))
-            <hr class="border-gray-200">
-            <div>
-                <label for="transfer_reference" class="block text-sm font-medium text-gray-700 mb-1">Número de comprobante de transferencia (opcional)</label>
-                <input type="text" name="transfer_reference" id="transfer_reference" value="{{ old('transfer_reference') }}"
-                    placeholder="Podés completarlo ahora o enviarlo después"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#52B788]">
-                <p class="text-xs text-gray-400 mt-1">Monto a transferir: <strong>{{ $plan->formattedPrice() }}</strong> · {{ $plan->name }} · {{ $plan->durationLabel() }}</p>
-            </div>
-            @endunless
-
             <div class="flex items-center gap-4 pt-2 border-t border-gray-100">
                 <button type="submit"
                     class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-3 px-8 rounded-xl transition">
@@ -311,5 +301,20 @@ document.querySelectorAll('.delete-img-check').forEach(cb => {
     });
 });
 </script>
+
+@if(\App\Models\Configuration::get('recaptcha_site_key') && !isset($hotel))
+<script>
+document.getElementById('hotel-register-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var form = this;
+    grecaptcha.ready(function() {
+        grecaptcha.execute('{{ \App\Models\Configuration::get("recaptcha_site_key") }}', {action: 'hotel_register'}).then(function(token) {
+            document.getElementById('g-recaptcha-hotel-register').value = token;
+            form.submit();
+        });
+    });
+});
+</script>
+@endif
 
 @endsection

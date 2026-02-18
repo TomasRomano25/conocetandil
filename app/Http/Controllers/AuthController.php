@@ -8,6 +8,7 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 
@@ -59,6 +60,10 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        if (!$this->verifyCaptcha($request)) {
+            return back()->withErrors(['captcha' => 'Verificación de seguridad fallida. Intentá de nuevo.'])->withInput();
+        }
+
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'max:255', 'unique:users'],
@@ -132,6 +137,18 @@ class AuthController extends Controller
     }
 
     // ─── Helpers ────────────────────────────────────────────────────────────
+
+    private function verifyCaptcha(Request $request): bool
+    {
+        $secret = Configuration::get('recaptcha_secret_key');
+        if (!$secret) return true;
+        $resp = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret'   => $secret,
+            'response' => $request->input('g-recaptcha-response', ''),
+        ]);
+        $data = $resp->json();
+        return ($data['success'] ?? false) && ($data['score'] ?? 0) >= 0.5;
+    }
 
     private function applySmtpConfig(): void
     {

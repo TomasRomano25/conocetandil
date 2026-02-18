@@ -6,7 +6,9 @@ use App\Mail\HotelContactMail;
 use App\Models\Hotel;
 use App\Models\HotelContact;
 use App\Models\HotelView;
+use App\Models\Configuration;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 class HotelController extends Controller
@@ -91,9 +93,25 @@ class HotelController extends Controller
         return view('hoteles.show', compact('hotel'));
     }
 
+    private function verifyCaptcha(Request $request): bool
+    {
+        $secret = Configuration::get('recaptcha_secret_key');
+        if (!$secret) return true;
+        $resp = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret'   => $secret,
+            'response' => $request->input('g-recaptcha-response', ''),
+        ]);
+        $data = $resp->json();
+        return ($data['success'] ?? false) && ($data['score'] ?? 0) >= 0.5;
+    }
+
     public function contact(Request $request, Hotel $hotel)
     {
         abort_if(! $hotel->isActive(), 404);
+
+        if (!$this->verifyCaptcha($request)) {
+            return back()->withErrors(['captcha' => 'Verificación de seguridad fallida. Intentá de nuevo.'])->withInput();
+        }
 
         $data = $request->validate([
             'name'    => 'required|string|max:100',

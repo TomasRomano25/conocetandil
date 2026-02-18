@@ -18,7 +18,17 @@
                     <span class="absolute -top-3 left-6 bg-amber-400 text-white text-xs font-bold px-3 py-1 rounded-full">✦ Más completo</span>
                 @endif
                 <p class="text-xs font-bold {{ $isDiamond ? 'text-amber-500' : 'text-[#2D6A4F]' }} uppercase tracking-widest mb-2">{{ $plan->tierLabel() }}</p>
-                <p class="text-3xl font-bold text-[#1A1A1A] mb-1">{{ $plan->formattedPrice() }}</p>
+                @if ($plan->hasSale())
+                    <div class="flex items-baseline gap-2 flex-wrap mb-1">
+                        <s class="text-gray-400 text-base">{{ $plan->formattedPrice() }}</s>
+                        <span class="text-3xl font-bold text-[#1A1A1A]">{{ $plan->formattedEffectivePrice() }}</span>
+                        @if ($plan->sale_label)
+                            <span class="bg-amber-100 text-amber-700 text-xs rounded-full px-2 py-0.5 font-semibold">{{ $plan->sale_label }}</span>
+                        @endif
+                    </div>
+                @else
+                    <p class="text-3xl font-bold text-[#1A1A1A] mb-1">{{ $plan->formattedEffectivePrice() }}</p>
+                @endif
                 <p class="text-gray-400 text-sm mb-6">por año</p>
 
                 @if ($plan->description)

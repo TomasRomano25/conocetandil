@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class MembershipPlan extends Model
 {
     protected $fillable = [
-        'name', 'slug', 'description', 'price',
+        'name', 'slug', 'description', 'price', 'sale_price', 'sale_label',
         'duration_months', 'features', 'active', 'sort_order',
     ];
 
     protected $casts = [
         'price'           => 'decimal:2',
+        'sale_price'      => 'decimal:2',
         'duration_months' => 'integer',
         'features'        => 'array',
         'active'          => 'boolean',
@@ -35,9 +36,24 @@ class MembershipPlan extends Model
         };
     }
 
+    public function getEffectivePriceAttribute(): float
+    {
+        return (float) ($this->sale_price ?? $this->price);
+    }
+
     public function formattedPrice(): string
     {
         return '$' . number_format($this->price, 0, ',', '.');
+    }
+
+    public function formattedEffectivePrice(): string
+    {
+        return '$' . number_format($this->effective_price, 0, ',', '.');
+    }
+
+    public function hasSale(): bool
+    {
+        return $this->sale_price !== null && (float) $this->sale_price < (float) $this->price;
     }
 
     public function scopeActive($query)

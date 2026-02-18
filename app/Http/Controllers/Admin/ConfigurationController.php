@@ -51,7 +51,12 @@ class ConfigurationController extends Controller
             'bank_instructions'   => Configuration::get('bank_instructions', ''),
         ];
 
-        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment'));
+        $recaptcha = [
+            'site_key'   => Configuration::get('recaptcha_site_key', ''),
+            'secret_key' => Configuration::get('recaptcha_secret_key', ''),
+        ];
+
+        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha'));
     }
 
     public function updateBackup(Request $request)
@@ -111,6 +116,22 @@ class ConfigurationController extends Controller
 
         return redirect()->route('admin.configuraciones.index')
             ->with('success', 'Datos de transferencia bancaria guardados.');
+    }
+
+    public function updateRecaptcha(Request $request)
+    {
+        $request->validate([
+            'recaptcha_site_key'   => 'nullable|string|max:255',
+            'recaptcha_secret_key' => 'nullable|string|max:255',
+        ]);
+
+        Configuration::set('recaptcha_site_key', $request->input('recaptcha_site_key') ?? '');
+        if ($request->filled('recaptcha_secret_key')) {
+            Configuration::set('recaptcha_secret_key', $request->input('recaptcha_secret_key'));
+        }
+
+        return redirect()->route('admin.configuraciones.index')
+            ->with('success', 'Configuración de reCAPTCHA guardada.');
     }
 
     public function updateSmtp(Request $request)
