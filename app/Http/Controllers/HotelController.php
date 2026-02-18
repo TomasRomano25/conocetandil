@@ -18,6 +18,16 @@ class HotelController extends Controller
         $hotelTypes = $all->whereNotNull('hotel_type')
             ->pluck('hotel_type')->unique()->sort()->values();
 
+        // Apply search filter
+        $search = trim($request->input('search', ''));
+        if ($search !== '') {
+            $needle = mb_strtolower($search);
+            $all = $all->filter(function ($hotel) use ($needle) {
+                return str_contains(mb_strtolower($hotel->name), $needle)
+                    || str_contains(mb_strtolower($hotel->address ?? ''), $needle);
+            });
+        }
+
         // Apply type filter
         if ($request->filled('type')) {
             $all = $all->where('hotel_type', $request->type);
@@ -51,10 +61,14 @@ class HotelController extends Controller
             'Pileta', 'Spa', 'Pet Friendly', 'Parrilla', 'Aire acondicionado',
         ];
 
+        $totalResults = $featured->count() + $standard->count() + $basic->count();
+
         return view('hoteles.index', compact(
             'featured', 'standard', 'basic',
             'hotelTypes', 'amenityOptions', 'selectedAmenities',
-        ))->with('selectedType', $request->input('type', ''));
+            'totalResults',
+        ))->with('selectedType', $request->input('type', ''))
+          ->with('selectedSearch', $search);
     }
 
     public function show(Hotel $hotel)
