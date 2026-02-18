@@ -1,12 +1,39 @@
+@php
+    $analyticsEnabled = \App\Models\Configuration::get('analytics_enabled', '0') === '1';
+    $analyticsGtmId   = $analyticsEnabled ? \App\Models\Configuration::get('analytics_gtm_id', '') : '';
+    $analyticsGa4Id   = $analyticsEnabled ? \App\Models\Configuration::get('analytics_ga4_id', '') : '';
+@endphp
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Conoce Tandil')</title>
+
+    @if ($analyticsGtmId)
+    {{-- Google Tag Manager --}}
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','{{ $analyticsGtmId }}');</script>
+    @elseif ($analyticsGa4Id)
+    {{-- Google Analytics 4 --}}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ $analyticsGa4Id }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ $analyticsGa4Id }}', { send_page_view: true });
+    </script>
+    @endif
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-white text-[#1A1A1A] min-h-screen flex flex-col">
+
+    @if ($analyticsGtmId)
+    {{-- Google Tag Manager (noscript) --}}
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $analyticsGtmId }}"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    @endif
+
     @php
         $navItems = \App\Models\NavItem::ordered()->visible()->get();
     @endphp
@@ -185,5 +212,75 @@
             });
         }
     </script>
+
+    @if ($analyticsGtmId || $analyticsGa4Id)
+    {{-- Funnel event tracking --}}
+    <script>
+    (function () {
+        function sendEvent(name, params) {
+            if (typeof gtag === 'function') {
+                gtag('event', name, params || {});
+            } else if (typeof dataLayer !== 'undefined') {
+                dataLayer.push(Object.assign({ event: name }, params || {}));
+            }
+        }
+
+        var path = window.location.pathname;
+
+        // Lugares / Guías — content engagement
+        if (path.match(/^\/lugares\/.+/)) {
+            sendEvent('view_item', {
+                item_name: document.title,
+                item_category: 'Lugar',
+                item_id: path,
+            });
+        } else if (path === '/lugares') {
+            sendEvent('view_item_list', { item_list_name: 'Lugares' });
+        } else if (path === '/guias') {
+            sendEvent('view_item_list', { item_list_name: 'Guías' });
+        }
+
+        // Premium upsell page
+        if (path === '/premium') {
+            sendEvent('view_promotion', {
+                promotion_name: 'Premium Upsell',
+                creative_slot: 'upsell_page',
+            });
+        }
+
+        // Membership plans page
+        if (path === '/premium/planes') {
+            sendEvent('view_item_list', { item_list_name: 'Planes Premium' });
+        }
+
+        // Checkout start
+        if (path.match(/^\/premium\/checkout\//)) {
+            sendEvent('begin_checkout', {
+                currency: 'ARS',
+                value: 0,
+            });
+        }
+
+        // Order confirmation — purchase
+        if (path.match(/^\/premium\/pedido\//)) {
+            var orderId = path.split('/').filter(Boolean).pop();
+            sendEvent('purchase', {
+                transaction_id: orderId,
+                currency: 'ARS',
+                value: 0,
+            });
+        }
+
+        // Contact page — track form submission
+        if (path === '/contacto') {
+            document.addEventListener('submit', function (e) {
+                if (e.target && e.target.tagName === 'FORM') {
+                    sendEvent('generate_lead', { form_destination: path });
+                }
+            });
+        }
+    })();
+    </script>
+    @endif
 </body>
 </html>

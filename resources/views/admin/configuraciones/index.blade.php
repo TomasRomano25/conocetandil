@@ -407,5 +407,66 @@
         </form>
     </div>
 
+
+    {{-- ══════════════════════════════════════════════════════════
+         ANALYTICS — Google Analytics 4 & GTM
+         ══════════════════════════════════════════════════════════ --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div class="w-9 h-9 bg-[#2D6A4F]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+            </div>
+            <div class="flex-1">
+                <h2 class="text-base font-bold text-[#1A1A1A]">Analytics</h2>
+                <p class="text-xs text-gray-500">Google Analytics 4 y Google Tag Manager</p>
+            </div>
+            <a href="{{ route('admin.analytics.dashboard') }}"
+                class="inline-flex items-center gap-1.5 text-sm text-[#2D6A4F] hover:underline font-medium">
+                Ver dashboard
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+        </div>
+
+        <div class="px-6 py-5 space-y-4">
+            {{-- Status indicators --}}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-xs text-gray-500 mb-1">Seguimiento</p>
+                    @php $analyticsOn = Configuration::get('analytics_enabled', '0') === '1'; @endphp
+                    <p class="text-sm font-bold {{ $analyticsOn ? 'text-green-700' : 'text-gray-400' }}">
+                        {{ $analyticsOn ? 'Activo' : 'Inactivo' }}
+                    </p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-xs text-gray-500 mb-1">GTM Container</p>
+                    @php $gtmId = Configuration::get('analytics_gtm_id', ''); @endphp
+                    <p class="text-sm font-mono font-bold {{ $gtmId ? 'text-[#2D6A4F]' : 'text-gray-400' }}">
+                        {{ $gtmId ?: 'Sin configurar' }}
+                    </p>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <p class="text-xs text-gray-500 mb-1">GA4 Measurement ID</p>
+                    @php $ga4Id = Configuration::get('analytics_ga4_id', ''); @endphp
+                    <p class="text-sm font-mono font-bold {{ $ga4Id ? 'text-[#2D6A4F]' : 'text-gray-400' }}">
+                        {{ $ga4Id ?: 'Sin configurar' }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+                <p class="text-xs text-gray-400">
+                    Configurá los IDs y credenciales en la sección de Analytics para activar el seguimiento y ver las métricas en el dashboard.
+                </p>
+                <a href="{{ route('admin.analytics.dashboard') }}"
+                    class="flex-shrink-0 ml-4 bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2 px-5 rounded-lg transition text-sm">
+                    Ir a Analytics
+                </a>
+            </div>
+        </div>
+    </div>
+
 </div>
 @endsection

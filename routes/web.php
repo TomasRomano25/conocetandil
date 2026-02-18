@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\NavItemController;
 use App\Http\Controllers\Admin\ConfigurationController;
 use App\Http\Controllers\Admin\MessageController as AdminMessageController;
 use App\Http\Controllers\Admin\FormController;
+use App\Http\Controllers\Admin\AnalyticsController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -124,4 +125,10 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::get('formularios/{formulario}/campos', [FormController::class, 'campos'])->name('formularios.campos');
     Route::put('formularios/{formulario}/campos/{campo}', [FormController::class, 'updateField'])->name('formularios.campos.update');
     Route::post('formularios/{formulario}/campos/reorder', [FormController::class, 'reorderFields'])->name('formularios.campos.reorder');
+
+    // Analytics
+    Route::get('analytics', [AnalyticsController::class, 'dashboard'])->name('analytics.dashboard');
+    Route::post('analytics/settings', [AnalyticsController::class, 'updateSettings'])->name('analytics.settings.update');
+    Route::post('analytics/refresh', [AnalyticsController::class, 'refresh'])->name('analytics.refresh');
+    Route::delete('analytics/credentials', [AnalyticsController::class, 'deleteCredentials'])->name('analytics.credentials.delete');
 });

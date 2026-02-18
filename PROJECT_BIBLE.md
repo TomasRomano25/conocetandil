@@ -1,6 +1,6 @@
 # Conoce Tandil — Project Bible
 
-> **Last updated:** 2026-02-18 (Ecommerce + Auth registration added)
+> **Last updated:** 2026-02-18 (Analytics module added — GA4, GTM, dashboard)
 > **Purpose:** Single source of truth for the entire project. Share this file with developers or AI assistants to provide full context.
 
 ---
@@ -28,6 +28,7 @@
 19. [Seeders & Sample Data](#19-seeders--sample-data)
 20. [Design System](#20-design-system)
 21. [Development Setup](#21-development-setup)
+22. [Analytics Module](#22-analytics-module)
 22. [Known Limitations & Pending Work](#22-known-limitations--pending-work)
 
 ---
@@ -1131,11 +1132,72 @@ php artisan tinker --execute="\App\Models\User::where('email','admin@conocetandi
 | Social media links | Placeholder | Footer links go to `#` |
 | API | None | No `routes/api.php` |
 | Tests | None | No test files |
-| Analytics | None | No tracking integration |
+| Analytics | ✅ Functional | GA4 + GTM injection, event tracking, Data API dashboard — see Section 22 |
 | Backup cron | Manual setup | Admin must add cron entry to server — see Section 15 |
 | Google Maps | Partial | Lat/lng stored; Google Maps URL generated via accessor; rendered in itinerary items view |
 | Payment verification | Manual | No automated bank transfer verification; admin confirms manually |
  
+---
+
+## 22. Analytics Module
+
+### Overview
+Full Google Analytics 4 and Google Tag Manager integration with admin dashboard.
+
+### Configuration keys (in `configurations` table)
+| Key | Description |
+|-----|-------------|
+| `analytics_enabled` | `'1'` = active, `'0'` = inactive |
+| `analytics_gtm_id` | GTM Container ID (e.g. `GTM-XXXXXXX`) |
+| `analytics_ga4_id` | GA4 Measurement ID (e.g. `G-XXXXXXXXXX`) — only used if no GTM |
+| `analytics_ga4_property_id` | Numeric GA4 Property ID for Data API |
+
+### Service Account credentials
+Stored at `storage/app/analytics/service-account.json` (not in git).
+
+### Files
+- `app/Http/Controllers/Admin/AnalyticsController.php` — dashboard, settings save, cache refresh, credentials delete
+- `app/Services/GoogleAnalyticsService.php` — JWT auth + concurrent GA4 Data API calls
+- `resources/views/admin/analytics/dashboard.blade.php` — full dashboard with Chart.js line chart
+- `resources/views/layouts/app.blade.php` — conditional GTM/GA4 script injection + funnel events
+
+### Admin Routes
+| Method | URI | Name |
+|--------|-----|------|
+| GET | `/admin/analytics` | `admin.analytics.dashboard` |
+| POST | `/admin/analytics/settings` | `admin.analytics.settings.update` |
+| POST | `/admin/analytics/refresh` | `admin.analytics.refresh` |
+| DELETE | `/admin/analytics/credentials` | `admin.analytics.credentials.delete` |
+
+### Dashboard metrics (last 28 days)
+- Overview cards: users, sessions, page views, bounce rate, avg session duration
+- Daily chart (Chart.js): sessions + page views over 30 days
+- Top 10 pages table
+- Traffic sources with bar visualization
+- Conversion funnel: all visitors → lugares/guías → premium → checkout → purchase
+
+### Event tracking (auto, frontend)
+| Event | Trigger |
+|-------|---------|
+| `view_item` | Individual lugar page |
+| `view_item_list` | Lugares list, Guías list, Premium planes |
+| `view_promotion` | Premium upsell page |
+| `begin_checkout` | Premium checkout page |
+| `purchase` | Order confirmation page |
+| `generate_lead` | Contact form submission |
+
+### Setup steps
+1. Create Google Cloud project, enable **Google Analytics Data API**
+2. Create Service Account → download JSON key
+3. In GA4: Admin → Property access management → add service account email as **Reader**
+4. In Admin → Analytics: enter GTM ID or GA4 ID, Property ID, upload JSON key
+5. Enable tracking toggle
+
+### Caching
+- Access token: 50 minutes (`ga4_access_token` cache key)
+- Metrics data: 1 hour (`ga4_metrics_{propertyId}` cache key)
+- "Actualizar datos" button clears both caches
+
 ---
 
 > **Maintenance Note:** Update this file after every significant change to structure, schema, routes, or features.
