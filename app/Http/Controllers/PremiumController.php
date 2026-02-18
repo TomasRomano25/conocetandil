@@ -7,10 +7,20 @@ use Illuminate\Http\Request;
 
 class PremiumController extends Controller
 {
-    /** Upsell page — shown to non-premium users */
-    public function upsell()
+    /** Smart entry point: hub for premium users, upsell for everyone else */
+    public function index()
     {
+        if (auth()->check() && auth()->user()->isPremium()) {
+            return redirect()->route('premium.hub');
+        }
+
         return view('premium.upsell');
+    }
+
+    /** Premium hub / panel — only for premium users */
+    public function hub()
+    {
+        return view('premium.hub');
     }
 
     /** Planner questionnaire — only premium users */

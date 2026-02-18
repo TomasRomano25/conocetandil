@@ -20,14 +20,56 @@
                 </a>
 
                 {{-- Desktop menu --}}
-                <div class="hidden md:flex space-x-8">
+                <div class="hidden md:flex items-center space-x-8">
                     @foreach ($navItems as $navItem)
                         <a href="{{ route($navItem->route_name) }}"
                            class="hover:text-[#52B788] transition {{ request()->routeIs($navItem->route_name) ? 'text-[#52B788] font-semibold' : '' }}">
                             {{ $navItem->label }}
                         </a>
                     @endforeach
-                    <a href="{{ url('/login') }}" class="hover:text-[#52B788] transition text-[#52B788]/70">Iniciar Sesión</a>
+
+                    {{-- Premium nav item --}}
+                    <a href="{{ route('premium.upsell') }}"
+                       class="flex items-center gap-1.5 text-amber-300 hover:text-amber-200 font-semibold transition {{ request()->is('premium*') ? 'text-amber-200' : '' }}">
+                        <span class="text-xs">✦</span>
+                        Premium
+                    </a>
+
+                    {{-- Auth area --}}
+                    @auth
+                        <div class="relative" id="user-menu-wrapper">
+                            <button id="user-menu-btn"
+                                class="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition">
+                                <span class="max-w-[120px] truncate">{{ auth()->user()->name }}</span>
+                                <svg class="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            <div id="user-menu-dropdown"
+                                class="absolute right-0 top-full mt-2 w-44 bg-white rounded-xl shadow-xl border border-gray-100 py-1 hidden z-50">
+                                @if (auth()->user()->is_admin)
+                                    <a href="{{ route('admin.dashboard') }}"
+                                        class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                                        Panel Admin
+                                    </a>
+                                @elseif (auth()->user()->isPremium())
+                                    <a href="{{ route('premium.hub') }}"
+                                        class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                                        Mi cuenta Premium
+                                    </a>
+                                @endif
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50">
+                                        Cerrar sesión
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}" class="hover:text-[#52B788] transition text-white/70 text-sm">Iniciar sesión</a>
+                    @endauth
                 </div>
 
                 {{-- Hamburger button --}}
@@ -41,14 +83,39 @@
 
         {{-- Mobile menu --}}
         <div id="mobile-menu" class="hidden md:hidden bg-[#2D6A4F] border-t border-[#52B788]/30">
-            <div class="px-4 py-3 space-y-2">
+            <div class="px-4 py-3 space-y-1">
                 @foreach ($navItems as $navItem)
                     <a href="{{ route($navItem->route_name) }}"
                        class="block py-2 hover:text-[#52B788] transition {{ request()->routeIs($navItem->route_name) ? 'text-[#52B788] font-semibold' : '' }}">
                         {{ $navItem->label }}
                     </a>
                 @endforeach
-                <a href="{{ url('/login') }}" class="block py-2 hover:text-[#52B788] transition text-[#52B788]/70">Iniciar Sesión</a>
+
+                {{-- Premium nav item --}}
+                <a href="{{ route('premium.upsell') }}"
+                   class="flex items-center gap-1.5 py-2 text-amber-300 font-semibold">
+                    <span class="text-xs">✦</span> Premium
+                </a>
+
+                <div class="pt-2 border-t border-[#52B788]/20 mt-2">
+                    @auth
+                        <p class="text-xs text-white/40 pb-1">{{ auth()->user()->name }}</p>
+                        @if (auth()->user()->is_admin)
+                            <a href="{{ route('admin.dashboard') }}" class="block py-2 text-sm text-white/80 hover:text-white transition">Panel Admin</a>
+                        @elseif (auth()->user()->isPremium())
+                            <a href="{{ route('premium.hub') }}" class="block py-2 text-sm text-white/80 hover:text-white transition">Mi cuenta Premium</a>
+                        @endif
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="block py-2 text-sm text-red-400 hover:text-red-300 transition text-left w-full">
+                                Cerrar sesión
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="block py-2 text-sm text-white/70 hover:text-white transition">Iniciar sesión</a>
+                        <a href="{{ route('register') }}" class="block py-2 text-sm text-white/70 hover:text-white transition">Registrarse</a>
+                    @endauth
+                </div>
             </div>
         </div>
     </nav>
@@ -104,6 +171,19 @@
             const menu = document.getElementById('mobile-menu');
             menu.classList.toggle('hidden');
         });
+
+        // User dropdown
+        const userBtn = document.getElementById('user-menu-btn');
+        const userDropdown = document.getElementById('user-menu-dropdown');
+        if (userBtn && userDropdown) {
+            userBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                userDropdown.classList.toggle('hidden');
+            });
+            document.addEventListener('click', function () {
+                userDropdown.classList.add('hidden');
+            });
+        }
     </script>
 </body>
 </html>
