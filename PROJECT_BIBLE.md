@@ -1,6 +1,6 @@
 # Conoce Tandil — Project Bible
 
-> **Last updated:** 2026-02-18
+> **Last updated:** 2026-02-18 (Premium Experience Module added)
 > **Purpose:** Single source of truth for the entire project. Share this file with developers or AI assistants to provide full context.
 
 ---
@@ -23,10 +23,11 @@
 14. [Image System](#14-image-system)
 15. [Backup System](#15-backup-system)
 16. [Messaging & Forms System](#16-messaging--forms-system)
-17. [Seeders & Sample Data](#17-seeders--sample-data)
-18. [Design System](#18-design-system)
-19. [Development Setup](#19-development-setup)
-20. [Known Limitations & Pending Work](#20-known-limitations--pending-work)
+17. [Premium Experience Module](#17-premium-experience-module)
+18. [Seeders & Sample Data](#18-seeders--sample-data)
+19. [Design System](#19-design-system)
+20. [Development Setup](#20-development-setup)
+21. [Known Limitations & Pending Work](#21-known-limitations--pending-work)
 
 ---
 
@@ -46,6 +47,7 @@
 - Admin inbox (Mensajes) for all submitted form messages with per-form filtering and read/unread tracking
 - SMTP email configuration stored in DB; sends notification emails on form submission
 - Mobile-optimized with touch carousel, sticky CTA, collapsible content
+- **Premium Experience Module** — membership-gated itinerary planner with day-by-day timelines, contextual editorial notes, and admin CRUD for itineraries
 
 ---
 
@@ -88,7 +90,8 @@ app/
 │   │       ├── MessageController.php   # Admin inbox (list, show, mark read, delete)
 │   │       └── FormController.php      # Form + field management
 │   └── Middleware/
-│       └── AdminMiddleware.php
+│       ├── AdminMiddleware.php
+│       └── PremiumMiddleware.php
 ├── Mail/
 │   └── NewMessageNotification.php      # Email sent on form submission
 ├── Models/
@@ -100,7 +103,9 @@ app/
 │   ├── Configuration.php              # Key-value site settings
 │   ├── Form.php                        # Form definitions
 │   ├── FormField.php                   # Per-form field definitions
-│   └── Message.php                     # Submitted form messages
+│   ├── Message.php                     # Submitted form messages
+│   ├── Itinerary.php                   # Premium itinerary with filter scope
+│   └── ItineraryItem.php               # Individual timeline activity
 
 database/
 ├── migrations/
@@ -115,7 +120,10 @@ database/
 │   ├── 2026_02_17_000003_create_configurations_table.php
 │   ├── 2026_02_18_000001_create_forms_table.php
 │   ├── 2026_02_18_000002_create_form_fields_table.php
-│   └── 2026_02_18_000003_create_messages_table.php
+│   ├── 2026_02_18_000003_create_messages_table.php
+│   ├── 2026_02_18_100001_add_premium_to_users_table.php
+│   ├── 2026_02_18_100002_create_itineraries_table.php
+│   └── 2026_02_18_100003_create_itinerary_items_table.php
 ├── seeders/
 │   ├── DatabaseSeeder.php
 │   ├── AdminUserSeeder.php
@@ -148,10 +156,16 @@ resources/
     │       └── cta_contacto.blade.php
     ├── emails/
     │   └── new-message.blade.php       # HTML email template for form notifications
+    ├── premium/
+    │   ├── upsell.blade.php            # Elegant upsell for non-premium users
+    │   ├── planner.blade.php           # Planning questionnaire
+    │   ├── resultados.blade.php        # Matched itinerary cards
+    │   └── itinerario.blade.php        # Full day-by-day timeline view
     └── admin/
         ├── dashboard.blade.php
         ├── lugares/ (index, create, edit)
-        ├── usuarios/ (index, create, edit)
+        ├── usuarios/ (index, create, edit)    # Includes premium management
+        ├── itinerarios/ (index, create, edit, _form, items)
         ├── inicio/
         │   └── index.blade.php         # Sections editor + hero image upload
         ├── nav/
@@ -188,6 +202,7 @@ storage/app/
 | email | string | unique |
 | password | string | hashed |
 | is_admin | boolean | default: false |
+| premium_expires_at | timestamp | nullable — null means no premium |
 | timestamps | | |
 
 ### `lugares`
@@ -312,6 +327,43 @@ storage/app/
 | ip_address | string(45) | nullable |
 | timestamps | | |
 
+### `itineraries`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | bigint PK | |
+| title | string | |
+| slug | string | unique — used in URL |
+| description | text | nullable |
+| intro_tip | text | nullable — editorial tip shown at top of detail page |
+| days_min | integer | minimum days this itinerary fits |
+| days_max | integer | maximum days this itinerary fits |
+| type | string | nature / gastronomy / adventure / relax / mixed |
+| season | string | summer / winter / all |
+| requires_car | boolean | default: false |
+| kid_friendly | boolean | default: true |
+| active | boolean | default: true |
+| sort_order | integer | default: 0 |
+| cover_image | string | nullable — path to cover photo |
+| timestamps | | |
+
+### `itinerary_items`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | bigint PK | |
+| itinerary_id | foreignId | cascadeOnDelete |
+| lugar_id | foreignId | nullable, references lugares.id, nullOnDelete |
+| day | integer | day number (1, 2, 3…) |
+| time_block | string | morning / lunch / afternoon / evening / flexible |
+| sort_order | integer | display order within the day+block |
+| custom_title | string | nullable — overrides lugar title |
+| duration_minutes | integer | nullable — estimated time |
+| estimated_cost | string | nullable — e.g. "Gratis" or "$500–$1000" |
+| why_order | text | nullable — "Ideal ir temprano porque…" |
+| contextual_notes | text | nullable — weather tips, warnings |
+| skip_if | text | nullable — "Saltá esto si no tenés auto" |
+| why_worth_it | text | nullable — "Vale la pena porque…" |
+| timestamps | | |
+
 ### System tables
 `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`, `password_reset_tokens` — standard Laravel.
 
@@ -328,8 +380,18 @@ storage/app/
 | GET | `/guias` | PageController@guias | guias |
 | GET | `/contacto` | PageController@contacto | contacto |
 | POST | `/formulario/{slug}` | MessageController@store | formulario.submit |
+| GET | `/premium` | PremiumController@upsell | premium.upsell |
 
 `/lugares` accepts query params: `?q=search+term&category=Naturaleza`
+
+### Premium (middleware: auth + premium)
+| Method | URI | Controller@action | Name |
+|--------|-----|-------------------|------|
+| GET | `/premium/planificar` | PremiumController@planner | premium.planner |
+| GET | `/premium/resultados` | PremiumController@resultados | premium.resultados |
+| GET | `/premium/itinerario/{itinerary:slug}` | PremiumController@show | premium.show |
+
+`/premium/resultados` accepts GET params: `days`, `type`, `season`, `kids`, `car`
 
 ### Auth
 | Method | URI | Controller@action | Name |
@@ -367,15 +429,27 @@ storage/app/
 | GET | `/admin/formularios/{formulario}/campos` | FormController@campos | admin.formularios.campos |
 | PUT | `/admin/formularios/{formulario}/campos/{campo}` | FormController@updateField | admin.formularios.campos.update |
 | POST | `/admin/formularios/{formulario}/campos/reorder` | FormController@reorderFields | admin.formularios.campos.reorder |
+| GET | `/admin/itinerarios` | ItineraryController@index | admin.itinerarios.index |
+| GET | `/admin/itinerarios/create` | ItineraryController@create | admin.itinerarios.create |
+| POST | `/admin/itinerarios` | ItineraryController@store | admin.itinerarios.store |
+| GET | `/admin/itinerarios/{id}/edit` | ItineraryController@edit | admin.itinerarios.edit |
+| PUT | `/admin/itinerarios/{id}` | ItineraryController@update | admin.itinerarios.update |
+| DELETE | `/admin/itinerarios/{id}` | ItineraryController@destroy | admin.itinerarios.destroy |
+| GET | `/admin/itinerarios/{id}/items` | ItineraryController@items | admin.itinerarios.items |
+| POST | `/admin/itinerarios/{id}/items` | ItineraryController@storeItem | admin.itinerarios.items.store |
+| PUT | `/admin/itinerarios/{id}/items/{item}` | ItineraryController@updateItem | admin.itinerarios.items.update |
+| DELETE | `/admin/itinerarios/{id}/items/{item}` | ItineraryController@destroyItem | admin.itinerarios.items.destroy |
+| POST | `/admin/usuarios/{usuario}/premium/grant` | UserController@grantPremium | admin.usuarios.premium.grant |
+| POST | `/admin/usuarios/{usuario}/premium/revoke` | UserController@revokePremium | admin.usuarios.premium.revoke |
 
 ---
 
 ## 6. Models
 
 ### `User`
-- **Fillable:** name, email, password, is_admin
-- **Casts:** password (hashed), is_admin (boolean)
-- **Methods:** `isAdmin(): bool`
+- **Fillable:** name, email, password, is_admin, premium_expires_at
+- **Casts:** password (hashed), is_admin (boolean), premium_expires_at (datetime)
+- **Methods:** `isAdmin(): bool`, `isPremium(): bool` — true if admin OR `premium_expires_at` is in the future
 
 ### `Lugar`
 - **Fillable:** title, direction, description, image, featured, order, category, rating, phone, website, opening_hours, promotion_title, promotion_description, promotion_url, latitude, longitude
@@ -422,6 +496,19 @@ storage/app/
 - **Relationships:** `form()` → belongsTo Form
 - **Helpers:** `getValue(string $name): ?string` — reads a value from the `data` JSON by field name
 
+### `Itinerary`
+- **Fillable:** title, slug, description, intro_tip, days_min, days_max, type, season, requires_car, kid_friendly, active, sort_order, cover_image
+- **Casts:** requires_car, kid_friendly, active (bool); days_min, days_max, sort_order (int)
+- **Relationships:** `items()` → hasMany ItineraryItem ordered by day then sort_order
+- **Scopes:** `active()`, `ordered()`, `matchFilters($days, $type, $season, $kids, $car)` — filters by day range overlap, type (mixed matches all), season (all matches all), car requirement, kid_friendly
+- **Methods:** `itemsByDay()` — returns items grouped by day number; `timeBlockLabel(string $block): string`; `timeBlockIcon(string $block): string`
+
+### `ItineraryItem`
+- **Fillable:** itinerary_id, lugar_id, day, time_block, sort_order, custom_title, duration_minutes, estimated_cost, why_order, contextual_notes, skip_if, why_worth_it
+- **Casts:** day, sort_order, duration_minutes (int)
+- **Relationships:** `itinerary()` → belongsTo Itinerary; `lugar()` → belongsTo Lugar
+- **Methods:** `displayTitle(): string` — custom_title ?? lugar->title ?? '—'; `formattedDuration(): ?string` — "2h 30min" format
+
 ---
 
 ## 7. Controllers
@@ -447,6 +534,8 @@ storage/app/
 
 ### `Admin\UserController`
 - CRUD (except show). Prevents self-deletion. Password optional on update.
+- `grantPremium(Request, User)` — sets premium_expires_at based on duration (1month/3months/6months/1year/custom date); extends existing expiry if already premium
+- `revokePremium(User)` — clears premium_expires_at
 
 ### `Admin\InicioSectionController`
 - `index()` — all sections ordered
@@ -480,12 +569,28 @@ storage/app/
 - `updateField(Request, Form, FormField)` — saves label, placeholder, required, visible
 - `reorderFields(Request, Form)` — accepts `order[]` array of IDs, updates sort_order
 
+### `Admin\ItineraryController`
+- Full CRUD for itineraries with cover image upload (stored to `itineraries/` in public disk)
+- `items(Itinerary)` — loads all items grouped by day (with lugar options) for the item editor
+- `storeItem(Request, Itinerary)` — creates new itinerary item
+- `updateItem(Request, Itinerary, ItineraryItem)` — updates item (inline edit modal in view)
+- `destroyItem(Itinerary, ItineraryItem)` — deletes item
+
+### `PremiumController` (public)
+- `upsell()` — renders `/premium` page; accessible to all users
+- `planner()` — renders questionnaire form (auth + premium required)
+- `resultados(Request)` — validates GET params (days required, type/season default mixed/all), calls `Itinerary::matchFilters()`, returns matched itinerary list
+- `show(Itinerary)` — 404 if inactive; loads items with lugar.images; calls `itemsByDay()` for grouping; renders timeline view
+
 ---
 
 ## 8. Middleware
 
 ### `AdminMiddleware` (alias: `admin`)
 Registered in `bootstrap/app.php`. Checks `auth()->check() && auth()->user()->is_admin`. Returns 403 if not admin.
+
+### `PremiumMiddleware` (alias: `premium`)
+Registered in `bootstrap/app.php`. Checks `auth()->check() && auth()->user()->isPremium()`. Redirects to `premium.upsell` if not premium (admins always pass — `isPremium()` returns true for admins).
 
 ---
 
@@ -498,7 +603,7 @@ Registered in `bootstrap/app.php`. Checks `auth()->check() && auth()->user()->is
 - Sticky green navbar, mobile hamburger menu, 3-column footer
 
 ### Admin Layout (`layouts/admin.blade.php`)
-Sidebar links: Dashboard, Lugares, Usuarios, Editar Inicio, **Menú de Navegación**, **Mensajes** (with unread badge count), **Formularios**, **Configuraciones**, Ver sitio, Cerrar Sesión.
+Sidebar links: Dashboard, Lugares, Usuarios, Editar Inicio, **Menú de Navegación**, **Itinerarios Premium**, **Mensajes** (with unread badge count), **Formularios**, **Configuraciones**, Ver sitio, Cerrar Sesión.
 The unread badge is computed inline: `\App\Models\Message::where('is_read', false)->count()`.
 
 ### Place Detail Page (`pages/lugar.blade.php`) — Premium
@@ -694,7 +799,46 @@ Runs every minute; the command self-governs via the configured interval.
 
 ---
 
-## 17. Seeders & Sample Data
+## 17. Premium Experience Module
+
+### Overview
+A gated membership feature accessible at `/premium`. Non-members (not logged in or no active membership) see an elegant upsell page at `/premium`. Members access a planning questionnaire, get filtered itinerary suggestions, and view full day-by-day timeline plans.
+
+### User flow
+1. User visits `/premium` — sees upsell (Free vs Premium comparison, how it works)
+2. If logged in with active premium → redirected through to planner automatically; else prompted to contact admin
+3. `/premium/planificar` — questionnaire: days (1–7), type (nature/gastronomy/adventure/relax/mixed), season (summer/winter/all), kids (checkbox), car (checkbox)
+4. Submit → GET `/premium/resultados?days=2&type=nature&season=summer`
+5. Matched itineraries shown as cards; click → `/premium/itinerario/{slug}`
+6. Full timeline: cover hero, intro_tip tip card, days grouped → time blocks → activity cards
+
+### Activity card layout
+Each `ItineraryItem` renders:
+- Left: lugar thumbnail (first gallery image)
+- Right: title + duration badge + cost badge + address + why_order text
+- Bottom panel (gray bg): contextual_notes (⚠️), skip_if (⏭️), why_worth_it (⭐), Google Maps link
+
+### Membership management (Admin → Usuarios → Edit)
+- Premium status shown with expiry date + diffForHumans
+- Grant form: dropdown (1 month / 3 months / 6 months / 1 year / custom date) + amber "Otorgar Premium" button
+- If already premium, button reads "Extender Premium" (extends from current expiry)
+- Revoke link appears only when active
+
+### Itinerary matching logic (`Itinerary::scopeMatchFilters`)
+- `days` must fall within `[days_min, days_max]` range
+- `type` matched exactly unless itinerary type is 'mixed' (matches any) OR requested type is 'mixed' (matches all)
+- `season` matched exactly unless itinerary season is 'all' (matches any) OR requested season is 'all' (matches all)
+- `car=false` → excludes itineraries with `requires_car=true`
+- `kids=true` → limits to `kid_friendly=true` itineraries
+
+### Admin Itinerarios (`/admin/itinerarios`)
+- Index: list with title, days range, type, season, active toggle visual, actions
+- Create/Edit: _form partial (title, slug, description, intro_tip, days_min/max, type, season, requires_car, kid_friendly, active, sort_order, cover image)
+- Items editor (`/admin/itinerarios/{id}/items`): items grouped by day, add-item form at bottom, inline edit modal via JavaScript
+
+---
+
+## 18. Seeders & Sample Data
 
 ### `DatabaseSeeder` calls:
 1. **AdminUserSeeder** — creates admin@conocetandil.com / password (is_admin: true)
@@ -714,7 +858,7 @@ php artisan db:seed --class=FormSeeder
 
 ---
 
-## 18. Design System
+## 19. Design System
 
 ### Colors
 | Name | Hex | Usage |
@@ -739,7 +883,7 @@ php artisan db:seed --class=FormSeeder
 
 ---
 
-## 19. Development Setup
+## 20. Development Setup
 
 ### Prerequisites
 - PHP 8.2+, Composer, Node.js 20+, SQLite
@@ -770,22 +914,24 @@ php artisan tinker --execute="\App\Models\User::where('email','admin@conocetandi
 
 ---
 
-## 20. Known Limitations & Pending Work
+## 21. Known Limitations & Pending Work
 
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Contact form | ✅ Functional | Dynamic fields, DB storage, email notification |
 | Email sending | Configurable | SMTP set via Admin Configuraciones; silently fails if not set |
+| Premium Module | ✅ Functional | Membership, planner, itinerary timelines, admin CRUD |
+| Premium payment | Not implemented | Admin grants membership manually |
+| Form field creation | Not implemented | Fields added via seeder/tinker; admin can edit but not add new fields yet |
 | Guides pricing/checkout | Static | No payment or cart |
 | Social media links | Placeholder | Footer links go to `#` |
 | Password reset | Not implemented | No forgot password flow |
 | User registration | Not implemented | Admin creates users manually |
-| Form field creation | Not implemented | Fields added via seeder/tinker; admin can edit but not add new fields yet |
 | API | None | No `routes/api.php` |
 | Tests | None | No test files |
 | Analytics | None | No tracking integration |
 | Backup cron | Manual setup | Admin must add cron entry to server — see Section 15 |
-| Google Maps | Placeholder | Lat/lng stored but map not rendered |
+| Google Maps | Partial | Lat/lng stored; Google Maps URL generated via accessor; rendered in itinerary items view |
  
 ---
 
