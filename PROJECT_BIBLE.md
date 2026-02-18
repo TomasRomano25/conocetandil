@@ -786,7 +786,7 @@ php artisan tinker --execute="\App\Models\User::where('email','admin@conocetandi
 | Analytics | None | No tracking integration |
 | Backup cron | Manual setup | Admin must add cron entry to server — see Section 15 |
 | Google Maps | Placeholder | Lat/lng stored but map not rendered |
-
+ 
 ---
 
 > **Maintenance Note:** Update this file after every significant change to structure, schema, routes, or features.
