@@ -33,6 +33,9 @@ php artisan event:cache
 echo ">> Restarting queue workers..."
 php artisan queue:restart
 
+echo ">> Fixing storage permissions..."
+chmod -R 775 storage bootstrap/cache
+
 echo ">> Reloading PHP-FPM..."
 sudo systemctl reload php8.3-fpm
 
