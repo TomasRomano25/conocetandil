@@ -25,6 +25,7 @@ php artisan db:seed --class=InicioSectionSeeder --force
 php artisan db:seed --class=MembershipPlanSeeder --force
 php artisan db:seed --class=HotelPlanSeeder --force
 php artisan db:seed --class=NavItemSeeder --force
+php artisan db:seed --class=SampleHotelSeeder --force
 
 echo ">> Caching configuration..."
 php artisan config:cache

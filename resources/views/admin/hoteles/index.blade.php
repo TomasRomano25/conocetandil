@@ -36,6 +36,9 @@
                     <td class="py-3 px-4">
                         <p class="font-semibold text-[#1A1A1A]">{{ $hotel->name }}</p>
                         <p class="text-gray-400 text-xs">{{ $hotel->address }}</p>
+                        @if ($hotel->hotel_type)
+                            <span class="inline-block mt-1 px-1.5 py-0.5 rounded text-[0.65rem] font-semibold bg-gray-100 text-gray-500">{{ $hotel->hotel_type }}</span>
+                        @endif
                     </td>
                     <td class="py-3 px-4">
                         <p class="text-gray-700">{{ $hotel->user->name }}</p>

@@ -58,6 +58,12 @@
                 <dt class="text-gray-500 font-medium">Plan</dt>
                 <dd class="col-span-2 font-semibold">{{ $hotel->plan->name }} ({{ $hotel->plan->tierLabel() }})</dd>
             </div>
+            @if ($hotel->hotel_type)
+            <div class="grid grid-cols-3 gap-2">
+                <dt class="text-gray-500 font-medium">Tipo</dt>
+                <dd class="col-span-2">{{ $hotel->hotel_type }}</dd>
+            </div>
+            @endif
             <div class="grid grid-cols-3 gap-2">
                 <dt class="text-gray-500 font-medium">Propietario</dt>
                 <dd class="col-span-2">{{ $hotel->user->name }} — {{ $hotel->user->email }}</dd>

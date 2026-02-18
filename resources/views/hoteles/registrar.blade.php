@@ -33,6 +33,26 @@
             </div>
 
             <div>
+                <label for="hotel_type" class="block text-sm font-medium text-gray-700 mb-1">Tipo de alojamiento</label>
+                <input type="text" name="hotel_type" id="hotel_type"
+                    value="{{ old('hotel_type', $hotel->hotel_type ?? '') }}"
+                    placeholder="ej. Hotel, Cabaña, Hostel, Apart Hotel, ..."
+                    list="hotel-type-suggestions"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                <datalist id="hotel-type-suggestions">
+                    <option value="Hotel">
+                    <option value="Cabaña">
+                    <option value="Hostel">
+                    <option value="Apart Hotel">
+                    <option value="Bed & Breakfast">
+                    <option value="Camping">
+                    <option value="Posada">
+                    <option value="Glamping">
+                </datalist>
+                @error('hotel_type') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
                 <label for="short_description" class="block text-sm font-medium text-gray-700 mb-1">Descripción corta</label>
                 <input type="text" name="short_description" id="short_description"
                     value="{{ old('short_description', $hotel->short_description ?? '') }}"

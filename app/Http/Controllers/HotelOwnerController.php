@@ -54,6 +54,7 @@ class HotelOwnerController extends Controller
 
         $rules = [
             'name'               => 'required|string|max:150',
+            'hotel_type'         => 'nullable|string|max:100',
             'short_description'  => 'nullable|string|max:255',
             'description'        => 'required|string',
             'address'            => 'required|string|max:255',
@@ -107,6 +108,7 @@ class HotelOwnerController extends Controller
             'plan_id'           => $plan->id,
             'name'              => $data['name'],
             'slug'              => $slug,
+            'hotel_type'        => $data['hotel_type'] ?? null,
             'short_description' => $data['short_description'] ?? null,
             'description'       => $data['description'],
             'address'           => $data['address'],
@@ -197,6 +199,7 @@ class HotelOwnerController extends Controller
 
         $rules = [
             'name'              => 'required|string|max:150',
+            'hotel_type'        => 'nullable|string|max:100',
             'short_description' => 'nullable|string|max:255',
             'description'       => 'required|string',
             'address'           => 'required|string|max:255',

@@ -11,15 +11,50 @@ class HotelController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Hotel::active()->with(['plan', 'images'])->ordered();
+        // All active hotels with plan loaded (for tier grouping)
+        $all = Hotel::active()->with(['plan'])->get();
 
-        if ($request->filled('tier')) {
-            $query->whereHas('plan', fn($q) => $q->where('tier', $request->tier));
+        // Distinct types for filter tabs (from ALL active hotels, not filtered)
+        $hotelTypes = $all->whereNotNull('hotel_type')
+            ->pluck('hotel_type')->unique()->sort()->values();
+
+        // Apply type filter
+        if ($request->filled('type')) {
+            $all = $all->where('hotel_type', $request->type);
         }
 
-        $hotels = $query->get();
+        // Apply amenity filter — ALL selected must be present
+        $selectedAmenities = array_filter((array) $request->input('amenities', []));
+        if (! empty($selectedAmenities)) {
+            $all = $all->filter(function ($hotel) use ($selectedAmenities) {
+                $services = $hotel->services ?? [];
+                return count(array_intersect($selectedAmenities, $services)) === count($selectedAmenities);
+            });
+        }
 
-        return view('hoteles.index', compact('hotels'));
+        // Group by tier
+        $featured = $all->filter(fn($h) => $h->plan && $h->plan->tier === 3)->values();
+        $standard = $all->filter(fn($h) => $h->plan && $h->plan->tier === 2)->values();
+        $basic    = $all->filter(fn($h) => $h->plan && $h->plan->tier === 1)->values();
+
+        // Daily shuffle — same order all day, rotates at midnight
+        $seed = crc32(date('Y-m-d'));
+        foreach (['featured', 'standard', 'basic'] as $group) {
+            $arr = $$group->all();
+            srand($seed);
+            shuffle($arr);
+            $$group = collect($arr);
+        }
+
+        $amenityOptions = [
+            'WiFi', 'Estacionamiento', 'Desayuno incluido',
+            'Pileta', 'Spa', 'Pet Friendly', 'Parrilla', 'Aire acondicionado',
+        ];
+
+        return view('hoteles.index', compact(
+            'featured', 'standard', 'basic',
+            'hotelTypes', 'amenityOptions', 'selectedAmenities',
+        ))->with('selectedType', $request->input('type', ''));
     }
 
     public function show(Hotel $hotel)

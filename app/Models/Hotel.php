@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 class Hotel extends Model
 {
     protected $fillable = [
-        'user_id', 'plan_id', 'name', 'slug', 'short_description', 'description',
+        'user_id', 'plan_id', 'name', 'slug', 'hotel_type', 'short_description', 'description',
         'address', 'phone', 'email', 'website', 'stars', 'checkin_time',
         'checkout_time', 'services', 'cover_image', 'status', 'payment_reference',
         'featured', 'approved_at', 'expires_at',
