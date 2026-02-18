@@ -34,7 +34,7 @@ echo ">> Restarting queue workers..."
 php artisan queue:restart
 
 echo ">> Fixing storage permissions..."
-chmod -R 775 storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
 echo ">> Reloading PHP-FPM..."
 sudo systemctl reload php8.3-fpm || true
