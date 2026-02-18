@@ -49,26 +49,48 @@
 {{-- Main content —— adapts by tier --}}
 @if ($tier >= 3)
     {{-- DIAMANTE: tabbed layout --}}
-    @php $tabs = ['descripcion' => 'Descripción', 'galeria' => 'Galería', 'habitaciones' => 'Habitaciones', 'servicios' => 'Servicios', 'contacto' => 'Contacto']; @endphp
+    @php
+    $tabs = [
+        'descripcion'  => 'Descripción',
+        'galeria'      => 'Galería',
+        'habitaciones' => 'Habitaciones',
+        'servicios'    => 'Servicios',
+        'contacto'     => 'Contacto',
+    ];
+    $tabIcons = [
+        'descripcion'  => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+        'galeria'      => 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z',
+        'habitaciones' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+        'servicios'    => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+        'contacto'     => 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+    ];
+    @endphp
+
     <section class="bg-white border-b sticky top-0 z-20 shadow-sm">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            {{-- Mobile: native select --}}
-            <div class="sm:hidden py-3">
-                <select id="tab-select" onchange="showTab(this.value)"
-                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#52B788] appearance-none cursor-pointer"
-                    style="background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1rem; padding-right: 2.5rem;">
-                    @foreach($tabs as $tab => $label)
-                    <option value="{{ $tab }}">{{ $label }}</option>
-                    @endforeach
-                </select>
+            {{-- Mobile: all pills visible, wrap to 2 rows — nothing hidden --}}
+            <div class="sm:hidden py-3 flex flex-wrap gap-2">
+                @foreach($tabs as $tab => $label)
+                <button onclick="showTab('{{ $tab }}')" id="mob-tab-btn-{{ $tab }}"
+                    class="mob-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition
+                        {{ $tab === 'descripcion'
+                            ? 'bg-[#2D6A4F] text-white border-[#2D6A4F]'
+                            : 'bg-gray-50 text-gray-500 border-gray-200 hover:border-[#2D6A4F] hover:text-[#2D6A4F]' }}">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $tabIcons[$tab] }}"/>
+                    </svg>
+                    {{ $label }}
+                </button>
+                @endforeach
             </div>
 
-            {{-- Desktop: underline tab nav --}}
-            <nav class="hidden sm:flex gap-0" id="hotel-tabs-nav">
+            {{-- Desktop: classic underline tab nav --}}
+            <nav class="hidden sm:flex" id="hotel-tabs-nav">
                 @foreach($tabs as $tab => $label)
                 <button onclick="showTab('{{ $tab }}')" id="tab-btn-{{ $tab }}"
-                    class="tab-btn px-5 py-4 text-sm font-semibold border-b-2 transition {{ $tab === 'descripcion' ? 'border-[#2D6A4F] text-[#2D6A4F]' : 'border-transparent text-gray-500 hover:text-[#2D6A4F]' }}">
+                    class="tab-btn px-5 py-4 text-sm font-semibold border-b-2 transition
+                        {{ $tab === 'descripcion' ? 'border-[#2D6A4F] text-[#2D6A4F]' : 'border-transparent text-gray-500 hover:text-[#2D6A4F]' }}">
                     {{ $label }}
                 </button>
                 @endforeach
@@ -198,20 +220,33 @@
 
     <script>
     function showTab(tab) {
+        // Hide all content panels
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+
+        // Reset desktop underline tabs
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.remove('border-[#2D6A4F]', 'text-[#2D6A4F]');
             btn.classList.add('border-transparent', 'text-gray-500');
         });
-        document.getElementById('tab-' + tab).classList.remove('hidden');
-        const btn = document.getElementById('tab-btn-' + tab);
-        if (btn) {
-            btn.classList.add('border-[#2D6A4F]', 'text-[#2D6A4F]');
-            btn.classList.remove('border-transparent', 'text-gray-500');
+        const desktopBtn = document.getElementById('tab-btn-' + tab);
+        if (desktopBtn) {
+            desktopBtn.classList.add('border-[#2D6A4F]', 'text-[#2D6A4F]');
+            desktopBtn.classList.remove('border-transparent', 'text-gray-500');
         }
-        // Sync mobile select
-        const sel = document.getElementById('tab-select');
-        if (sel) sel.value = tab;
+
+        // Reset mobile pill tabs
+        document.querySelectorAll('.mob-tab-btn').forEach(btn => {
+            btn.classList.remove('bg-[#2D6A4F]', 'text-white', 'border-[#2D6A4F]');
+            btn.classList.add('bg-gray-50', 'text-gray-500', 'border-gray-200');
+        });
+        const mobBtn = document.getElementById('mob-tab-btn-' + tab);
+        if (mobBtn) {
+            mobBtn.classList.add('bg-[#2D6A4F]', 'text-white', 'border-[#2D6A4F]');
+            mobBtn.classList.remove('bg-gray-50', 'text-gray-500', 'border-gray-200');
+        }
+
+        // Show selected panel
+        document.getElementById('tab-' + tab).classList.remove('hidden');
     }
     </script>
 
