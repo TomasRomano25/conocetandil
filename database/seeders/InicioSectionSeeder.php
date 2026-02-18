@@ -58,6 +58,30 @@ class InicioSectionSeeder extends Seeder
                 'order' => 6,
                 'is_visible' => true,
             ],
+            [
+                'key' => 'guias_hero',
+                'title' => 'Guías de Tandil',
+                'subtitle' => 'Conseguí la guía perfecta para tu próxima aventura en las sierras.',
+                'content' => null,
+                'order' => 7,
+                'is_visible' => true,
+            ],
+            [
+                'key' => 'contacto_hero',
+                'title' => 'Contacto',
+                'subtitle' => '¿Tenés alguna consulta? Escribinos y te respondemos a la brevedad.',
+                'content' => null,
+                'order' => 8,
+                'is_visible' => true,
+            ],
+            [
+                'key' => 'premium_hero',
+                'title' => 'Conoce Tandil Premium',
+                'subtitle' => 'Accedé a itinerarios exclusivos, guías especializadas y contenido único para vivir Tandil al máximo.',
+                'content' => null,
+                'order' => 9,
+                'is_visible' => true,
+            ],
         ];
 
         foreach ($sections as $section) {

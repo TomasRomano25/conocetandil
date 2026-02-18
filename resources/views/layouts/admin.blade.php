@@ -31,10 +31,36 @@
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                 Usuarios
             </a>
-            <a href="{{ route('admin.inicio.index') }}" class="flex items-center px-4 py-3 rounded-lg transition {{ request()->routeIs('admin.inicio.*') ? 'bg-[#2D6A4F] text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
-                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                Editar Inicio
-            </a>
+            {{-- Editar Secciones (collapsible) --}}
+            @php $seccionesActive = request()->routeIs('admin.secciones.*') || request()->routeIs('admin.inicio.*'); @endphp
+            <div>
+                <button onclick="toggleSeccionesMenu()"
+                    class="w-full flex items-center px-4 py-3 rounded-lg transition {{ $seccionesActive ? 'bg-[#2D6A4F] text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <span class="flex-1 text-left">Editar Secciones</span>
+                    <svg id="secciones-chevron" class="w-4 h-4 transition-transform shrink-0 {{ $seccionesActive ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div id="secciones-submenu" class="{{ $seccionesActive ? '' : 'hidden' }} mt-1 ml-4 pl-4 border-l border-gray-700 space-y-0.5">
+                    @foreach ([
+                        'inicio'   => 'Inicio',
+                        'lugares'  => 'Lugares',
+                        'guias'    => 'Guías',
+                        'contacto' => 'Contacto',
+                        'premium'  => 'Premium',
+                    ] as $tab => $label)
+                        @php
+                            $subActive = request()->routeIs('admin.secciones.*') && request('tab', 'inicio') === $tab;
+                        @endphp
+                        <a href="{{ route('admin.secciones.index', ['tab' => $tab]) }}"
+                            class="flex items-center px-3 py-2 rounded-lg text-sm transition
+                                   {{ $subActive ? 'text-[#52B788] font-semibold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+                            {{ $label }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
             <a href="{{ route('admin.nav.index') }}" class="flex items-center px-4 py-3 rounded-lg transition {{ request()->routeIs('admin.nav.*') ? 'bg-[#2D6A4F] text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 Menú de Navegación
@@ -157,6 +183,14 @@
         openBtn.addEventListener('click', openSidebar);
         closeBtn.addEventListener('click', closeSidebar);
         overlay.addEventListener('click', closeSidebar);
+
+        function toggleSeccionesMenu() {
+            const menu    = document.getElementById('secciones-submenu');
+            const chevron = document.getElementById('secciones-chevron');
+            const isHidden = menu.classList.contains('hidden');
+            menu.classList.toggle('hidden', !isHidden);
+            chevron.style.transform = isHidden ? 'rotate(180deg)' : '';
+        }
     </script>
 </body>
 </html>

@@ -57,7 +57,8 @@ class PageController extends Controller
 
     public function guias()
     {
-        return view('pages.guias');
+        $guiasBanner = InicioSection::where('key', 'guias_hero')->first();
+        return view('pages.guias', compact('guiasBanner'));
     }
 
     public function contacto()
@@ -67,6 +68,15 @@ class PageController extends Controller
             ->where('active', true)
             ->first();
 
-        return view('pages.contacto', compact('form'));
+        $contactoBanner = InicioSection::where('key', 'contacto_hero')->first();
+
+        $contactInfo = [
+            'address' => \App\Models\Configuration::get('contact_address', '9 de Julio 555, Tandil, Buenos Aires, Argentina'),
+            'phone'   => \App\Models\Configuration::get('contact_phone', '(0249) 444-1234'),
+            'email'   => \App\Models\Configuration::get('contact_email', 'info@conocetandil.com'),
+            'hours'   => \App\Models\Configuration::get('contact_hours', ''),
+        ];
+
+        return view('pages.contacto', compact('form', 'contactoBanner', 'contactInfo'));
     }
 }

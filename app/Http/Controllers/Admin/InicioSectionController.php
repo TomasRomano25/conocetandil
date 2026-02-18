@@ -28,7 +28,7 @@ class InicioSectionController extends Controller
 
         $inicioSection->update($validated);
 
-        return redirect()->route('admin.inicio.index')->with('success', 'Sección actualizada correctamente.');
+        return redirect()->back()->with('success', 'Sección actualizada correctamente.');
     }
 
     public function updateSectionBanner(Request $request, string $sectionKey)
@@ -46,7 +46,7 @@ class InicioSectionController extends Controller
         $path = $request->file('image')->store('hero', 'public');
         $section->update(['image' => $path]);
 
-        return redirect()->route('admin.inicio.index')
+        return redirect()->back()
             ->with('success', 'Imagen actualizada correctamente.');
     }
 
@@ -59,7 +59,7 @@ class InicioSectionController extends Controller
             $section->update(['image' => null]);
         }
 
-        return redirect()->route('admin.inicio.index')
+        return redirect()->back()
             ->with('success', 'Imagen eliminada.');
     }
 

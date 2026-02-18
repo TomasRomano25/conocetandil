@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\ConfigurationController;
 use App\Http\Controllers\Admin\MessageController as AdminMessageController;
 use App\Http\Controllers\Admin\FormController;
 use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\SeccionesController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -118,6 +119,10 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::post('planes', [MembershipPlanController::class, 'store'])->name('planes.store');
     Route::put('planes/{plan}', [MembershipPlanController::class, 'update'])->name('planes.update');
     Route::delete('planes/{plan}', [MembershipPlanController::class, 'destroy'])->name('planes.destroy');
+
+    // Secciones (editor de páginas)
+    Route::get('secciones', [SeccionesController::class, 'index'])->name('secciones.index');
+    Route::post('secciones/contact-info', [SeccionesController::class, 'updateContactInfo'])->name('secciones.contact-info.update');
 
     // Formularios
     Route::get('formularios', [FormController::class, 'index'])->name('formularios.index');

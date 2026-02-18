@@ -4,10 +4,18 @@
 
 @section('content')
     {{-- Header --}}
-    <section class="bg-[#2D6A4F] text-white py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-4xl font-bold mb-4">Guías de Tandil</h1>
-            <p class="text-gray-200 max-w-xl mx-auto">Conseguí la guía perfecta para tu próxima aventura en las sierras.</p>
+    @php $guiasImage = $guiasBanner->image ?? null; @endphp
+    <section class="relative text-white py-20 overflow-hidden {{ $guiasImage ? '' : 'bg-[#2D6A4F]' }}">
+        @if ($guiasImage)
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                 style="background-image: url('{{ asset('storage/' . $guiasImage) }}')"></div>
+            <div class="absolute inset-0 bg-gradient-to-br from-[#2D6A4F]/75 to-[#1A1A1A]/80"></div>
+        @else
+            <div class="absolute inset-0 bg-gradient-to-br from-[#2D6A4F] to-[#1A1A1A] opacity-90"></div>
+        @endif
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl font-bold mb-4">{{ $guiasBanner->title ?? 'Guías de Tandil' }}</h1>
+            <p class="text-gray-200 max-w-xl mx-auto">{{ $guiasBanner->subtitle ?? 'Conseguí la guía perfecta para tu próxima aventura en las sierras.' }}</p>
         </div>
     </section>
 

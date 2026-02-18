@@ -4,10 +4,18 @@
 
 @section('content')
     {{-- Header --}}
-    <section class="bg-[#2D6A4F] text-white py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-4xl font-bold mb-4">Contacto</h1>
-            <p class="text-gray-200 max-w-xl mx-auto">¿Tenés alguna consulta? Escribinos y te respondemos a la brevedad.</p>
+    @php $contactoImage = $contactoBanner->image ?? null; @endphp
+    <section class="relative text-white py-20 overflow-hidden {{ $contactoImage ? '' : 'bg-[#2D6A4F]' }}">
+        @if ($contactoImage)
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                 style="background-image: url('{{ asset('storage/' . $contactoImage) }}')"></div>
+            <div class="absolute inset-0 bg-gradient-to-br from-[#2D6A4F]/75 to-[#1A1A1A]/80"></div>
+        @else
+            <div class="absolute inset-0 bg-gradient-to-br from-[#2D6A4F] to-[#1A1A1A] opacity-90"></div>
+        @endif
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl font-bold mb-4">{{ $contactoBanner->title ?? 'Contacto' }}</h1>
+            <p class="text-gray-200 max-w-xl mx-auto">{{ $contactoBanner->subtitle ?? '¿Tenés alguna consulta? Escribinos y te respondemos a la brevedad.' }}</p>
         </div>
     </section>
 
@@ -91,6 +99,7 @@
                     <div class="bg-white rounded-xl shadow-md p-8 border border-gray-100">
                         <h2 class="text-2xl font-bold text-[#1A1A1A] mb-6">Información de Contacto</h2>
                         <div class="space-y-4">
+                            @if ($contactInfo['address'])
                             <div class="flex items-start space-x-4">
                                 <svg class="w-6 h-6 text-[#2D6A4F] mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -98,27 +107,43 @@
                                 </svg>
                                 <div>
                                     <p class="font-medium text-[#1A1A1A]">Dirección</p>
-                                    <p class="text-gray-600 text-sm">9 de Julio 555, Tandil, Buenos Aires, Argentina</p>
+                                    <p class="text-gray-600 text-sm">{{ $contactInfo['address'] }}</p>
                                 </div>
                             </div>
+                            @endif
+                            @if ($contactInfo['phone'])
                             <div class="flex items-start space-x-4">
                                 <svg class="w-6 h-6 text-[#2D6A4F] mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                                 </svg>
                                 <div>
                                     <p class="font-medium text-[#1A1A1A]">Teléfono</p>
-                                    <p class="text-gray-600 text-sm">(0249) 444-1234</p>
+                                    <p class="text-gray-600 text-sm">{{ $contactInfo['phone'] }}</p>
                                 </div>
                             </div>
+                            @endif
+                            @if ($contactInfo['email'])
                             <div class="flex items-start space-x-4">
                                 <svg class="w-6 h-6 text-[#2D6A4F] mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                 </svg>
                                 <div>
                                     <p class="font-medium text-[#1A1A1A]">Email</p>
-                                    <p class="text-gray-600 text-sm">info@conocetandil.com</p>
+                                    <p class="text-gray-600 text-sm">{{ $contactInfo['email'] }}</p>
                                 </div>
                             </div>
+                            @endif
+                            @if ($contactInfo['hours'])
+                            <div class="flex items-start space-x-4">
+                                <svg class="w-6 h-6 text-[#2D6A4F] mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <div>
+                                    <p class="font-medium text-[#1A1A1A]">Horarios</p>
+                                    <p class="text-gray-600 text-sm">{{ $contactInfo['hours'] }}</p>
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
 
