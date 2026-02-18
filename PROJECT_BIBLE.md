@@ -219,7 +219,7 @@ storage/app/
 ---
 
 ## 4. Database Schema
-
+ 
 ### `users`
 | Column | Type | Notes |
 |--------|------|-------|
