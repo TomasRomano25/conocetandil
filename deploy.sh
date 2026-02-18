@@ -4,7 +4,8 @@ set -e
 cd /var/www/conocetandil
 
 echo ">> Pulling latest changes..."
-git pull origin main
+git fetch origin main
+git reset --hard origin/main
 
 echo ">> Installing Composer dependencies..."
 composer install --no-dev --optimize-autoloader --no-interaction
@@ -17,6 +18,9 @@ npm run build
 
 echo ">> Running migrations..."
 php artisan migrate --force
+
+echo ">> Seeding required data..."
+php artisan db:seed --class=FormSeeder --force
 
 echo ">> Caching configuration..."
 php artisan config:cache
