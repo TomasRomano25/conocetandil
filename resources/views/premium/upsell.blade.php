@@ -5,7 +5,13 @@
 
 {{-- Hero --}}
 <section class="relative bg-[#1A1A1A] text-white overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-br from-[#2D6A4F]/80 to-[#1A1A1A]"></div>
+    @if ($premiumBanner->image ?? null)
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+             style="background-image: url('{{ asset('storage/' . $premiumBanner->image) }}')"></div>
+        <div class="absolute inset-0 bg-gradient-to-br from-[#2D6A4F]/75 to-[#1A1A1A]/85"></div>
+    @else
+        <div class="absolute inset-0 bg-gradient-to-br from-[#2D6A4F]/80 to-[#1A1A1A]"></div>
+    @endif
     <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <span class="inline-flex items-center gap-2 bg-amber-500/20 text-amber-300 text-xs font-bold px-4 py-1.5 rounded-full mb-6 border border-amber-500/30">
             ✦ PREMIUM

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Itinerary;
+use App\Models\InicioSection;
 use App\Models\Order;
 use Illuminate\Http\Request;
 
@@ -15,7 +16,9 @@ class PremiumController extends Controller
             return redirect()->route('premium.hub');
         }
 
-        return view('premium.upsell');
+        $premiumBanner = InicioSection::where('key', 'premium_hero')->first();
+
+        return view('premium.upsell', compact('premiumBanner'));
     }
 
     /** Premium hub / panel — only for premium users */
