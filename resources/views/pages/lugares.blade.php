@@ -85,7 +85,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     @foreach($lugares as $lugar)
                         <a href="{{ route('lugar.show', $lugar) }}" class="bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden border border-gray-100 block group">
-                            <div class="h-48 bg-gradient-to-br from-[#2D6A4F]/20 to-[#52B788]/20 flex items-center justify-center overflow-hidden">
+                            <div class="relative h-48 bg-gradient-to-br from-[#2D6A4F]/20 to-[#52B788]/20 flex items-center justify-center overflow-hidden">
                                 @if ($lugar->cover_image)
                                     <img src="{{ asset('storage/' . $lugar->cover_image) }}" alt="{{ $lugar->title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                                 @else
@@ -93,6 +93,12 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     </svg>
+                                @endif
+                                @if ($lugar->is_premium)
+                                    <div class="absolute top-3 right-3 flex items-center gap-1 bg-amber-400 text-white text-[0.65rem] font-bold px-2 py-1 rounded-full shadow-md">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M2 19l2-9 4.5 3L12 5l3.5 8L20 10l2 9H2z"/></svg>
+                                        Premium
+                                    </div>
                                 @endif
                             </div>
                             <div class="p-6">

@@ -29,6 +29,7 @@ class LugarController extends Controller
             'description' => 'required|string',
             'image' => 'nullable|image|max:2048',
             'featured' => 'boolean',
+            'is_premium' => 'boolean',
             'order' => 'integer',
             'gallery' => 'nullable|array',
             'gallery.*' => 'image|max:2048',
@@ -44,7 +45,8 @@ class LugarController extends Controller
             'longitude' => 'nullable|numeric|min:-180|max:180',
         ]);
 
-        $validated['featured'] = $request->boolean('featured');
+        $validated['featured']   = $request->boolean('featured');
+        $validated['is_premium'] = $request->boolean('is_premium');
         $validated['order'] = $request->input('order', 0);
 
         if ($request->hasFile('image')) {
@@ -86,6 +88,7 @@ class LugarController extends Controller
             'description' => 'required|string',
             'image' => 'nullable|image|max:2048',
             'featured' => 'boolean',
+            'is_premium' => 'boolean',
             'order' => 'integer',
             'gallery' => 'nullable|array',
             'gallery.*' => 'image|max:2048',
@@ -103,7 +106,8 @@ class LugarController extends Controller
             'longitude' => 'nullable|numeric|min:-180|max:180',
         ]);
 
-        $validated['featured'] = $request->boolean('featured');
+        $validated['featured']   = $request->boolean('featured');
+        $validated['is_premium'] = $request->boolean('is_premium');
 
         if ($request->hasFile('image')) {
             if ($lugar->image) {

@@ -14,6 +14,7 @@ class Lugar extends Model
         'description',
         'image',
         'featured',
+        'is_premium',
         'order',
         'category',
         'rating',
@@ -32,8 +33,9 @@ class Lugar extends Model
     protected function casts(): array
     {
         return [
-            'featured' => 'boolean',
-            'order' => 'integer',
+            'featured'   => 'boolean',
+            'is_premium' => 'boolean',
+            'order'      => 'integer',
             'rating' => 'decimal:1',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',

@@ -14,8 +14,10 @@
             }
         }
         $imageCount = $allImages->count();
-        $heroImage = $allImages->first();
+        $heroImage  = $allImages->first();
         $sideImages = $allImages->slice(1, 2);
+        $isPremiumLocked = $lugar->is_premium
+            && !(auth()->check() && auth()->user()->isPremium());
     @endphp
 
     {{-- ========================================
@@ -150,6 +152,12 @@
                                 {{ $lugar->category }}
                             </span>
                         @endif
+                        @if ($lugar->is_premium)
+                            <span class="flex items-center gap-1 bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M2 19l2-9 4.5 3L12 5l3.5 8L20 10l2 9H2z"/></svg>
+                                Solo Premium
+                            </span>
+                        @endif
                         @if ($lugar->rating)
                             <div class="flex items-center gap-1">
                                 @php $fullStars = floor($lugar->rating); $halfStar = ($lugar->rating - $fullStars) >= 0.5; @endphp
@@ -195,73 +203,113 @@
 
                 <hr class="border-gray-200 mb-8">
 
-                {{-- ── Description ── --}}
-                <div class="mb-10">
-                    <h2 class="text-xl font-bold text-[#1A1A1A] mb-4">Sobre este lugar</h2>
-                    {{-- Desktop --}}
-                    <div class="hidden md:block">
-                        <div class="text-gray-600 leading-[1.85] text-[0.9375rem] max-w-prose space-y-4">
-                            {!! nl2br(e($lugar->description)) !!}
+                @if ($isPremiumLocked)
+                    {{-- ── Premium Gate ── --}}
+                    <div class="mb-10">
+                        {{-- Blurred description preview --}}
+                        <div class="relative">
+                            <div class="blur-sm pointer-events-none select-none" aria-hidden="true">
+                                <h2 class="text-xl font-bold text-[#1A1A1A] mb-4">Sobre este lugar</h2>
+                                <p class="text-gray-600 leading-[1.85] text-[0.9375rem]">
+                                    {{ Str::limit($lugar->description, 220) }}
+                                </p>
+                            </div>
+                            <div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+                        </div>
+
+                        {{-- Lock card --}}
+                        <div class="mt-6 bg-white border border-amber-200 rounded-2xl shadow-lg p-8 text-center">
+                            <div class="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M2 19l2-9 4.5 3L12 5l3.5 8L20 10l2 9H2z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-[#1A1A1A] mb-2">Contenido exclusivo Premium</h3>
+                            <p class="text-gray-500 text-sm leading-relaxed mb-6 max-w-sm mx-auto">
+                                Suscribite a <strong>Conoce Tandil Premium</strong> para acceder a la información completa de este lugar, itinerarios exclusivos y mucho más.
+                            </p>
+                            <a href="{{ route('membership.planes') }}"
+                                class="inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-8 rounded-xl transition-all duration-200 hover:shadow-lg mb-3">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M2 19l2-9 4.5 3L12 5l3.5 8L20 10l2 9H2z"/></svg>
+                                Ver planes Premium
+                            </a>
+                            @guest
+                                <p class="text-gray-400 text-xs mt-2">
+                                    ¿Ya sos Premium?
+                                    <a href="{{ route('login') }}" class="text-[#2D6A4F] hover:underline font-semibold">Iniciá sesión</a>
+                                </p>
+                            @endguest
                         </div>
                     </div>
-                    {{-- Mobile: collapsible --}}
-                    <div class="md:hidden">
-                        <div id="description-container" class="relative overflow-hidden" style="max-height: 160px;">
-                            <div class="text-gray-600 leading-[1.85] text-[0.9375rem]">
+                @else
+                    {{-- ── Description ── --}}
+                    <div class="mb-10">
+                        <h2 class="text-xl font-bold text-[#1A1A1A] mb-4">Sobre este lugar</h2>
+                        {{-- Desktop --}}
+                        <div class="hidden md:block">
+                            <div class="text-gray-600 leading-[1.85] text-[0.9375rem] max-w-prose space-y-4">
                                 {!! nl2br(e($lugar->description)) !!}
                             </div>
-                            <div id="description-fade" class="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
                         </div>
-                        <button id="description-toggle" onclick="toggleDescription()"
-                            class="mt-3 inline-flex items-center gap-1 text-[#2D6A4F] hover:text-[#52B788] font-semibold text-sm transition-colors">
-                            <span id="description-toggle-text">Leer más</span>
-                            <svg id="description-toggle-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- ── Promotion Banner ── --}}
-                @if ($lugar->hasPromotion())
-                    <div class="mb-10">
-                        <div class="bg-gradient-to-r from-[#F0FFF4] to-[#E6F7ED] rounded-2xl border border-[#2D6A4F]/15 p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                            <div class="bg-[#2D6A4F]/15 rounded-xl p-3 flex-shrink-0">
-                                <svg class="w-6 h-6 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                        {{-- Mobile: collapsible --}}
+                        <div class="md:hidden">
+                            <div id="description-container" class="relative overflow-hidden" style="max-height: 160px;">
+                                <div class="text-gray-600 leading-[1.85] text-[0.9375rem]">
+                                    {!! nl2br(e($lugar->description)) !!}
+                                </div>
+                                <div id="description-fade" class="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
                             </div>
-                            <div class="flex-1">
-                                <h3 class="text-base font-bold text-[#1A1A1A] mb-0.5">{{ $lugar->promotion_title }}</h3>
-                                @if ($lugar->promotion_description)
-                                    <p class="text-gray-600 text-sm leading-relaxed">{{ $lugar->promotion_description }}</p>
+                            <button id="description-toggle" onclick="toggleDescription()"
+                                class="mt-3 inline-flex items-center gap-1 text-[#2D6A4F] hover:text-[#52B788] font-semibold text-sm transition-colors">
+                                <span id="description-toggle-text">Leer más</span>
+                                <svg id="description-toggle-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- ── Promotion Banner ── --}}
+                    @if ($lugar->hasPromotion())
+                        <div class="mb-10">
+                            <div class="bg-gradient-to-r from-[#F0FFF4] to-[#E6F7ED] rounded-2xl border border-[#2D6A4F]/15 p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                <div class="bg-[#2D6A4F]/15 rounded-xl p-3 flex-shrink-0">
+                                    <svg class="w-6 h-6 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-base font-bold text-[#1A1A1A] mb-0.5">{{ $lugar->promotion_title }}</h3>
+                                    @if ($lugar->promotion_description)
+                                        <p class="text-gray-600 text-sm leading-relaxed">{{ $lugar->promotion_description }}</p>
+                                    @endif
+                                </div>
+                                @if ($lugar->promotion_url)
+                                    <a href="{{ $lugar->promotion_url }}" target="_blank" rel="noopener"
+                                        class="bg-[#2D6A4F] hover:bg-[#1A4A35] text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 text-sm flex-shrink-0 hover:shadow-md">
+                                        Ver Promoción
+                                    </a>
                                 @endif
                             </div>
-                            @if ($lugar->promotion_url)
-                                <a href="{{ $lugar->promotion_url }}" target="_blank" rel="noopener"
-                                    class="bg-[#2D6A4F] hover:bg-[#1A4A35] text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 text-sm flex-shrink-0 hover:shadow-md">
-                                    Ver Promoción
-                                </a>
-                            @endif
                         </div>
-                    </div>
-                @endif
+                    @endif
 
-                {{-- ── Map ── --}}
-                @if ($lugar->hasCoordinates())
-                    <div class="mb-4">
-                        <h2 class="text-xl font-bold text-[#1A1A1A] mb-4">Ubicación</h2>
-                        <div class="rounded-2xl overflow-hidden shadow-md ring-1 ring-gray-200">
-                            <iframe
-                                src="https://maps.google.com/maps?q={{ $lugar->latitude }},{{ $lugar->longitude }}&z=15&output=embed"
-                                width="100%" height="360" style="border:0;" allowfullscreen="" loading="lazy"
-                                referrerpolicy="no-referrer-when-downgrade"
-                                class="w-full block"></iframe>
+                    {{-- ── Map ── --}}
+                    @if ($lugar->hasCoordinates())
+                        <div class="mb-4">
+                            <h2 class="text-xl font-bold text-[#1A1A1A] mb-4">Ubicación</h2>
+                            <div class="rounded-2xl overflow-hidden shadow-md ring-1 ring-gray-200">
+                                <iframe
+                                    src="https://maps.google.com/maps?q={{ $lugar->latitude }},{{ $lugar->longitude }}&z=15&output=embed"
+                                    width="100%" height="360" style="border:0;" allowfullscreen="" loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade"
+                                    class="w-full block"></iframe>
+                            </div>
+                            <a href="{{ $lugar->google_maps_url }}" target="_blank" rel="noopener"
+                                class="inline-flex items-center gap-1.5 mt-3 text-[#2D6A4F] hover:text-[#52B788] font-semibold transition-colors text-sm">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                Abrir en Google Maps
+                            </a>
                         </div>
-                        <a href="{{ $lugar->google_maps_url }}" target="_blank" rel="noopener"
-                            class="inline-flex items-center gap-1.5 mt-3 text-[#2D6A4F] hover:text-[#52B788] font-semibold transition-colors text-sm">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                            Abrir en Google Maps
-                        </a>
-                    </div>
+                    @endif
                 @endif
 
             </div>{{-- /left column --}}
@@ -270,6 +318,25 @@
             <div class="lg:w-[360px] xl:w-[400px] flex-shrink-0">
                 <div class="lg:sticky lg:top-24 space-y-4">
 
+                @if ($isPremiumLocked)
+                    {{-- Premium upsell card (right column) --}}
+                    <div class="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl shadow-md p-6 text-center">
+                        <div class="w-12 h-12 bg-amber-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M2 19l2-9 4.5 3L12 5l3.5 8L20 10l2 9H2z"/></svg>
+                        </div>
+                        <h3 class="font-bold text-[#1A1A1A] mb-1">Lugar Premium</h3>
+                        <p class="text-gray-500 text-sm mb-4 leading-relaxed">Accedé a todos los detalles, información de contacto, mapa y más.</p>
+                        <a href="{{ route('membership.planes') }}"
+                            class="block w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl transition text-sm mb-2">
+                            Suscribirme a Premium
+                        </a>
+                        @guest
+                            <a href="{{ route('login') }}" class="block w-full border border-gray-300 text-gray-600 hover:border-[#2D6A4F] hover:text-[#2D6A4F] font-semibold py-2.5 rounded-xl transition text-sm">
+                                Ya tengo cuenta
+                            </a>
+                        @endguest
+                    </div>
+                @else
                     {{-- Info Card --}}
                     <div class="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.10)] border border-gray-100 overflow-hidden">
                         {{-- Card header — also acts as mobile toggle --}}
@@ -378,6 +445,8 @@
                             </div>
                         </div>
                     </div>
+
+                @endif
 
                 </div>
             </div>{{-- /right column --}}

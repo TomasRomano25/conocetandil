@@ -48,7 +48,7 @@
                 @error('gallery.*') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-3 gap-4">
                 <div>
                     <label for="order" class="block text-sm font-medium text-gray-700 mb-1">Orden</label>
                     <input type="number" name="order" id="order" value="{{ old('order', 0) }}"
@@ -61,6 +61,17 @@
                         <input type="checkbox" name="featured" value="1" {{ old('featured') ? 'checked' : '' }}
                             class="rounded border-gray-300 text-[#2D6A4F] focus:ring-[#52B788]">
                         <span class="ml-2 text-sm text-gray-700">Destacado</span>
+                    </label>
+                </div>
+
+                <div class="flex items-end pb-1">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" name="is_premium" value="1" {{ old('is_premium') ? 'checked' : '' }}
+                            class="rounded border-gray-300 text-amber-500 focus:ring-amber-400">
+                        <span class="ml-2 text-sm text-gray-700 flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 24 24"><path d="M2 19l2-9 4.5 3L12 5l3.5 8L20 10l2 9H2z"/></svg>
+                            Solo Premium
+                        </span>
                     </label>
                 </div>
             </div>

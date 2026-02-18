@@ -19,6 +19,7 @@
                     <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
                     <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Dirección</th>
                     <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Destacado</th>
+                    <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Premium</th>
                     <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Orden</th>
                     <th class="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
@@ -44,6 +45,16 @@
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">No</span>
                             @endif
                         </td>
+                        <td class="px-6 py-4">
+                            @if ($lugar->is_premium)
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M2 19l2-9 4.5 3L12 5l3.5 8L20 10l2 9H2z"/></svg>
+                                    Premium
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">No</span>
+                            @endif
+                        </td>
                         <td class="px-6 py-4 text-gray-600">{{ $lugar->order }}</td>
                         <td class="px-6 py-4 text-right space-x-2">
                             <a href="{{ route('admin.lugares.edit', $lugar) }}" class="text-[#2D6A4F] hover:text-[#52B788] font-medium text-sm">Editar</a>
@@ -56,7 +67,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">No hay lugares registrados.</td>
+                        <td colspan="7" class="px-6 py-12 text-center text-gray-500">No hay lugares registrados.</td>
                     </tr>
                 @endforelse
             </tbody>
