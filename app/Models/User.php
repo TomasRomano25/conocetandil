@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'premium_expires_at',
     ];
 
     /**
@@ -44,12 +45,24 @@ class User extends Authenticatable
         return $this->is_admin;
     }
 
+    public function isPremium(): bool
+    {
+        // Admins always have premium access
+        if ($this->is_admin) {
+            return true;
+        }
+
+        return $this->premium_expires_at !== null
+            && $this->premium_expires_at->isFuture();
+    }
+
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_admin' => 'boolean',
+            'email_verified_at'   => 'datetime',
+            'password'            => 'hashed',
+            'is_admin'            => 'boolean',
+            'premium_expires_at'  => 'datetime',
         ];
     }
 }

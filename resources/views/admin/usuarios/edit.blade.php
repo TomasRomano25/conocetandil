@@ -4,7 +4,7 @@
 @section('header', 'Editar Usuario')
 
 @section('content')
-    <div class="max-w-2xl">
+    <div class="max-w-2xl space-y-6">
         <form method="POST" action="{{ route('admin.usuarios.update', $usuario) }}" class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
             @csrf
             @method('PUT')
@@ -52,5 +52,62 @@
                 <a href="{{ route('admin.usuarios.index') }}" class="text-gray-600 hover:text-gray-900 text-sm">Cancelar</a>
             </div>
         </form>
+        {{-- Premium Management --}}
+        @unless ($usuario->is_admin)
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-[#1A1A1A]">Acceso Premium</h3>
+                    <p class="text-sm text-gray-500 mt-0.5">
+                        @if ($usuario->isPremium())
+                            <span class="text-amber-600 font-semibold">✦ Activo</span>
+                            — vence el {{ $usuario->premium_expires_at->format('d/m/Y H:i') }}
+                            ({{ $usuario->premium_expires_at->diffForHumans() }})
+                        @else
+                            Sin acceso Premium activo.
+                        @endif
+                    </p>
+                </div>
+            </div>
+
+            {{-- Grant form --}}
+            <form method="POST" action="{{ route('admin.usuarios.premium.grant', $usuario) }}" class="flex flex-wrap items-end gap-3">
+                @csrf
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Duración</label>
+                    <select name="duration" id="duration-select"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788] bg-white"
+                        onchange="document.getElementById('custom-date').classList.toggle('hidden', this.value !== 'custom')">
+                        <option value="1month">1 mes</option>
+                        <option value="3months">3 meses</option>
+                        <option value="6months">6 meses</option>
+                        <option value="1year">1 año</option>
+                        <option value="custom">Fecha personalizada</option>
+                    </select>
+                </div>
+                <div id="custom-date" class="hidden">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Vence el</label>
+                    <input type="date" name="expires_at"
+                        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                </div>
+                <button type="submit"
+                    class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-5 rounded-lg transition text-sm">
+                    {{ $usuario->isPremium() ? 'Extender Premium' : 'Otorgar Premium' }}
+                </button>
+            </form>
+
+            @if ($usuario->isPremium())
+            <form method="POST" action="{{ route('admin.usuarios.premium.revoke', $usuario) }}"
+                onsubmit="return confirm('¿Revocar el acceso Premium de este usuario?')">
+                @csrf
+                <button type="submit"
+                    class="text-red-600 hover:text-red-800 text-sm font-medium">
+                    Revocar acceso Premium
+                </button>
+            </form>
+            @endif
+        </div>
+        @endunless
+
     </div>
 @endsection

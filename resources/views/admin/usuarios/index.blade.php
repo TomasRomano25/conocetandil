@@ -18,6 +18,7 @@
                     <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                     <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                     <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                    <th class="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Premium</th>
                     <th class="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
             </thead>
@@ -31,6 +32,17 @@
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Admin</span>
                             @else
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Usuario</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 hidden md:table-cell">
+                            @if ($usuario->is_admin)
+                                <span class="text-xs text-gray-400">Admin (siempre)</span>
+                            @elseif ($usuario->isPremium())
+                                <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                                    ✦ hasta {{ $usuario->premium_expires_at->format('d/m/Y') }}
+                                </span>
+                            @else
+                                <span class="text-xs text-gray-400">Free</span>
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right space-x-2">

@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PremiumController;
+use App\Http\Controllers\Admin\ItineraryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LugarController;
 use App\Http\Controllers\Admin\UserController;
@@ -28,6 +30,14 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
+// Premium routes
+Route::get('/premium', [PremiumController::class, 'upsell'])->name('premium.upsell');
+Route::middleware(['auth', 'premium'])->prefix('premium')->name('premium.')->group(function () {
+    Route::get('/planificar', [PremiumController::class, 'planner'])->name('planner');
+    Route::get('/resultados', [PremiumController::class, 'resultados'])->name('resultados');
+    Route::get('/itinerario/{itinerary:slug}', [PremiumController::class, 'show'])->name('show');
+});
 
 // Admin routes
 Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name('admin.')->group(function () {
@@ -60,6 +70,22 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::post('mensajes/{mensaje}/read', [AdminMessageController::class, 'markRead'])->name('mensajes.read');
     Route::post('mensajes/{mensaje}/unread', [AdminMessageController::class, 'markUnread'])->name('mensajes.unread');
     Route::delete('mensajes/{mensaje}', [AdminMessageController::class, 'destroy'])->name('mensajes.destroy');
+
+    // Itinerarios
+    Route::get('itinerarios', [ItineraryController::class, 'index'])->name('itinerarios.index');
+    Route::get('itinerarios/crear', [ItineraryController::class, 'create'])->name('itinerarios.create');
+    Route::post('itinerarios', [ItineraryController::class, 'store'])->name('itinerarios.store');
+    Route::get('itinerarios/{itinerario}/editar', [ItineraryController::class, 'edit'])->name('itinerarios.edit');
+    Route::put('itinerarios/{itinerario}', [ItineraryController::class, 'update'])->name('itinerarios.update');
+    Route::delete('itinerarios/{itinerario}', [ItineraryController::class, 'destroy'])->name('itinerarios.destroy');
+    Route::get('itinerarios/{itinerario}/actividades', [ItineraryController::class, 'items'])->name('itinerarios.items');
+    Route::post('itinerarios/{itinerario}/actividades', [ItineraryController::class, 'storeItem'])->name('itinerarios.items.store');
+    Route::put('itinerarios/{itinerario}/actividades/{item}', [ItineraryController::class, 'updateItem'])->name('itinerarios.items.update');
+    Route::delete('itinerarios/{itinerario}/actividades/{item}', [ItineraryController::class, 'destroyItem'])->name('itinerarios.items.destroy');
+
+    // Premium user management
+    Route::post('usuarios/{usuario}/premium/grant', [\App\Http\Controllers\Admin\UserController::class, 'grantPremium'])->name('usuarios.premium.grant');
+    Route::post('usuarios/{usuario}/premium/revoke', [\App\Http\Controllers\Admin\UserController::class, 'revokePremium'])->name('usuarios.premium.revoke');
 
     // Formularios
     Route::get('formularios', [FormController::class, 'index'])->name('formularios.index');

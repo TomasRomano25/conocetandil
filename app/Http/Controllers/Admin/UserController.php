@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -73,5 +74,34 @@ class UserController extends Controller
         $usuario->delete();
 
         return redirect()->route('admin.usuarios.index')->with('success', 'Usuario eliminado correctamente.');
+    }
+
+    public function grantPremium(Request $request, User $usuario)
+    {
+        $request->validate([
+            'duration' => 'required|in:1month,3months,6months,1year,custom',
+            'expires_at' => 'required_if:duration,custom|nullable|date|after:today',
+        ]);
+
+        $expiresAt = match ($request->duration) {
+            '1month'   => now()->addMonth(),
+            '3months'  => now()->addMonths(3),
+            '6months'  => now()->addMonths(6),
+            '1year'    => now()->addYear(),
+            'custom'   => \Carbon\Carbon::parse($request->expires_at),
+        };
+
+        $usuario->update(['premium_expires_at' => $expiresAt]);
+
+        return redirect()->route('admin.usuarios.edit', $usuario)
+            ->with('success', "Acceso Premium otorgado hasta {$expiresAt->format('d/m/Y')}.");
+    }
+
+    public function revokePremium(User $usuario)
+    {
+        $usuario->update(['premium_expires_at' => null]);
+
+        return redirect()->route('admin.usuarios.edit', $usuario)
+            ->with('success', 'Acceso Premium revocado.');
     }
 }

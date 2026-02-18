@@ -39,6 +39,12 @@
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 Menú de Navegación
             </a>
+            {{-- Premium --}}
+            <a href="{{ route('admin.itinerarios.index') }}" class="flex items-center px-4 py-3 rounded-lg transition {{ request()->routeIs('admin.itinerarios.*') ? 'bg-[#2D6A4F] text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                Itinerarios Premium
+            </a>
+
             {{-- Mensajes --}}
             @php
                 $unread = \App\Models\Message::where('is_read', false)->count();
