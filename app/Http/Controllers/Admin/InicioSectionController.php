@@ -31,36 +31,36 @@ class InicioSectionController extends Controller
         return redirect()->route('admin.inicio.index')->with('success', 'Sección actualizada correctamente.');
     }
 
-    public function updateHeroImage(Request $request)
+    public function updateSectionBanner(Request $request, string $sectionKey)
     {
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
         ]);
 
-        $hero = InicioSection::where('key', 'hero')->firstOrFail();
+        $section = InicioSection::where('key', $sectionKey)->firstOrFail();
 
-        if ($hero->image) {
-            Storage::disk('public')->delete($hero->image);
+        if ($section->image) {
+            Storage::disk('public')->delete($section->image);
         }
 
         $path = $request->file('image')->store('hero', 'public');
-        $hero->update(['image' => $path]);
+        $section->update(['image' => $path]);
 
         return redirect()->route('admin.inicio.index')
-            ->with('success', 'Imagen del hero actualizada correctamente.');
+            ->with('success', 'Imagen actualizada correctamente.');
     }
 
-    public function deleteHeroImage()
+    public function deleteSectionBanner(string $sectionKey)
     {
-        $hero = InicioSection::where('key', 'hero')->firstOrFail();
+        $section = InicioSection::where('key', $sectionKey)->firstOrFail();
 
-        if ($hero->image) {
-            Storage::disk('public')->delete($hero->image);
-            $hero->update(['image' => null]);
+        if ($section->image) {
+            Storage::disk('public')->delete($section->image);
+            $section->update(['image' => null]);
         }
 
         return redirect()->route('admin.inicio.index')
-            ->with('success', 'Imagen del hero eliminada.');
+            ->with('success', 'Imagen eliminada.');
     }
 
     public function reorder(Request $request)

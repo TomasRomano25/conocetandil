@@ -38,8 +38,8 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     // Inicio sections (specific routes before parameterised)
     Route::get('inicio', [InicioSectionController::class, 'index'])->name('inicio.index');
     Route::post('inicio/reorder', [InicioSectionController::class, 'reorder'])->name('inicio.reorder');
-    Route::post('inicio/hero-image', [InicioSectionController::class, 'updateHeroImage'])->name('inicio.hero-image');
-    Route::delete('inicio/hero-image', [InicioSectionController::class, 'deleteHeroImage'])->name('inicio.hero-image.delete');
+    Route::post('inicio/{sectionKey}/banner', [InicioSectionController::class, 'updateSectionBanner'])->name('inicio.banner.update');
+    Route::delete('inicio/{sectionKey}/banner', [InicioSectionController::class, 'deleteSectionBanner'])->name('inicio.banner.delete');
     Route::put('inicio/{inicioSection}', [InicioSectionController::class, 'update'])->name('inicio.update');
 
     // Nav menu management

@@ -4,10 +4,16 @@
 
 @section('content')
     {{-- Header --}}
-    <section class="bg-[#2D6A4F] text-white py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-4xl font-bold mb-4">Lugares para Visitar</h1>
-            <p class="text-gray-200 max-w-xl mx-auto">Explorá todos los rincones que hacen de Tandil un destino único.</p>
+    @php $bannerImage = $lugaresBanner->image ?? null; @endphp
+    <section class="relative text-white overflow-hidden py-16 {{ $bannerImage ? '' : 'bg-[#2D6A4F]' }}">
+        @if ($bannerImage)
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                 style="background-image: url('{{ asset('storage/' . $bannerImage) }}')"></div>
+            <div class="absolute inset-0 bg-gradient-to-br from-[#2D6A4F]/75 to-[#1A1A1A]/80"></div>
+        @endif
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl font-bold mb-4">{{ $lugaresBanner->title ?? 'Lugares para Visitar' }}</h1>
+            <p class="text-gray-200 max-w-xl mx-auto">{{ $lugaresBanner->subtitle ?? 'Explorá todos los rincones que hacen de Tandil un destino único.' }}</p>
         </div>
     </section>
 

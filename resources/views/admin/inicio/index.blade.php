@@ -5,44 +5,43 @@
 
 @section('content')
 
-    {{-- ── Hero Banner Image ───────────────────────────────────────────── --}}
-    @php $hero = $sections->firstWhere('key', 'hero'); @endphp
-    @if ($hero)
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8 max-w-2xl">
-            <h2 class="text-base font-bold text-[#1A1A1A] mb-1">Imagen del hero</h2>
-            <p class="text-sm text-gray-500 mb-4">
-                Esta imagen se muestra como fondo de la sección principal de la página de inicio.
-                Si no hay imagen, se usa el fondo de color verde.
-            </p>
+    {{-- ── Banner Image Cards ──────────────────────────────────────────── --}}
+    @php
+        $bannerSections = $sections->whereIn('key', ['hero', 'lugares_hero']);
+        $bannerLabels   = ['hero' => 'Imagen del banner — Inicio', 'lugares_hero' => 'Imagen del banner — Lugares'];
+        $bannerDescs    = [
+            'hero'         => 'Fondo de la sección principal de la página de inicio.',
+            'lugares_hero' => 'Fondo del banner de la página de Lugares para Visitar.',
+        ];
+    @endphp
 
-            {{-- Current image preview --}}
-            @if ($hero->image)
-                <div class="mb-4 relative inline-block">
-                    <img src="{{ asset('storage/' . $hero->image) }}"
-                         alt="Hero banner actual"
-                         class="w-full max-w-sm h-40 object-cover rounded-lg border border-gray-200">
-                    <span class="absolute top-2 left-2 bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                        Activa
-                    </span>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    @foreach ($bannerSections as $banner)
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="text-base font-bold text-[#1A1A1A] mb-1">{{ $bannerLabels[$banner->key] ?? $banner->title }}</h2>
+            <p class="text-sm text-gray-500 mb-4">{{ $bannerDescs[$banner->key] ?? '' }} Sin imagen se usa el fondo verde.</p>
+
+            @if ($banner->image)
+                <div class="mb-4 relative inline-block w-full">
+                    <img src="{{ asset('storage/' . $banner->image) }}"
+                         alt="Banner actual"
+                         class="w-full h-36 object-cover rounded-lg border border-gray-200">
+                    <span class="absolute top-2 left-2 bg-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">Activa</span>
                 </div>
-                {{-- Delete form --}}
-                <form method="POST" action="{{ route('admin.inicio.hero-image.delete') }}"
-                      onsubmit="return confirm('¿Eliminar la imagen del hero?')" class="mb-4">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                        class="text-red-600 hover:text-red-800 text-sm font-medium transition-colors">
+                <form method="POST" action="{{ route('admin.inicio.banner.delete', $banner->key) }}"
+                      onsubmit="return confirm('¿Eliminar esta imagen?')" class="mb-4">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium transition-colors">
                         Eliminar imagen actual
                     </button>
                 </form>
             @else
-                <div class="mb-4 w-full max-w-sm h-40 bg-gradient-to-br from-[#2D6A4F]/15 to-[#52B788]/15 rounded-lg border border-dashed border-gray-300 flex items-center justify-center">
+                <div class="mb-4 w-full h-36 bg-gradient-to-br from-[#2D6A4F]/15 to-[#52B788]/15 rounded-lg border border-dashed border-gray-300 flex items-center justify-center">
                     <span class="text-sm text-gray-400">Sin imagen — se usa fondo verde</span>
                 </div>
             @endif
 
-            {{-- Upload form --}}
-            <form method="POST" action="{{ route('admin.inicio.hero-image') }}"
+            <form method="POST" action="{{ route('admin.inicio.banner.update', $banner->key) }}"
                   enctype="multipart/form-data" class="flex items-center gap-3 flex-wrap">
                 @csrf
                 <label class="flex-1 min-w-0">
@@ -55,14 +54,15 @@
                 </label>
                 <button type="submit"
                     class="flex-shrink-0 bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2 px-5 rounded-lg transition text-sm">
-                    {{ $hero->image ? 'Reemplazar' : 'Subir imagen' }}
+                    {{ $banner->image ? 'Reemplazar' : 'Subir' }}
                 </button>
             </form>
             @error('image')
                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>
-    @endif
+    @endforeach
+    </div>
 
     <p class="text-gray-600 mb-6">Arrastrá las secciones para reordenarlas. Podés editar el contenido y togglear la visibilidad.</p>
 

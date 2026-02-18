@@ -37,7 +37,9 @@ class PageController extends Controller
             ->orderBy('category')
             ->pluck('category');
 
-        return view('pages.lugares', compact('lugares', 'categories', 'q', 'category'));
+        $lugaresBanner = InicioSection::where('key', 'lugares_hero')->first();
+
+        return view('pages.lugares', compact('lugares', 'categories', 'q', 'category', 'lugaresBanner'));
     }
 
     public function lugar(Lugar $lugar)

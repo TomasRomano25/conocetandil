@@ -50,6 +50,14 @@ class InicioSectionSeeder extends Seeder
                 'order' => 5,
                 'is_visible' => true,
             ],
+            [
+                'key' => 'lugares_hero',
+                'title' => 'Lugares para Visitar',
+                'subtitle' => 'Explorá todos los rincones que hacen de Tandil un destino único.',
+                'content' => null,
+                'order' => 6,
+                'is_visible' => true,
+            ],
         ];
 
         foreach ($sections as $section) {
