@@ -298,5 +298,39 @@
         </div>
     </div>
 
+    {{-- ══════════════════════════════════════════════════════════
+         URL DEL PANEL ADMIN
+         ══════════════════════════════════════════════════════════ --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div class="w-9 h-9 bg-[#2D6A4F]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-base font-bold text-[#1A1A1A]">URL del panel de administración</h2>
+                <p class="text-xs text-gray-500">Prefijo actual de la URL del admin.</p>
+            </div>
+        </div>
+        <div class="px-6 py-5 space-y-4">
+            <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-600">URL actual:</span>
+                <code class="bg-gray-100 text-[#1A1A1A] font-mono text-sm px-3 py-1.5 rounded-lg">
+                    {{ url(env('ADMIN_PREFIX', 'admin')) }}
+                </code>
+            </div>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-800">
+                <p class="font-semibold mb-1">¿Cómo cambiar la URL?</p>
+                <p class="mb-2">Editá la variable <code class="bg-blue-100 px-1 rounded text-xs">ADMIN_PREFIX</code> en el archivo <code class="bg-blue-100 px-1 rounded text-xs">.env</code> del servidor:</p>
+                <div class="bg-blue-100 rounded px-3 py-2 font-mono text-xs text-blue-900 select-all">
+                    ADMIN_PREFIX=mi_prefijo_secreto
+                </div>
+                <p class="mt-2 text-xs text-blue-600">Después ejecutá <code class="bg-blue-100 px-1 rounded">php artisan route:clear && php artisan route:cache</code> para aplicar el cambio.</p>
+            </div>
+        </div>
+    </div>
+
 </div>
 @endsection

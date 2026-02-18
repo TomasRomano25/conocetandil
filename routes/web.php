@@ -30,7 +30,7 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
 // Admin routes
-Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {
+Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('lugares', LugarController::class)->parameters(['lugares' => 'lugar']);
     Route::resource('usuarios', UserController::class)->except(['show']);
