@@ -1,6 +1,6 @@
 # Conoce Tandil — Project Bible
 
-> **Last updated:** 2026-02-18 (Premium Experience Module added)
+> **Last updated:** 2026-02-18 (Ecommerce + Auth registration added)
 > **Purpose:** Single source of truth for the entire project. Share this file with developers or AI assistants to provide full context.
 
 ---
@@ -24,10 +24,11 @@
 15. [Backup System](#15-backup-system)
 16. [Messaging & Forms System](#16-messaging--forms-system)
 17. [Premium Experience Module](#17-premium-experience-module)
-18. [Seeders & Sample Data](#18-seeders--sample-data)
-19. [Design System](#19-design-system)
-20. [Development Setup](#20-development-setup)
-21. [Known Limitations & Pending Work](#21-known-limitations--pending-work)
+18. [Ecommerce & Membership Checkout](#18-ecommerce--membership-checkout)
+19. [Seeders & Sample Data](#19-seeders--sample-data)
+20. [Design System](#20-design-system)
+21. [Development Setup](#21-development-setup)
+22. [Known Limitations & Pending Work](#22-known-limitations--pending-work)
 
 ---
 
@@ -48,6 +49,8 @@
 - SMTP email configuration stored in DB; sends notification emails on form submission
 - Mobile-optimized with touch carousel, sticky CTA, collapsible content
 - **Premium Experience Module** — membership-gated itinerary planner with day-by-day timelines, contextual editorial notes, and admin CRUD for itineraries
+- **Ecommerce & Membership Checkout** — plan selection, bank transfer checkout, order management with admin approval granting Premium access
+- **User Registration & Password Reset** — public registration, forgot password flow using dynamic SMTP config
 
 ---
 
@@ -77,18 +80,23 @@ app/
 │       └── BackupDatabase.php          # Artisan command: db:backup
 ├── Http/
 │   ├── Controllers/
-│   │   ├── AuthController.php          # Login/logout
+│   │   ├── AuthController.php          # Login/logout/register/password reset
 │   │   ├── PageController.php          # Public pages (with search/filter)
 │   │   ├── MessageController.php       # Public form submission (POST /formulario/{slug})
+│   │   ├── MembershipController.php    # Plan listing, checkout, order confirmation
+│   │   ├── PremiumController.php       # /premium gateway + hub + planner + itinerario
 │   │   └── Admin/
 │   │       ├── DashboardController.php
 │   │       ├── LugarController.php     # Places CRUD
-│   │       ├── UserController.php      # User management
+│   │       ├── UserController.php      # User management + manual premium grant/revoke
 │   │       ├── InicioSectionController.php # Homepage editor + hero image
 │   │       ├── NavItemController.php   # Nav menu control
-│   │       ├── ConfigurationController.php # Site settings + backups + SMTP
+│   │       ├── ConfigurationController.php # Site settings + backups + SMTP + payment
 │   │       ├── MessageController.php   # Admin inbox (list, show, mark read, delete)
-│   │       └── FormController.php      # Form + field management
+│   │       ├── FormController.php      # Form + field management
+│   │       ├── ItineraryController.php # Premium itinerary CRUD + item editor
+│   │       ├── OrderController.php     # Order list, detail, complete, cancel
+│   │       └── MembershipPlanController.php # Plan CRUD
 │   └── Middleware/
 │       ├── AdminMiddleware.php
 │       └── PremiumMiddleware.php
@@ -105,7 +113,9 @@ app/
 │   ├── FormField.php                   # Per-form field definitions
 │   ├── Message.php                     # Submitted form messages
 │   ├── Itinerary.php                   # Premium itinerary with filter scope
-│   └── ItineraryItem.php               # Individual timeline activity
+│   ├── ItineraryItem.php               # Individual timeline activity
+│   ├── MembershipPlan.php              # Membership plan (price, duration, features)
+│   └── Order.php                       # Purchase order (pending/completed/cancelled)
 
 database/
 ├── migrations/
@@ -123,13 +133,16 @@ database/
 │   ├── 2026_02_18_000003_create_messages_table.php
 │   ├── 2026_02_18_100001_add_premium_to_users_table.php
 │   ├── 2026_02_18_100002_create_itineraries_table.php
-│   └── 2026_02_18_100003_create_itinerary_items_table.php
+│   ├── 2026_02_18_100003_create_itinerary_items_table.php
+│   ├── 2026_02_18_200001_create_membership_plans_table.php
+│   └── 2026_02_18_200002_create_orders_table.php
 ├── seeders/
 │   ├── DatabaseSeeder.php
 │   ├── AdminUserSeeder.php
 │   ├── LugarSeeder.php
 │   ├── InicioSectionSeeder.php
-│   └── FormSeeder.php                  # Default "Contacto" form with 4 fields
+│   ├── FormSeeder.php                  # Default "Contacto" form with 4 fields
+│   └── MembershipPlanSeeder.php        # 4 default plans (1/3/6/12 months)
 
 resources/
 ├── css/app.css
@@ -141,7 +154,14 @@ resources/
     │   ├── app.blade.php               # Public layout — dynamic nav from DB
     │   └── admin.blade.php             # Admin layout with sidebar
     ├── auth/
-    │   └── login.blade.php
+    │   ├── login.blade.php
+    │   ├── register.blade.php
+    │   ├── forgot-password.blade.php
+    │   └── reset-password.blade.php
+    ├── membership/
+    │   ├── planes.blade.php            # Plan selection grid
+    │   ├── checkout.blade.php          # Bank transfer checkout + order summary
+    │   └── confirmacion.blade.php      # Order confirmation + next steps
     ├── pages/
     │   ├── inicio.blade.php
     │   ├── lugares.blade.php           # Search + category filter
@@ -171,13 +191,18 @@ resources/
         ├── nav/
         │   └── index.blade.php         # Nav menu editor
         ├── configuraciones/
-        │   └── index.blade.php         # SMTP + backup settings
+        │   └── index.blade.php         # SMTP + backup + payment method settings
         ├── mensajes/
         │   ├── index.blade.php         # Message grid with form/read filters
         │   └── show.blade.php          # Individual message view
-        └── formularios/
-            ├── index.blade.php         # Form settings editor
-            └── campos.blade.php        # Field editor with drag-and-drop reorder
+        ├── formularios/
+        │   ├── index.blade.php         # Form settings editor
+        │   └── campos.blade.php        # Field editor with drag-and-drop reorder
+        ├── pedidos/
+        │   ├── index.blade.php         # Order list with status filter tabs
+        │   └── show.blade.php          # Order detail + complete/cancel actions
+        └── planes/
+            └── index.blade.php         # Membership plan list + inline edit + create
 
 routes/
 ├── web.php                             # All HTTP routes
@@ -364,6 +389,33 @@ storage/app/
 | why_worth_it | text | nullable — "Vale la pena porque…" |
 | timestamps | | |
 
+### `membership_plans`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | bigint PK | |
+| name | string | Display name (e.g. "1 Mes") |
+| slug | string | unique — used in URL (e.g. "1-mes") |
+| description | text | nullable |
+| price | decimal(10,2) | Price in ARS |
+| duration_months | integer | How many months of premium access |
+| features | json | nullable — array of feature strings for plan card |
+| active | boolean | default: true — controls visibility on /premium/planes |
+| sort_order | integer | default: 0 |
+| timestamps | | |
+
+### `orders`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | bigint PK | |
+| user_id | foreignId | cascadeOnDelete |
+| plan_id | foreignId | references membership_plans.id, cascadeOnDelete |
+| status | string | pending / completed / cancelled |
+| total | decimal(10,2) | Price at time of order |
+| transfer_reference | string | nullable — comprobante number entered by user |
+| admin_notes | string | nullable — internal admin note |
+| completed_at | timestamp | nullable — set when marked complete |
+| timestamps | | |
+
 ### System tables
 `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`, `password_reset_tokens` — standard Laravel.
 
@@ -380,13 +432,32 @@ storage/app/
 | GET | `/guias` | PageController@guias | guias |
 | GET | `/contacto` | PageController@contacto | contacto |
 | POST | `/formulario/{slug}` | MessageController@store | formulario.submit |
-| GET | `/premium` | PremiumController@upsell | premium.upsell |
+| GET | `/premium` | PremiumController@index | premium.upsell |
 
 `/lugares` accepts query params: `?q=search+term&category=Naturaleza`
+
+### Auth (guest middleware)
+| Method | URI | Controller@action | Name |
+|--------|-----|-------------------|------|
+| GET | `/register` | AuthController@showRegister | register |
+| POST | `/register` | AuthController@register | — |
+| GET | `/forgot-password` | AuthController@showForgotPassword | password.request |
+| POST | `/forgot-password` | AuthController@sendResetLink | password.email |
+| GET | `/reset-password/{token}` | AuthController@showResetPassword | password.reset |
+| POST | `/reset-password` | AuthController@resetPassword | password.update |
+
+### Membership (public + auth)
+| Method | URI | Controller@action | Name |
+|--------|-----|-------------------|------|
+| GET | `/premium/planes` | MembershipController@planes | membership.planes |
+| GET | `/premium/checkout/{plan:slug}` | MembershipController@checkout | membership.checkout |
+| POST | `/premium/checkout/{plan:slug}` | MembershipController@store | membership.store |
+| GET | `/premium/pedido/{order}` | MembershipController@confirmacion | membership.confirmacion |
 
 ### Premium (middleware: auth + premium)
 | Method | URI | Controller@action | Name |
 |--------|-----|-------------------|------|
+| GET | `/premium/panel` | PremiumController@hub | premium.hub |
 | GET | `/premium/planificar` | PremiumController@planner | premium.planner |
 | GET | `/premium/resultados` | PremiumController@resultados | premium.resultados |
 | GET | `/premium/itinerario/{itinerary:slug}` | PremiumController@show | premium.show |
@@ -441,6 +512,15 @@ storage/app/
 | DELETE | `/admin/itinerarios/{id}/items/{item}` | ItineraryController@destroyItem | admin.itinerarios.items.destroy |
 | POST | `/admin/usuarios/{usuario}/premium/grant` | UserController@grantPremium | admin.usuarios.premium.grant |
 | POST | `/admin/usuarios/{usuario}/premium/revoke` | UserController@revokePremium | admin.usuarios.premium.revoke |
+| GET | `/admin/pedidos` | OrderController@index | admin.pedidos.index |
+| GET | `/admin/pedidos/{order}` | OrderController@show | admin.pedidos.show |
+| POST | `/admin/pedidos/{order}/completar` | OrderController@complete | admin.pedidos.complete |
+| POST | `/admin/pedidos/{order}/cancelar` | OrderController@cancel | admin.pedidos.cancel |
+| GET | `/admin/planes` | MembershipPlanController@index | admin.planes.index |
+| POST | `/admin/planes` | MembershipPlanController@store | admin.planes.store |
+| PUT | `/admin/planes/{plan}` | MembershipPlanController@update | admin.planes.update |
+| DELETE | `/admin/planes/{plan}` | MembershipPlanController@destroy | admin.planes.destroy |
+| POST | `/admin/configuraciones/payment` | ConfigurationController@updatePayment | admin.configuraciones.payment.update |
 
 ---
 
@@ -509,12 +589,31 @@ storage/app/
 - **Relationships:** `itinerary()` → belongsTo Itinerary; `lugar()` → belongsTo Lugar
 - **Methods:** `displayTitle(): string` — custom_title ?? lugar->title ?? '—'; `formattedDuration(): ?string` — "2h 30min" format
 
+### `MembershipPlan`
+- **Fillable:** name, slug, description, price, duration_months, features, active, sort_order
+- **Casts:** price (decimal:2), duration_months, sort_order (int), features (array), active (bool)
+- **Relationships:** `orders()` → hasMany Order
+- **Methods:** `durationLabel(): string` — "1 mes" / "3 meses" / "1 año"; `formattedPrice(): string` — "$2.999"
+- **Scopes:** `active()`, `ordered()`
+
+### `Order`
+- **Fillable:** user_id, plan_id, status, total, transfer_reference, admin_notes, completed_at
+- **Casts:** total (decimal:2), completed_at (datetime)
+- **Relationships:** `user()` → belongsTo User; `plan()` → belongsTo MembershipPlan
+- **Methods:** `isPending/isCompleted/isCancelled(): bool`; `statusLabel(): string`; `statusColor(): string`
+- **`complete()`** — extends user's `premium_expires_at` by `plan->duration_months` from current expiry (or now), sets status=completed, completed_at=now
+- **`cancel()`** — sets status=cancelled
+
 ---
 
 ## 7. Controllers
 
 ### `AuthController`
 - `showLogin()`, `login(Request)`, `logout(Request)`
+- `showRegister()`, `register(Request)` — validates name/email/password, creates User, auto-login, redirect to `/premium`
+- `showForgotPassword()`, `sendResetLink(Request)` — calls `applySmtpConfig()` then `Password::sendResetLink()`
+- `showResetPassword(Request, string $token)`, `resetPassword(Request)` — uses Laravel `Password::reset()` facade, fires `PasswordReset` event
+- Private `applySmtpConfig()` — reads all `smtp_*` Configuration keys and sets them via `config([...])`
 
 ### `MessageController` (public)
 - `store(Request, string $slug)` — finds active Form by slug, validates fields dynamically (rules built from visible + required field config), saves Message, sends `NewMessageNotification` email (silent fail)
@@ -576,8 +675,34 @@ storage/app/
 - `updateItem(Request, Itinerary, ItineraryItem)` — updates item (inline edit modal in view)
 - `destroyItem(Itinerary, ItineraryItem)` — deletes item
 
-### `PremiumController` (public)
-- `upsell()` — renders `/premium` page; accessible to all users
+### `MembershipController`
+- `planes()` — loads active + ordered plans, renders plan grid
+- `checkout(MembershipPlan $plan)` — abort if plan inactive; passes plan + `bankConfig()` to view
+- `store(Request, MembershipPlan)` — validates transfer_reference (nullable), creates Order (status: pending), redirects to confirmation
+- `confirmacion(Order)` — 403 if order.user_id != auth()->id(); loads plan; renders confirmation view
+- Private `bankConfig()` — reads 6 `bank_*` Configuration keys
+
+### `Admin\OrderController`
+- `index(Request)` — paginate 30, optional `?status=` filter, passes `$pendingCount`
+- `show(Order)` — loads user + plan eager
+- `complete(Request, Order)` — abort if not pending; saves admin_notes if provided; calls `$order->complete()`
+- `cancel(Request, Order)` — abort if already completed; saves admin_notes; calls `$order->cancel()`
+
+### `Admin\MembershipPlanController`
+- `index()` — all plans with orders_count
+- `store(Request)` — creates new plan
+- `update(Request, MembershipPlan)` — updates plan fields
+- `destroy(MembershipPlan)` — deletes plan (only if no orders)
+
+### `Admin\ConfigurationController`
+- `index()` — reads backup config + SMTP config + payment config (`bank_*` keys), lists backup files, passes all stats to view
+- `updateBackup(Request)`, `runBackup()`, `downloadBackup()` — backup management
+- `updateSmtp(Request)` — saves smtp_* keys
+- `updatePayment(Request)` — validates and saves bank_name, bank_account_holder, bank_cbu, bank_alias, bank_account_number, bank_instructions
+
+### `PremiumController`
+- `index()` — smart gate: if auth + isPremium → redirect to `premium.hub`; else → renders `premium.upsell`
+- `hub()` — loads last 5 orders with plan; renders `premium.hub` (member panel)
 - `planner()` — renders questionnaire form (auth + premium required)
 - `resultados(Request)` — validates GET params (days required, type/season default mixed/all), calls `Itinerary::matchFilters()`, returns matched itinerary list
 - `show(Itinerary)` — 404 if inactive; loads items with lugar.images; calls `itemsByDay()` for grouping; renders timeline view
@@ -599,12 +724,15 @@ Registered in `bootstrap/app.php`. Checks `auth()->check() && auth()->user()->is
 ### Public Layout (`layouts/app.blade.php`)
 - `@php $navItems = \App\Models\NavItem::ordered()->visible()->get(); @endphp` at top
 - Navbar and footer **both loop over `$navItems`** — hiding an item removes it from both
-- Login link is always shown (not a NavItem)
+- Amber "✦ Premium" nav link always shown (→ `/premium`)
+- Auth area (top right): logged-in users → name pill with dropdown (Admin panel / Mi cuenta Premium / Cerrar sesión); guests → "Iniciar sesión" link
+- Mobile menu also includes Premium link + auth section (user info / logout or login/register)
 - Sticky green navbar, mobile hamburger menu, 3-column footer
 
 ### Admin Layout (`layouts/admin.blade.php`)
-Sidebar links: Dashboard, Lugares, Usuarios, Editar Inicio, **Menú de Navegación**, **Itinerarios Premium**, **Mensajes** (with unread badge count), **Formularios**, **Configuraciones**, Ver sitio, Cerrar Sesión.
-The unread badge is computed inline: `\App\Models\Message::where('is_read', false)->count()`.
+Sidebar links: Dashboard, Lugares, Usuarios, Editar Inicio, **Menú de Navegación**, **Itinerarios Premium**, **Pedidos** (with amber pending badge count), **Planes Premium**, **Mensajes** (with unread badge count), **Formularios**, **Configuraciones**, Ver sitio, Cerrar Sesión.
+Unread message badge: `\App\Models\Message::where('is_read', false)->count()`.
+Pending orders badge: `\App\Models\Order::where('status','pending')->count()`.
 
 ### Place Detail Page (`pages/lugar.blade.php`) — Premium
 Full Airbnb-inspired redesign:
@@ -651,7 +779,13 @@ source ~/.nvm/nvm.sh && nvm use 20 && npm run build
 
 ## 11. Authentication
 
-Custom (no Breeze/Jetstream). No registration, no password reset, no email verification. Admin creates users manually. Login: `Auth::attempt()` → redirect to `/admin`.
+Custom (no Breeze/Jetstream). No email verification.
+
+- **Login** → admins redirect to `/admin`, regular users redirect to `/premium` (which itself redirects to `/premium/panel` if premium, or shows upsell if not)
+- **Registration** → `GET/POST /register` — public, creates non-admin user, auto-login, redirect to `/premium`
+- **Forgot password** → `GET/POST /forgot-password` — sends reset link email using dynamic SMTP config
+- **Reset password** → `GET /reset-password/{token}` + `POST /reset-password` — standard Laravel Password broker
+- **`password_reset_tokens`** table — standard Laravel, exists from initial migration
 
 ---
 
@@ -687,14 +821,32 @@ CRUD (no show). Cannot delete self.
 - Edit form settings: name, description, notification email, active/send_notification toggles
 - **Campos editor** (`/admin/formularios/{form}/campos`): per-field controls — label, placeholder, **Visible** toggle, **Obligatorio** toggle, drag-and-drop reorder (pure HTML5 drag events + fetch AJAX)
 
+### Pedidos (`/admin/pedidos`)
+- Filter tabs: Todos / Pendientes (amber badge count) / Completados / Cancelados
+- Table: zero-padded order ID, user name+email, plan name+duration, total, transfer reference, status badge, date, "Ver →" link
+- Pending rows highlighted amber
+- Order detail (`/admin/pedidos/{order}`): status banner, user card (with premium status + expiry), plan card, admin notes (saved with order), complete/cancel actions (forms with confirm dialog)
+- Completing an order grants Premium; cancelling sets status=cancelled
+
+### Planes Premium (`/admin/planes`)
+- Plan list with order count, inline edit toggle (JS `toggleEdit(id)`)
+- Edit form: name, price, duration_months, sort_order, description, active checkbox
+- Create new plan form at bottom
+- Plans are shown on `/premium/planes` ordered by `sort_order`
+
 ### Configuraciones (`/admin/configuraciones`)
-Three cards:
+Four cards:
 
 **Configuración de Email (SMTP):**
 - Host, port, encryption (TLS/SSL/STARTTLS/none)
 - Username, password (write-only — shows checkmark if saved)
 - From email and from name
 - Saved to `configurations` table; applied dynamically at send time via `config([...])` calls
+
+**Métodos de Pago (Bank Transfer):**
+- Bank name, account holder, CBU (22-digit monospace), alias, account number, instructions
+- Shown in checkout and confirmation pages for users to complete transfer
+- Saved to `configurations` table as `bank_*` keys
 
 **Copias de Seguridad (settings):**
 - Toggle: enable/disable automatic backups
@@ -838,13 +990,62 @@ Each `ItineraryItem` renders:
 
 ---
 
-## 18. Seeders & Sample Data
+## 18. Ecommerce & Membership Checkout
+
+### Overview
+A full self-service checkout for Premium memberships. Users browse plans, complete a bank transfer checkout, and an admin marks the order complete — which automatically grants Premium access.
+
+### User flow
+1. `/premium/planes` — browse 4 plan cards (1 mes, 3 meses, 6 meses, 1 año) with prices, features, and a "Más elegido" highlight on the 6-month plan
+2. Click "Suscribirme" → `/premium/checkout/{slug}` (requires auth; non-logged users see "Iniciar sesión para suscribirme")
+3. Checkout page shows bank transfer details (CBU, alias, amount) with copy-to-clipboard buttons and an optional transfer reference field
+4. Submit → `POST /premium/checkout/{slug}` → creates `Order` (status: pending) → redirects to `/premium/pedido/{order}` (confirmation page)
+5. Confirmation page shows order number, bank details reminder, and a 3-step "what happens next" guide
+
+### Admin order flow
+1. `/admin/pedidos` — table of all orders, filterable by status (Todos / Pendientes / Completados / Cancelados), with amber highlight on pending rows
+2. Click order → `/admin/pedidos/{order}` — full detail: user info (with premium status), plan info, payment reference, admin notes field
+3. Admin fills optional notes, clicks "Completar pedido" → `POST /admin/pedidos/{order}/completar`
+4. `Order::complete()` — extends `premium_expires_at` by `plan->duration_months` from current expiry (or now if not premium), sets `status=completed`, `completed_at=now()`
+5. Or admin clicks "Cancelar" → sets `status=cancelled`
+
+### Bank transfer configuration
+Admin configures bank details at `Admin → Configuraciones → Métodos de Pago`:
+| Configuration key | Description |
+|------------------|-------------|
+| bank_name | Name of the bank |
+| bank_account_holder | Account holder name |
+| bank_cbu | 22-digit CBU (displayed monospace) |
+| bank_alias | Transfer alias |
+| bank_account_number | Account number |
+| bank_instructions | Additional instructions (textarea) |
+
+These are read by `MembershipController::bankConfig()` and passed to checkout/confirmation views.
+
+### Membership Plans admin (`/admin/planes`)
+- List all plans with order count per plan
+- Inline edit form (toggle with JS) for name, price, duration_months, sort_order, description, active status
+- Create new plan form at bottom
+- Deactivating a plan hides it from `/premium/planes`
+
+### Premium Hub (`/premium/panel`)
+After purchasing, logged-in premium users see a hub at `/premium/panel` (accessible via `/premium` → redirect):
+- Welcome card with name, membership expiry date + `diffForHumans()`
+- Big CTA to start planning
+- 3 quick action cards: Planificador, Explorar lugares, Contacto
+- Feature list (what Premium includes)
+- Recent orders section (last 5 orders with status badge)
+
+---
+
+## 19. Seeders & Sample Data
 
 ### `DatabaseSeeder` calls:
 1. **AdminUserSeeder** — creates admin@conocetandil.com / password (is_admin: true)
 2. **LugarSeeder** — creates 9 lugares (6 featured)
 3. **InicioSectionSeeder** — creates 5 homepage sections
 4. **FormSeeder** — creates default "Formulario de Contacto" (slug: contacto) with fields: nombre (text, required), email (email, required), telefono (tel, optional), mensaje (textarea, required)
+5. **MembershipPlanSeeder** — creates 4 plans: 1 mes ($2,999), 3 meses ($6,999), 6 meses ($11,999), 1 año ($19,999); uses `firstOrCreate` so safe to re-run
 
 Nav items and configurations are seeded via their own migrations (not seeders).
 
@@ -852,13 +1053,14 @@ Nav items and configurations are seeded via their own migrations (not seeders).
 ```bash
 php artisan db:seed
 php artisan migrate:fresh --seed
-# Or to seed only the form:
+# Or to seed only specific seeders:
 php artisan db:seed --class=FormSeeder
+php artisan db:seed --class=MembershipPlanSeeder
 ```
 
 ---
 
-## 19. Design System
+## 20. Design System
 
 ### Colors
 | Name | Hex | Usage |
@@ -883,7 +1085,7 @@ php artisan db:seed --class=FormSeeder
 
 ---
 
-## 20. Development Setup
+## 21. Development Setup
 
 ### Prerequisites
 - PHP 8.2+, Composer, Node.js 20+, SQLite
@@ -914,24 +1116,25 @@ php artisan tinker --execute="\App\Models\User::where('email','admin@conocetandi
 
 ---
 
-## 21. Known Limitations & Pending Work
+## 22. Known Limitations & Pending Work
 
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Contact form | ✅ Functional | Dynamic fields, DB storage, email notification |
 | Email sending | Configurable | SMTP set via Admin Configuraciones; silently fails if not set |
 | Premium Module | ✅ Functional | Membership, planner, itinerary timelines, admin CRUD |
-| Premium payment | Not implemented | Admin grants membership manually |
+| Premium payment | ✅ Functional | Bank transfer checkout; admin marks order complete → grants Premium |
+| User registration | ✅ Functional | Public `/register` page; auto-login after registration |
+| Password reset | ✅ Functional | `/forgot-password` + `/reset-password/{token}`; uses dynamic SMTP config |
 | Form field creation | Not implemented | Fields added via seeder/tinker; admin can edit but not add new fields yet |
 | Guides pricing/checkout | Static | No payment or cart |
 | Social media links | Placeholder | Footer links go to `#` |
-| Password reset | Not implemented | No forgot password flow |
-| User registration | Not implemented | Admin creates users manually |
 | API | None | No `routes/api.php` |
 | Tests | None | No test files |
 | Analytics | None | No tracking integration |
 | Backup cron | Manual setup | Admin must add cron entry to server — see Section 15 |
 | Google Maps | Partial | Lat/lng stored; Google Maps URL generated via accessor; rendered in itinerary items view |
+| Payment verification | Manual | No automated bank transfer verification; admin confirms manually |
  
 ---
 
