@@ -332,5 +332,80 @@
         </div>
     </div>
 
+    {{-- ══════════════════════════════════════════════════════════
+         MÉTODOS DE PAGO — Transferencia Bancaria
+         ══════════════════════════════════════════════════════════ --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div class="w-9 h-9 bg-[#2D6A4F]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="font-bold text-[#1A1A1A] text-sm">Métodos de Pago</h2>
+                <p class="text-xs text-gray-500">Transferencia bancaria — estos datos se muestran en el checkout.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ route('admin.configuraciones.payment.update') }}" class="p-6 space-y-4">
+            @csrf
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del banco</label>
+                    <input type="text" name="bank_name" value="{{ $payment['bank_name'] }}"
+                        placeholder="Ej: Banco Provincia"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Titular de la cuenta</label>
+                    <input type="text" name="bank_account_holder" value="{{ $payment['bank_account_holder'] }}"
+                        placeholder="Nombre completo o razón social"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">CBU</label>
+                    <input type="text" name="bank_cbu" value="{{ $payment['bank_cbu'] }}"
+                        placeholder="22 dígitos"
+                        maxlength="22"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 font-mono focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Alias</label>
+                    <input type="text" name="bank_alias" value="{{ $payment['bank_alias'] }}"
+                        placeholder="Ej: MI.ALIAS.TANDIL"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Número de cuenta <span class="text-gray-400 font-normal">(opcional)</span></label>
+                    <input type="text" name="bank_account_number" value="{{ $payment['bank_account_number'] }}"
+                        placeholder="Ej: 000-000000/0"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Instrucciones adicionales <span class="text-gray-400 font-normal">(opcional)</span></label>
+                    <textarea name="bank_instructions" rows="3"
+                        placeholder="Ej: Por favor incluí tu nombre y el plan en el concepto de la transferencia."
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]">{{ $payment['bank_instructions'] }}</textarea>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+                <p class="text-xs text-gray-400">
+                    <a href="{{ route('membership.planes') }}" target="_blank" class="text-[#2D6A4F] hover:underline">
+                        Ver página de planes →
+                    </a>
+                </p>
+                <button type="submit"
+                    class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2 px-6 rounded-lg transition text-sm">
+                    Guardar datos bancarios
+                </button>
+            </div>
+        </form>
+    </div>
+
 </div>
 @endsection

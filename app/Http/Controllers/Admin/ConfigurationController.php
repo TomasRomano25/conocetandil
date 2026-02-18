@@ -42,7 +42,16 @@ class ConfigurationController extends Controller
             'from_name'  => Configuration::get('smtp_from_name', 'Conoce Tandil'),
         ];
 
-        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp'));
+        $payment = [
+            'bank_name'           => Configuration::get('bank_name', ''),
+            'bank_account_holder' => Configuration::get('bank_account_holder', ''),
+            'bank_cbu'            => Configuration::get('bank_cbu', ''),
+            'bank_alias'          => Configuration::get('bank_alias', ''),
+            'bank_account_number' => Configuration::get('bank_account_number', ''),
+            'bank_instructions'   => Configuration::get('bank_instructions', ''),
+        ];
+
+        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment'));
     }
 
     public function updateBackup(Request $request)
@@ -82,6 +91,26 @@ class ConfigurationController extends Controller
         }
 
         return response()->download($path, $filename);
+    }
+
+    public function updatePayment(Request $request)
+    {
+        $request->validate([
+            'bank_name'            => 'nullable|string|max:100',
+            'bank_account_holder'  => 'nullable|string|max:255',
+            'bank_cbu'             => 'nullable|string|max:22',
+            'bank_alias'           => 'nullable|string|max:100',
+            'bank_account_number'  => 'nullable|string|max:100',
+            'bank_instructions'    => 'nullable|string|max:1000',
+        ]);
+
+        $fields = ['bank_name', 'bank_account_holder', 'bank_cbu', 'bank_alias', 'bank_account_number', 'bank_instructions'];
+        foreach ($fields as $field) {
+            Configuration::set($field, $request->input($field) ?? '');
+        }
+
+        return redirect()->route('admin.configuraciones.index')
+            ->with('success', 'Datos de transferencia bancaria guardados.');
     }
 
     public function updateSmtp(Request $request)

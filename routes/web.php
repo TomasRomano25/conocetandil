@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PremiumController;
+use App\Http\Controllers\Admin\MembershipPlanController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ItineraryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LugarController;
@@ -36,6 +39,14 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
+// Membership / plans
+Route::get('/premium/planes', [MembershipController::class, 'planes'])->name('membership.planes');
+Route::middleware('auth')->group(function () {
+    Route::get('/premium/checkout/{plan:slug}',  [MembershipController::class, 'checkout'])->name('membership.checkout');
+    Route::post('/premium/checkout/{plan:slug}', [MembershipController::class, 'store'])->name('membership.store');
+    Route::get('/premium/pedido/{order}',        [MembershipController::class, 'confirmacion'])->name('membership.confirmacion');
+});
 
 // Premium routes
 Route::get('/premium', [PremiumController::class, 'index'])->name('premium.upsell');
@@ -70,6 +81,7 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::post('configuraciones/backup/run', [ConfigurationController::class, 'runBackup'])->name('configuraciones.backup.run');
     Route::get('configuraciones/backup/download', [ConfigurationController::class, 'downloadBackup'])->name('configuraciones.backup.download');
     Route::post('configuraciones/smtp', [ConfigurationController::class, 'updateSmtp'])->name('configuraciones.smtp.update');
+    Route::post('configuraciones/payment', [ConfigurationController::class, 'updatePayment'])->name('configuraciones.payment.update');
 
     // Mensajes
     Route::get('mensajes', [AdminMessageController::class, 'index'])->name('mensajes.index');
@@ -93,6 +105,18 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     // Premium user management
     Route::post('usuarios/{usuario}/premium/grant', [\App\Http\Controllers\Admin\UserController::class, 'grantPremium'])->name('usuarios.premium.grant');
     Route::post('usuarios/{usuario}/premium/revoke', [\App\Http\Controllers\Admin\UserController::class, 'revokePremium'])->name('usuarios.premium.revoke');
+
+    // Pedidos (orders)
+    Route::get('pedidos', [OrderController::class, 'index'])->name('pedidos.index');
+    Route::get('pedidos/{order}', [OrderController::class, 'show'])->name('pedidos.show');
+    Route::post('pedidos/{order}/completar', [OrderController::class, 'complete'])->name('pedidos.complete');
+    Route::post('pedidos/{order}/cancelar', [OrderController::class, 'cancel'])->name('pedidos.cancel');
+
+    // Planes de membresía
+    Route::get('planes', [MembershipPlanController::class, 'index'])->name('planes.index');
+    Route::post('planes', [MembershipPlanController::class, 'store'])->name('planes.store');
+    Route::put('planes/{plan}', [MembershipPlanController::class, 'update'])->name('planes.update');
+    Route::delete('planes/{plan}', [MembershipPlanController::class, 'destroy'])->name('planes.destroy');
 
     // Formularios
     Route::get('formularios', [FormController::class, 'index'])->name('formularios.index');

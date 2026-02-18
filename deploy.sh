@@ -22,6 +22,7 @@ php artisan migrate --force
 echo ">> Seeding required data..."
 php artisan db:seed --class=FormSeeder --force
 php artisan db:seed --class=InicioSectionSeeder --force
+php artisan db:seed --class=MembershipPlanSeeder --force
 
 echo ">> Caching configuration..."
 php artisan config:cache

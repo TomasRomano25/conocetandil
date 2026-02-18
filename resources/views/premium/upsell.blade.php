@@ -18,12 +18,24 @@
             El módulo Premium no te da más lugares — te dice cuáles visitar primero, en qué orden, y por qué. Diseñado para que aproveches cada hora en Tandil.
         </p>
         @auth
-            <p class="text-amber-300 text-sm">Tu cuenta aún no tiene acceso Premium. Contactá al administrador para activarlo.</p>
+            <div class="space-y-4">
+                <p class="text-amber-300 text-sm mb-2">Tu cuenta aún no tiene acceso Premium.</p>
+                <a href="{{ route('membership.planes') }}"
+                    class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 px-8 rounded-xl transition text-base">
+                    ✦ Ver planes y precios
+                </a>
+            </div>
         @else
-            <a href="{{ route('login') }}"
-                class="inline-flex items-center gap-2 bg-[#52B788] hover:bg-[#2D6A4F] text-white font-bold py-3.5 px-8 rounded-xl transition text-base">
-                Iniciar sesión para acceder
-            </a>
+            <div class="flex flex-col sm:flex-row items-center gap-4 justify-center">
+                <a href="{{ route('membership.planes') }}"
+                    class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 px-8 rounded-xl transition text-base">
+                    ✦ Ver planes y precios
+                </a>
+                <a href="{{ route('login') }}"
+                    class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold py-3.5 px-8 rounded-xl transition text-base border border-white/20">
+                    Iniciar sesión
+                </a>
+            </div>
         @endauth
     </div>
 </section>

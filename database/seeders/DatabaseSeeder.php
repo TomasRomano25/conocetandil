@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             LugarSeeder::class,
             InicioSectionSeeder::class,
             FormSeeder::class,
+            MembershipPlanSeeder::class,
         ]);
     }
 }

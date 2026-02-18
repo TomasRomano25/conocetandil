@@ -97,6 +97,30 @@
         </ul>
     </div>
 
+    {{-- Recent orders --}}
+    @if ($recentOrders->isNotEmpty())
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-7 mt-6">
+        <h3 class="font-bold text-[#1A1A1A] mb-4">Mis pedidos</h3>
+        <div class="space-y-3">
+            @foreach ($recentOrders as $order)
+            @php $c = ['pending'=>'amber','completed'=>'green','cancelled'=>'red'][$order->status] ?? 'gray'; @endphp
+            <div class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-mono text-gray-400">#{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</span>
+                    <div>
+                        <p class="text-sm font-semibold text-[#1A1A1A]">{{ $order->plan->name }}</p>
+                        <p class="text-xs text-gray-400">{{ $order->created_at->format('d/m/Y') }}</p>
+                    </div>
+                </div>
+                <span class="text-xs font-semibold bg-{{ $c }}-100 text-{{ $c }}-700 px-2.5 py-1 rounded-full">
+                    {{ $order->statusLabel() }}
+                </span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
 </div>
 </section>
 

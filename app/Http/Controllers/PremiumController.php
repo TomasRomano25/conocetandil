@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Itinerary;
+use App\Models\Order;
 use Illuminate\Http\Request;
 
 class PremiumController extends Controller
@@ -20,7 +21,13 @@ class PremiumController extends Controller
     /** Premium hub / panel — only for premium users */
     public function hub()
     {
-        return view('premium.hub');
+        $recentOrders = Order::where('user_id', auth()->id())
+            ->with('plan')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('premium.hub', compact('recentOrders'));
     }
 
     /** Planner questionnaire — only premium users */

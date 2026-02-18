@@ -45,6 +45,20 @@
                 Itinerarios Premium
             </a>
 
+            {{-- Ecommerce --}}
+            @php $pendingOrders = \App\Models\Order::where('status','pending')->count(); @endphp
+            <a href="{{ route('admin.pedidos.index') }}" class="flex items-center px-4 py-3 rounded-lg transition {{ request()->routeIs('admin.pedidos.*') ? 'bg-[#2D6A4F] text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                Pedidos
+                @if ($pendingOrders > 0)
+                    <span class="ml-auto bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">{{ $pendingOrders }}</span>
+                @endif
+            </a>
+            <a href="{{ route('admin.planes.index') }}" class="flex items-center px-4 py-3 rounded-lg transition {{ request()->routeIs('admin.planes.*') ? 'bg-[#2D6A4F] text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                Planes Premium
+            </a>
+
             {{-- Mensajes --}}
             @php
                 $unread = \App\Models\Message::where('is_read', false)->count();
