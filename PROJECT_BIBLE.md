@@ -1,6 +1,6 @@
 # Conoce Tandil — Project Bible
 
-> **Last updated:** 2026-02-18 (Analytics module added — GA4, GTM, dashboard)
+> **Last updated:** 2026-02-18 (Hotel directory module added — 3-tier plans, owner registration, admin approval)
 > **Purpose:** Single source of truth for the entire project. Share this file with developers or AI assistants to provide full context.
 
 ---
@@ -29,7 +29,8 @@
 20. [Design System](#20-design-system)
 21. [Development Setup](#21-development-setup)
 22. [Analytics Module](#22-analytics-module)
-22. [Known Limitations & Pending Work](#22-known-limitations--pending-work)
+23. [Hotel Directory Module](#23-hotel-directory-module)
+24. [Known Limitations & Pending Work](#24-known-limitations--pending-work)
 
 ---
 
@@ -48,6 +49,7 @@
 - Dynamic form system — contact form rendered from DB; admin can toggle fields visible/required/reorder
 - Admin inbox (Mensajes) for all submitted form messages with per-form filtering and read/unread tracking
 - SMTP email configuration stored in DB; sends notification emails on form submission
+- Hotel directory with 3-tier subscription plans (Básico/Estándar/Diamante), owner self-registration, bank transfer payment, admin approval workflow, plan-based frontend rendering, contact forms via SMTP
 - Mobile-optimized with touch carousel, sticky CTA, collapsible content
 - **Premium Experience Module** — membership-gated itinerary planner with day-by-day timelines, contextual editorial notes, and admin CRUD for itineraries
 - **Ecommerce & Membership Checkout** — plan selection, bank transfer checkout, order management with admin approval granting Premium access
@@ -1047,8 +1049,10 @@ After purchasing, logged-in premium users see a hub at `/premium/panel` (accessi
 3. **InicioSectionSeeder** — creates 5 homepage sections
 4. **FormSeeder** — creates default "Formulario de Contacto" (slug: contacto) with fields: nombre (text, required), email (email, required), telefono (tel, optional), mensaje (textarea, required)
 5. **MembershipPlanSeeder** — creates 4 plans: 1 mes ($2,999), 3 meses ($6,999), 6 meses ($11,999), 1 año ($19,999); uses `firstOrCreate` so safe to re-run
+6. **HotelPlanSeeder** — creates 3 hotel plans: Básico ($4,999), Estándar ($9,999), Diamante ($19,999); uses `firstOrCreate`
+7. **NavItemSeeder** — creates default nav items (Lugares, Guías, Hoteles, Contacto); uses `firstOrCreate`
 
-Nav items and configurations are seeded via their own migrations (not seeders).
+Nav items and configurations are seeded via seeders (not migrations).
 
 ### Running seeders
 ```bash
@@ -1117,7 +1121,237 @@ php artisan tinker --execute="\App\Models\User::where('email','admin@conocetandi
 
 ---
 
-## 22. Known Limitations & Pending Work
+## 23. Hotel Directory Module
+
+### Overview
+A full hotel directory system where hotel owners register their property, choose a subscription plan, pay by bank transfer, and after admin approval the hotel appears in the public catalog. The frontend detail page adapts its layout based on the hotel's tier.
+
+---
+
+### Database Tables
+
+#### `hotel_plans`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | bigint | PK |
+| name | string | Editable via admin |
+| slug | string unique | Used in registration URL |
+| description | text nullable | |
+| price | decimal(10,2) | Annual price |
+| tier | tinyint | 1=Básico, 2=Estándar, 3=Diamante |
+| max_images | smallint | Gallery image limit |
+| has_services | boolean | Services section enabled |
+| has_rooms | boolean | Rooms section enabled |
+| has_gallery_captions | boolean | Gallery captions enabled |
+| is_featured | boolean | Featured placement in catalog |
+| duration_months | smallint | Subscription length |
+| is_active | boolean | Visible in public plan selector |
+| sort_order | smallint | |
+
+#### `hotels`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | bigint | PK |
+| user_id | FK users | One hotel per user |
+| plan_id | FK hotel_plans | |
+| name | string | |
+| slug | string unique | URL: `/hoteles/{slug}` |
+| short_description | string nullable | Used in catalog card |
+| description | text | |
+| address | string | |
+| phone | string nullable | |
+| email | string | Contact form sends here |
+| website | string nullable | Tier 2+ |
+| stars | tinyint nullable | 1–5, tier 2+ |
+| checkin_time | string nullable | Tier 2+ |
+| checkout_time | string nullable | Tier 2+ |
+| services | json nullable | Array of strings, tier 2+ |
+| cover_image | string nullable | Storage path |
+| status | enum | pending / active / rejected / suspended |
+| payment_reference | string nullable | Transfer ref from owner |
+| featured | boolean | Admin can set |
+| approved_at | timestamp nullable | |
+| expires_at | timestamp nullable | Set on activation |
+
+#### `hotel_images`
+| Column | Type | Notes |
+|--------|------|-------|
+| hotel_id | FK hotels | Cascade delete |
+| path | string | Storage path |
+| caption | string nullable | Tier 3 only |
+| order | smallint | |
+
+#### `hotel_rooms`
+| Column | Type | Notes |
+|--------|------|-------|
+| hotel_id | FK hotels | Cascade delete |
+| name | string | |
+| description | text nullable | |
+| capacity | smallint nullable | |
+| price_per_night | decimal(10,2) nullable | |
+| image | string nullable | Storage path |
+| order | smallint | |
+
+#### `hotel_orders`
+| Column | Type | Notes |
+|--------|------|-------|
+| hotel_id | FK hotels | Cascade delete |
+| user_id | FK users | |
+| plan_id | FK hotel_plans | |
+| amount | decimal(10,2) | Price at time of purchase |
+| status | enum | pending / completed / cancelled |
+| transfer_reference | string nullable | |
+| admin_notes | text nullable | |
+| completed_at | timestamp nullable | |
+
+---
+
+### Models
+
+| Model | Key methods |
+|-------|-------------|
+| `HotelPlan` | `formattedPrice()`, `tierLabel()`, `durationLabel()`, scopes: `active()`, `ordered()` |
+| `Hotel` | `isPending/isActive/isRejected/isSuspended()`, `statusLabel()`, `statusColor()`, `isPremiumTier()`, scopes: `active()`, `featured()`, `ordered()` |
+| `HotelImage` | belongsTo Hotel |
+| `HotelRoom` | `formattedPrice()`, belongsTo Hotel |
+| `HotelOrder` | `isPending/isCompleted/isCancelled()`, `complete()` (activates hotel + sets expires_at), `cancel()` |
+
+`User` has `hotel()` → `hasOne(Hotel::class)`.
+
+---
+
+### Feature Rules by Tier
+
+| Feature | Básico (1) | Estándar (2) | Diamante (3) |
+|---------|-----------|-------------|-------------|
+| Cover image | ✅ | ✅ | ✅ |
+| Description + contact form | ✅ | ✅ | ✅ |
+| Gallery images | 1 | up to 5 | up to 20 |
+| Gallery captions | ✗ | ✗ | ✅ |
+| Services list | ✗ | ✅ | ✅ |
+| Stars + check-in/out | ✗ | ✅ | ✅ |
+| Rooms section | ✗ | ✗ | ✅ |
+| Tabbed detail page | ✗ | ✗ | ✅ |
+| Featured placement | ✗ | ✗ | ✅ |
+
+---
+
+### Public Routes
+
+| Method | URL | Name | Controller |
+|--------|-----|------|------------|
+| GET | `/hoteles` | `hoteles.index` | `HotelController@index` |
+| GET | `/hoteles/propietarios` | `hoteles.propietarios` | `HotelOwnerController@propietarios` |
+| GET | `/hoteles/{hotel:slug}` | `hoteles.show` | `HotelController@show` |
+| POST | `/hoteles/{hotel:slug}/contacto` | `hoteles.contact` | `HotelController@contact` |
+
+### Owner Routes (auth middleware)
+
+| Method | URL | Name | Notes |
+|--------|-----|------|-------|
+| GET | `/hoteles/planes` | `hoteles.owner.planes` | Requires auth; redirects to panel if hotel exists |
+| GET | `/hoteles/registrar/{plan:slug}` | `hoteles.owner.create` | Registration form |
+| POST | `/hoteles/registrar/{plan:slug}` | `hoteles.owner.store` | Saves hotel + order |
+| GET | `/hoteles/mi-hotel` | `hoteles.owner.panel` | Owner dashboard |
+| GET | `/hoteles/mi-hotel/editar` | `hoteles.owner.edit` | Edit form (same as registrar, pre-filled) |
+| PUT | `/hoteles/mi-hotel` | `hoteles.owner.update` | Update; reverts status to pending for re-review |
+| GET | `/hoteles/pedido/{order}` | `hoteles.owner.confirmacion` | Post-registration confirmation + bank details |
+
+### Admin Routes
+
+| Method | URL | Name |
+|--------|-----|------|
+| GET | `/admin/hoteles` | `admin.hoteles.index` |
+| GET | `/admin/hoteles/{hotel}` | `admin.hoteles.show` |
+| POST | `/admin/hoteles/{hotel}/aprobar` | `admin.hoteles.approve` |
+| POST | `/admin/hoteles/{hotel}/rechazar` | `admin.hoteles.reject` |
+| DELETE | `/admin/hoteles/{hotel}` | `admin.hoteles.destroy` |
+| GET | `/admin/hotel-planes` | `admin.hotel-planes.index` |
+| POST | `/admin/hotel-planes` | `admin.hotel-planes.store` |
+| PUT | `/admin/hotel-planes/{hotelPlan}` | `admin.hotel-planes.update` |
+| DELETE | `/admin/hotel-planes/{hotelPlan}` | `admin.hotel-planes.destroy` |
+| GET | `/admin/hotel-pedidos` | `admin.hotel-pedidos.index` |
+| GET | `/admin/hotel-pedidos/{hotelOrder}` | `admin.hotel-pedidos.show` |
+| POST | `/admin/hotel-pedidos/{hotelOrder}/completar` | `admin.hotel-pedidos.complete` |
+| POST | `/admin/hotel-pedidos/{hotelOrder}/cancelar` | `admin.hotel-pedidos.cancel` |
+
+---
+
+### Owner Registration Flow
+
+1. `/hoteles/propietarios` — public landing with plan comparison (no auth required)
+2. Click "Elegir plan" → `/hoteles/planes` (auth required; middleware redirects to login)
+3. Choose plan → `/hoteles/registrar/{plan:slug}` — form fields shown by tier
+4. Submit → creates `Hotel` (status: pending) + `HotelOrder` (status: pending) → redirects to `/hoteles/pedido/{order}`
+5. Confirmation page shows order #, plan details, bank transfer data (from `Configuration`)
+6. Admin sees hotel in `/admin/hoteles` with pending badge
+7. Admin approves via `/admin/hoteles/{hotel}` → hotel goes live OR marks order complete via `/admin/hotel-pedidos/{order}` (also activates hotel)
+8. After editing, hotel reverts to `pending` status for re-review
+
+**One hotel per user** — registration form and `planes` redirect to `/hoteles/mi-hotel` if user already has a hotel.
+
+---
+
+### Contact Form
+
+- Form: `resources/views/hoteles/_contact_form.blade.php` (included in all tier detail views)
+- Route: `POST /hoteles/{hotel:slug}/contacto`
+- Mail: `App\Mail\HotelContactMail` → `resources/views/emails/hotel-contact.blade.php`
+- Sends to **hotel's registered email** (not site-wide notification email)
+- Uses same dynamic SMTP config as `NewMessageNotification`
+- Silent fail if SMTP not configured
+
+---
+
+### Admin Sidebar
+
+Collapsible "Hoteles" section with a combined badge (pending hotels + pending orders):
+- Lista de Hoteles (badge: pending hotel count)
+- Planes de Hotel
+- Pedidos de Hotel (badge: pending order count)
+
+---
+
+### Seeder
+
+`HotelPlanSeeder` — seeds 3 default plans using `firstOrCreate` (safe to re-run):
+- **Básico** — $4,999/yr, tier 1, 1 image
+- **Estándar** — $9,999/yr, tier 2, 5 images, services + stars
+- **Diamante** — $19,999/yr, tier 3, 20 images, rooms, captions, featured
+
+Run in deploy.sh: `php artisan db:seed --class=HotelPlanSeeder --force`
+
+---
+
+### NavItemSeeder
+
+`NavItemSeeder` seeds default public nav items (Lugares, Guías, Hoteles, Contacto) using `firstOrCreate`. Safe to re-run; preserves any label/order changes made via the admin nav editor. Run in deploy.sh: `php artisan db:seed --class=NavItemSeeder --force`
+
+---
+
+### Views
+
+| File | Purpose |
+|------|---------|
+| `hoteles/index.blade.php` | Public catalog with tier filter tabs |
+| `hoteles/show.blade.php` | Detail page — adapts layout by tier |
+| `hoteles/propietarios.blade.php` | Public owner landing + plan comparison |
+| `hoteles/planes.blade.php` | Auth plan selector |
+| `hoteles/registrar.blade.php` | Registration/edit form (reused for both) |
+| `hoteles/panel.blade.php` | Owner dashboard with status card |
+| `hoteles/confirmacion.blade.php` | Post-registration confirmation |
+| `hoteles/_contact_form.blade.php` | Reusable contact form partial |
+| `hoteles/_room_row.blade.php` | Pre-filled room row for edit form |
+| `admin/hoteles/index.blade.php` | Admin hotel list with status filters |
+| `admin/hoteles/show.blade.php` | Admin hotel detail + approve/reject |
+| `admin/hotel-planes/index.blade.php` | Plan CRUD with inline edit |
+| `admin/hotel-pedidos/index.blade.php` | Order list with status filters |
+| `admin/hotel-pedidos/show.blade.php` | Order detail + complete/cancel actions |
+| `emails/hotel-contact.blade.php` | Hotel contact form email template |
+
+---
+
+## 24. Known Limitations & Pending Work
 
 | Feature | Status | Notes |
 |---------|--------|-------|
@@ -1133,6 +1367,7 @@ php artisan tinker --execute="\App\Models\User::where('email','admin@conocetandi
 | API | None | No `routes/api.php` |
 | Tests | None | No test files |
 | Analytics | ✅ Functional | GA4 + GTM injection, event tracking, Data API dashboard — see Section 22 |
+| Hotel Directory | ✅ Functional | 3-tier plans, owner registration, bank transfer, admin approval, plan-based frontend — see Section 23 |
 | Backup cron | Manual setup | Admin must add cron entry to server — see Section 15 |
 | Google Maps | Partial | Lat/lng stored; Google Maps URL generated via accessor; rendered in itinerary items view |
 | Payment verification | Manual | No automated bank transfer verification; admin confirms manually |
