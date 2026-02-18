@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Configuration;
 use App\Models\Hotel;
+use App\Models\HotelContact;
 use App\Models\HotelOrder;
 use App\Models\HotelPlan;
+use App\Models\HotelView;
 use App\Models\Promotion;
 use App\Models\PromotionUse;
 use Illuminate\Http\Request;
@@ -181,7 +183,22 @@ class HotelOwnerController extends Controller
             return redirect()->route('hoteles.propietarios');
         }
 
-        return view('hoteles.panel', compact('hotel'));
+        // Stats
+        $viewsToday    = HotelView::where('hotel_id', $hotel->id)->where('viewed_date', today())->count();
+        $viewsWeek     = HotelView::where('hotel_id', $hotel->id)->where('viewed_date', '>=', now()->subDays(7))->count();
+        $viewsTotal    = HotelView::where('hotel_id', $hotel->id)->count();
+        $contactsTotal = HotelContact::where('hotel_id', $hotel->id)->count();
+
+        // Recent contacts (last 5)
+        $recentContacts = HotelContact::where('hotel_id', $hotel->id)
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        return view('hoteles.panel', compact(
+            'hotel', 'viewsToday', 'viewsWeek', 'viewsTotal',
+            'contactsTotal', 'recentContacts',
+        ));
     }
 
     /** Edit hotel form */

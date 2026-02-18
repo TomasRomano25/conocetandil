@@ -52,10 +52,13 @@
                 </button>
             </form>
 
-            <p class="text-center text-sm text-gray-500 mt-6">
-                ¿No tenés cuenta?
-                <a href="{{ route('register') }}" class="text-[#2D6A4F] font-semibold hover:underline">Registrarse</a>
-            </p>
+            <div class="mt-6 pt-5 border-t border-gray-100 text-center">
+                <p class="text-sm text-gray-500 mb-3">¿Primera vez en Conoce Tandil?</p>
+                <a href="{{ route('register') }}"
+                    class="inline-block w-full text-center bg-gray-50 hover:bg-gray-100 border border-gray-200 text-[#2D6A4F] font-bold py-3 rounded-lg transition text-sm">
+                    Crear cuenta gratis
+                </a>
+            </div>
         </div>
 
         @if (session('status'))

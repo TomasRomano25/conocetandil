@@ -107,6 +107,7 @@
                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]"
                     onchange="previewImage(event, 'cover-preview')">
                 <img id="cover-preview" class="mt-2 h-32 rounded-lg object-cover hidden">
+                <p class="text-xs text-gray-400 mt-1">Formatos: JPG, PNG, WebP · Tamaño máximo: 3 MB · Resolución recomendada: 1200×800 px o superior</p>
                 @error('cover_image') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
@@ -162,7 +163,7 @@
             {{-- Gallery --}}
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Galería de imágenes (máximo {{ $plan->max_images }})
+                    Galería de imágenes (máximo {{ $plan->max_images }} imágenes)
                 </label>
                 @isset($hotel)
                     @if ($hotel->images->count())
@@ -184,6 +185,9 @@
                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]"
                     onchange="previewGallery(event)">
                 <div id="gallery-preview" class="mt-2 flex gap-2 flex-wrap"></div>
+                <div class="mt-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-xs text-blue-700">
+                    <strong>Requisitos de imágenes:</strong> Formatos JPG, PNG o WebP · Máximo <strong>3 MB por imagen</strong> · Resolución recomendada: <strong>1200×800 px</strong> o superior · Podés subir hasta <strong>{{ $plan->max_images }} imágenes</strong> en total
+                </div>
                 @error('gallery.*') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
             @endif

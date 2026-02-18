@@ -83,12 +83,12 @@
                         Suscribirme
                     </a>
                 @else
-                    <a href="{{ route('login') }}"
+                    <a href="{{ route('membership.checkout', $plan->slug) }}"
                         class="block text-center font-bold py-3 rounded-xl transition text-sm
                             {{ $popular
                                 ? 'bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white'
                                 : 'bg-gray-100 hover:bg-[#2D6A4F] hover:text-white text-[#1A1A1A]' }}">
-                        Iniciar sesión para suscribirme
+                        Suscribirme
                     </a>
                 @endauth
             </div>
