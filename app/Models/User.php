@@ -45,6 +45,11 @@ class User extends Authenticatable
         return $this->is_admin;
     }
 
+    public function hotel()
+    {
+        return $this->hasOne(Hotel::class);
+    }
+
     public function isPremium(): bool
     {
         // Admins always have premium access

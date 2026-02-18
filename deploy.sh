@@ -23,6 +23,7 @@ echo ">> Seeding required data..."
 php artisan db:seed --class=FormSeeder --force
 php artisan db:seed --class=InicioSectionSeeder --force
 php artisan db:seed --class=MembershipPlanSeeder --force
+php artisan db:seed --class=HotelPlanSeeder --force
 
 echo ">> Caching configuration..."
 php artisan config:cache

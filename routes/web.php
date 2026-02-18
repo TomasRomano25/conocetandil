@@ -18,7 +18,29 @@ use App\Http\Controllers\Admin\MessageController as AdminMessageController;
 use App\Http\Controllers\Admin\FormController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\SeccionesController;
+use App\Http\Controllers\Admin\HotelController as AdminHotelController;
+use App\Http\Controllers\Admin\HotelPlanController;
+use App\Http\Controllers\Admin\HotelOrderController;
+use App\Http\Controllers\HotelController;
+use App\Http\Controllers\HotelOwnerController;
 use Illuminate\Support\Facades\Route;
+
+// Hotel public routes (static before slug)
+Route::get('/hoteles', [HotelController::class, 'index'])->name('hoteles.index');
+Route::get('/hoteles/propietarios', [HotelOwnerController::class, 'propietarios'])->name('hoteles.propietarios');
+Route::post('/hoteles/{hotel:slug}/contacto', [HotelController::class, 'contact'])->name('hoteles.contact');
+Route::get('/hoteles/{hotel:slug}', [HotelController::class, 'show'])->name('hoteles.show');
+
+// Hotel owner (auth required)
+Route::middleware('auth')->prefix('hoteles')->name('hoteles.')->group(function () {
+    Route::get('/planes', [HotelOwnerController::class, 'planes'])->name('owner.planes');
+    Route::get('/registrar/{plan:slug}', [HotelOwnerController::class, 'create'])->name('owner.create');
+    Route::post('/registrar/{plan:slug}', [HotelOwnerController::class, 'store'])->name('owner.store');
+    Route::get('/mi-hotel', [HotelOwnerController::class, 'panel'])->name('owner.panel');
+    Route::get('/mi-hotel/editar', [HotelOwnerController::class, 'edit'])->name('owner.edit');
+    Route::put('/mi-hotel', [HotelOwnerController::class, 'update'])->name('owner.update');
+    Route::get('/pedido/{order}', [HotelOwnerController::class, 'confirmacion'])->name('owner.confirmacion');
+});
 
 // Public routes
 Route::get('/', [PageController::class, 'inicio'])->name('inicio');
@@ -130,6 +152,25 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::get('formularios/{formulario}/campos', [FormController::class, 'campos'])->name('formularios.campos');
     Route::put('formularios/{formulario}/campos/{campo}', [FormController::class, 'updateField'])->name('formularios.campos.update');
     Route::post('formularios/{formulario}/campos/reorder', [FormController::class, 'reorderFields'])->name('formularios.campos.reorder');
+
+    // Hoteles
+    Route::get('hoteles', [AdminHotelController::class, 'index'])->name('hoteles.index');
+    Route::get('hoteles/{hotel}', [AdminHotelController::class, 'show'])->name('hoteles.show');
+    Route::post('hoteles/{hotel}/aprobar', [AdminHotelController::class, 'approve'])->name('hoteles.approve');
+    Route::post('hoteles/{hotel}/rechazar', [AdminHotelController::class, 'reject'])->name('hoteles.reject');
+    Route::delete('hoteles/{hotel}', [AdminHotelController::class, 'destroy'])->name('hoteles.destroy');
+
+    // Planes de hotel
+    Route::get('hotel-planes', [HotelPlanController::class, 'index'])->name('hotel-planes.index');
+    Route::post('hotel-planes', [HotelPlanController::class, 'store'])->name('hotel-planes.store');
+    Route::put('hotel-planes/{hotelPlan}', [HotelPlanController::class, 'update'])->name('hotel-planes.update');
+    Route::delete('hotel-planes/{hotelPlan}', [HotelPlanController::class, 'destroy'])->name('hotel-planes.destroy');
+
+    // Pedidos de hotel
+    Route::get('hotel-pedidos', [HotelOrderController::class, 'index'])->name('hotel-pedidos.index');
+    Route::get('hotel-pedidos/{hotelOrder}', [HotelOrderController::class, 'show'])->name('hotel-pedidos.show');
+    Route::post('hotel-pedidos/{hotelOrder}/completar', [HotelOrderController::class, 'complete'])->name('hotel-pedidos.complete');
+    Route::post('hotel-pedidos/{hotelOrder}/cancelar', [HotelOrderController::class, 'cancel'])->name('hotel-pedidos.cancel');
 
     // Analytics
     Route::get('analytics', [AnalyticsController::class, 'dashboard'])->name('analytics.dashboard');

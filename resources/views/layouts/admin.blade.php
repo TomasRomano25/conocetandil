@@ -108,6 +108,47 @@
                 Analytics
             </a>
 
+            {{-- Hoteles (collapsible) --}}
+            @php
+                $hotelesActive = request()->routeIs('admin.hoteles.*') || request()->routeIs('admin.hotel-planes.*') || request()->routeIs('admin.hotel-pedidos.*');
+                $pendingHotelOrders = \App\Models\HotelOrder::where('status','pending')->count();
+                $pendingHoteles = \App\Models\Hotel::where('status','pending')->count();
+                $hotelBadge = $pendingHotelOrders + $pendingHoteles;
+            @endphp
+            <div>
+                <button onclick="toggleHotelesMenu()"
+                    class="w-full flex items-center px-4 py-3 rounded-lg transition {{ $hotelesActive ? 'bg-[#2D6A4F] text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span class="flex-1 text-left">Hoteles</span>
+                    @if ($hotelBadge > 0)
+                        <span class="bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center mr-2">{{ $hotelBadge }}</span>
+                    @endif
+                    <svg id="hoteles-chevron" class="w-4 h-4 transition-transform shrink-0 {{ $hotelesActive ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div id="hoteles-submenu" class="{{ $hotelesActive ? '' : 'hidden' }} mt-1 ml-4 pl-4 border-l border-gray-700 space-y-0.5">
+                    <a href="{{ route('admin.hoteles.index') }}"
+                        class="flex items-center px-3 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.hoteles.*') ? 'text-[#52B788] font-semibold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+                        Lista de Hoteles
+                        @if ($pendingHoteles > 0)
+                            <span class="ml-auto bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ $pendingHoteles }}</span>
+                        @endif
+                    </a>
+                    <a href="{{ route('admin.hotel-planes.index') }}"
+                        class="flex items-center px-3 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.hotel-planes.*') ? 'text-[#52B788] font-semibold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+                        Planes de Hotel
+                    </a>
+                    <a href="{{ route('admin.hotel-pedidos.index') }}"
+                        class="flex items-center px-3 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.hotel-pedidos.*') ? 'text-[#52B788] font-semibold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+                        Pedidos de Hotel
+                        @if ($pendingHotelOrders > 0)
+                            <span class="ml-auto bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ $pendingHotelOrders }}</span>
+                        @endif
+                    </a>
+                </div>
+            </div>
+
             <a href="{{ route('admin.configuraciones.index') }}" class="flex items-center px-4 py-3 rounded-lg transition {{ request()->routeIs('admin.configuraciones.*') ? 'bg-[#2D6A4F] text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
                 <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 Configuraciones
@@ -187,6 +228,14 @@
         function toggleSeccionesMenu() {
             const menu    = document.getElementById('secciones-submenu');
             const chevron = document.getElementById('secciones-chevron');
+            const isHidden = menu.classList.contains('hidden');
+            menu.classList.toggle('hidden', !isHidden);
+            chevron.style.transform = isHidden ? 'rotate(180deg)' : '';
+        }
+
+        function toggleHotelesMenu() {
+            const menu    = document.getElementById('hoteles-submenu');
+            const chevron = document.getElementById('hoteles-chevron');
             const isHidden = menu.classList.contains('hidden');
             menu.classList.toggle('hidden', !isHidden);
             chevron.style.transform = isHidden ? 'rotate(180deg)' : '';
