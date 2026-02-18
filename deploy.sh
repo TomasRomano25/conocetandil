@@ -3,6 +3,9 @@ set -e
 
 cd /var/www/conocetandil
 
+echo ">> Fixing file ownership..."
+sudo chown -R $(whoami):$(whoami) /var/www/conocetandil
+
 echo ">> Pulling latest changes..."
 git fetch origin main
 git reset --hard origin/main
