@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             LugarSeeder::class,
             InicioSectionSeeder::class,
+            FormSeeder::class,
         ]);
     }
 }

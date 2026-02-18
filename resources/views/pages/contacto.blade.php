@@ -18,28 +18,72 @@
                 {{-- Contact Form --}}
                 <div class="bg-white rounded-xl shadow-md p-8 border border-gray-100">
                     <h2 class="text-2xl font-bold text-[#1A1A1A] mb-6">Envianos un mensaje</h2>
-                    <form action="#" method="POST" class="space-y-5">
-                        @csrf
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                            <input type="text" id="name" name="name" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52B788]" placeholder="Tu nombre completo">
+
+                    @if (session('success'))
+                        <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+                            {{ session('success') }}
                         </div>
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <input type="email" id="email" name="email" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52B788]" placeholder="tu@email.com">
-                        </div>
-                        <div>
-                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                            <input type="tel" id="phone" name="phone" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52B788]" placeholder="(249) 444-0000">
-                        </div>
-                        <div>
-                            <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Mensaje</label>
-                            <textarea id="message" name="message" rows="5" required class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52B788]" placeholder="Escribí tu consulta..."></textarea>
-                        </div>
-                        <button type="submit" class="w-full bg-[#2D6A4F] hover:bg-[#52B788] text-white font-bold py-3 rounded-lg transition">
-                            Enviar Mensaje
-                        </button>
-                    </form>
+                    @endif
+
+                    @if ($form)
+                        <form action="{{ route('formulario.submit', $form->slug) }}" method="POST" class="space-y-5">
+                            @csrf
+
+                            @foreach ($form->visibleFields as $field)
+                                <div>
+                                    <label for="field_{{ $field->name }}"
+                                        class="block text-sm font-medium text-gray-700 mb-1">
+                                        {{ $field->label }}
+                                        @if ($field->required)<span class="text-red-500">*</span>@endif
+                                    </label>
+
+                                    @if ($field->type === 'textarea')
+                                        <textarea
+                                            id="field_{{ $field->name }}"
+                                            name="{{ $field->name }}"
+                                            rows="5"
+                                            {{ $field->required ? 'required' : '' }}
+                                            placeholder="{{ $field->placeholder }}"
+                                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52B788] @error($field->name) border-red-400 @enderror"
+                                        >{{ old($field->name) }}</textarea>
+                                    @elseif ($field->type === 'select' && $field->options)
+                                        <select
+                                            id="field_{{ $field->name }}"
+                                            name="{{ $field->name }}"
+                                            {{ $field->required ? 'required' : '' }}
+                                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52B788] bg-white @error($field->name) border-red-400 @enderror"
+                                        >
+                                            <option value="">{{ $field->placeholder ?: 'Seleccioná una opción' }}</option>
+                                            @foreach ($field->options as $option)
+                                                <option value="{{ $option }}" @selected(old($field->name) === $option)>{{ $option }}</option>
+                                            @endforeach
+                                        </select>
+                                    @else
+                                        <input
+                                            type="{{ $field->type }}"
+                                            id="field_{{ $field->name }}"
+                                            name="{{ $field->name }}"
+                                            value="{{ old($field->name) }}"
+                                            {{ $field->required ? 'required' : '' }}
+                                            placeholder="{{ $field->placeholder }}"
+                                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52B788] @error($field->name) border-red-400 @enderror"
+                                        >
+                                    @endif
+
+                                    @error($field->name)
+                                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endforeach
+
+                            <button type="submit"
+                                class="w-full bg-[#2D6A4F] hover:bg-[#52B788] text-white font-bold py-3 rounded-lg transition">
+                                Enviar Mensaje
+                            </button>
+                        </form>
+                    @else
+                        <p class="text-gray-500">El formulario de contacto no está disponible en este momento.</p>
+                    @endif
                 </div>
 
                 {{-- Company Info & Map --}}

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Form;
 use App\Models\InicioSection;
 use App\Models\Lugar;
 
@@ -59,6 +60,11 @@ class PageController extends Controller
 
     public function contacto()
     {
-        return view('pages.contacto');
+        $form = Form::with('visibleFields')
+            ->where('slug', 'contacto')
+            ->where('active', true)
+            ->first();
+
+        return view('pages.contacto', compact('form'));
     }
 }

@@ -1,10 +1,92 @@
 @extends('layouts.admin')
+@php use App\Models\Configuration; @endphp
 
 @section('title', 'Configuraciones')
 @section('header', 'Configuraciones')
 
 @section('content')
 <div class="max-w-3xl space-y-8">
+
+    {{-- ══════════════════════════════════════════════════════════
+         SMTP — Email configuration card
+         ══════════════════════════════════════════════════════════ --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <div class="w-9 h-9 bg-[#2D6A4F]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-base font-bold text-[#1A1A1A]">Configuración de Email (SMTP)</h2>
+                <p class="text-xs text-gray-500">Configura el servidor de correo para enviar notificaciones de mensajes.</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ route('admin.configuraciones.smtp.update') }}" class="px-6 py-5 space-y-5">
+            @csrf
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Servidor SMTP (host)</label>
+                    <input type="text" name="smtp_host" value="{{ old('smtp_host', $smtp['host']) }}"
+                        placeholder="smtp.gmail.com"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Puerto</label>
+                    <input type="number" name="smtp_port" value="{{ old('smtp_port', $smtp['port']) }}"
+                        placeholder="587"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Encriptación</label>
+                    <select name="smtp_encryption"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788] bg-white">
+                        <option value="tls"      @selected($smtp['encryption'] === 'tls')>TLS (recomendado)</option>
+                        <option value="ssl"      @selected($smtp['encryption'] === 'ssl')>SSL</option>
+                        <option value="starttls" @selected($smtp['encryption'] === 'starttls')>STARTTLS</option>
+                        <option value=""         @selected($smtp['encryption'] === '')>Sin encriptación</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Usuario</label>
+                    <input type="text" name="smtp_username" value="{{ old('smtp_username', $smtp['username']) }}"
+                        placeholder="tu@email.com"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Contraseña</label>
+                    <input type="password" name="smtp_password" placeholder="Dejar vacío para no cambiar"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                    @if (Configuration::get('smtp_password'))
+                        <p class="text-xs text-green-600 mt-1">✓ Contraseña guardada</p>
+                    @endif
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email remitente</label>
+                    <input type="email" name="smtp_from_email" value="{{ old('smtp_from_email', $smtp['from_email']) }}"
+                        placeholder="noreply@conocetandil.com"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nombre remitente</label>
+                    <input type="text" name="smtp_from_name" value="{{ old('smtp_from_name', $smtp['from_name']) }}"
+                        placeholder="Conoce Tandil"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button type="submit"
+                    class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm">
+                    Guardar configuración SMTP
+                </button>
+            </div>
+        </form>
+    </div>
 
     {{-- ══════════════════════════════════════════════════════════
          COPIAS DE SEGURIDAD — Settings card

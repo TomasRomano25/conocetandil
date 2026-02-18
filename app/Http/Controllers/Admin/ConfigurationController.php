@@ -33,7 +33,16 @@ class ConfigurationController extends Controller
             'backup_last_run'       => Configuration::get('backup_last_run'),
         ];
 
-        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount'));
+        $smtp = [
+            'host'       => Configuration::get('smtp_host', ''),
+            'port'       => Configuration::get('smtp_port', '587'),
+            'encryption' => Configuration::get('smtp_encryption', 'tls'),
+            'username'   => Configuration::get('smtp_username', ''),
+            'from_email' => Configuration::get('smtp_from_email', ''),
+            'from_name'  => Configuration::get('smtp_from_name', 'Conoce Tandil'),
+        ];
+
+        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp'));
     }
 
     public function updateBackup(Request $request)
@@ -73,5 +82,31 @@ class ConfigurationController extends Controller
         }
 
         return response()->download($path, $filename);
+    }
+
+    public function updateSmtp(Request $request)
+    {
+        $request->validate([
+            'smtp_host'       => 'nullable|string|max:255',
+            'smtp_port'       => 'nullable|integer|min:1|max:65535',
+            'smtp_encryption' => 'nullable|in:tls,ssl,starttls,',
+            'smtp_username'   => 'nullable|string|max:255',
+            'smtp_password'   => 'nullable|string|max:255',
+            'smtp_from_email' => 'nullable|email|max:255',
+            'smtp_from_name'  => 'nullable|string|max:100',
+        ]);
+
+        $fields = ['host', 'port', 'encryption', 'username', 'from_email', 'from_name'];
+        foreach ($fields as $field) {
+            Configuration::set("smtp_{$field}", $request->input("smtp_{$field}") ?? '');
+        }
+
+        // Only update password if a new one was entered
+        if ($request->filled('smtp_password')) {
+            Configuration::set('smtp_password', $request->input('smtp_password'));
+        }
+
+        return redirect()->route('admin.configuraciones.index')
+            ->with('success', 'Configuración SMTP guardada correctamente.');
     }
 }
