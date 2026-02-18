@@ -21,13 +21,9 @@
         </a>
         <div class="flex items-start justify-between gap-4 flex-wrap">
             <div>
-                @if ($tier === 3)
-                    <span class="inline-flex items-center gap-1 bg-amber-400/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-400/30 mb-3">
-                        ✦ Diamante
-                    </span>
-                @elseif ($tier === 2)
-                    <span class="inline-block bg-[#2D6A4F]/30 text-[#52B788] text-xs font-bold px-3 py-1 rounded-full border border-[#52B788]/30 mb-3">
-                        Estándar
+                @if ($hotel->hotel_type)
+                    <span class="inline-block bg-black/30 text-white/80 text-xs font-semibold px-3 py-1 rounded-full border border-white/20 mb-3">
+                        {{ $hotel->hotel_type }}
                     </span>
                 @endif
                 <h1 class="text-3xl md:text-4xl font-bold">{{ $hotel->name }}</h1>
@@ -53,16 +49,31 @@
 {{-- Main content —— adapts by tier --}}
 @if ($tier >= 3)
     {{-- DIAMANTE: tabbed layout --}}
+    @php $tabs = ['descripcion' => 'Descripción', 'galeria' => 'Galería', 'habitaciones' => 'Habitaciones', 'servicios' => 'Servicios', 'contacto' => 'Contacto']; @endphp
     <section class="bg-white border-b sticky top-0 z-20 shadow-sm">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex gap-0 overflow-x-auto" id="hotel-tabs-nav">
-                @foreach(['descripcion' => 'Descripción', 'galeria' => 'Galería', 'habitaciones' => 'Habitaciones', 'servicios' => 'Servicios', 'contacto' => 'Contacto'] as $tab => $label)
+
+            {{-- Mobile: native select --}}
+            <div class="sm:hidden py-3">
+                <select id="tab-select" onchange="showTab(this.value)"
+                    class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#52B788] appearance-none cursor-pointer"
+                    style="background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1rem; padding-right: 2.5rem;">
+                    @foreach($tabs as $tab => $label)
+                    <option value="{{ $tab }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Desktop: underline tab nav --}}
+            <nav class="hidden sm:flex gap-0" id="hotel-tabs-nav">
+                @foreach($tabs as $tab => $label)
                 <button onclick="showTab('{{ $tab }}')" id="tab-btn-{{ $tab }}"
-                    class="tab-btn flex-shrink-0 px-5 py-4 text-sm font-semibold border-b-2 transition {{ $tab === 'descripcion' ? 'border-[#2D6A4F] text-[#2D6A4F]' : 'border-transparent text-gray-500 hover:text-[#2D6A4F]' }}">
+                    class="tab-btn px-5 py-4 text-sm font-semibold border-b-2 transition {{ $tab === 'descripcion' ? 'border-[#2D6A4F] text-[#2D6A4F]' : 'border-transparent text-gray-500 hover:text-[#2D6A4F]' }}">
                     {{ $label }}
                 </button>
                 @endforeach
             </nav>
+
         </div>
     </section>
 
@@ -194,8 +205,13 @@
         });
         document.getElementById('tab-' + tab).classList.remove('hidden');
         const btn = document.getElementById('tab-btn-' + tab);
-        btn.classList.add('border-[#2D6A4F]', 'text-[#2D6A4F]');
-        btn.classList.remove('border-transparent', 'text-gray-500');
+        if (btn) {
+            btn.classList.add('border-[#2D6A4F]', 'text-[#2D6A4F]');
+            btn.classList.remove('border-transparent', 'text-gray-500');
+        }
+        // Sync mobile select
+        const sel = document.getElementById('tab-select');
+        if (sel) sel.value = tab;
     }
     </script>
 
