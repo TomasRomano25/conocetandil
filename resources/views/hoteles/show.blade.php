@@ -118,22 +118,24 @@
                     @endif
                 </div>
                 @endif
-                @if ($hotel->phone || $hotel->website)
-                <div class="bg-gray-50 rounded-xl p-5">
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Contacto</p>
+                <div class="bg-gray-50 rounded-xl p-5 space-y-2.5">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Contacto directo</p>
                     @if ($hotel->phone)
-                        <p class="text-sm text-gray-700 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                            {{ $hotel->phone }}
-                        </p>
+                    <p class="text-sm text-gray-700 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-[#2D6A4F] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                        {{ $hotel->phone }}
+                    </p>
                     @endif
+                    @include('hoteles._reveal_email', ['emailId' => 'dia-email'])
                     @if ($hotel->website)
-                        <p class="text-sm mt-1">
-                            <a href="{{ $hotel->website }}" target="_blank" class="text-[#2D6A4F] hover:underline">Sitio web</a>
-                        </p>
+                    <p class="text-sm">
+                        <a href="{{ $hotel->website }}" target="_blank" class="text-[#2D6A4F] hover:underline flex items-center gap-1.5">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            Sitio web
+                        </a>
+                    </p>
                     @endif
                 </div>
-                @endif
             </div>
         </div>
 
@@ -275,17 +277,22 @@
                 @endif
             </div>
             @endif
-            @if ($hotel->phone || $hotel->website)
-            <div class="bg-gray-50 rounded-xl p-5">
+            <div class="bg-gray-50 rounded-xl p-5 space-y-2.5">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Contacto directo</p>
                 @if ($hotel->phone)
-                    <p class="text-sm text-gray-700">{{ $hotel->phone }}</p>
+                <p class="text-sm text-gray-700 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-[#2D6A4F] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    {{ $hotel->phone }}
+                </p>
                 @endif
+                @include('hoteles._reveal_email', ['emailId' => 'std-email'])
                 @if ($hotel->website)
-                    <a href="{{ $hotel->website }}" target="_blank" class="text-sm text-[#2D6A4F] hover:underline">{{ $hotel->website }}</a>
+                <a href="{{ $hotel->website }}" target="_blank" class="text-sm text-[#2D6A4F] hover:underline flex items-center gap-1.5">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    Sitio web
+                </a>
                 @endif
             </div>
-            @endif
         </section>
         @endif
 
@@ -335,22 +342,21 @@
             {!! nl2br(e($hotel->description)) !!}
         </section>
 
-        @if ($hotel->phone || $hotel->website)
-        <section class="bg-gray-50 rounded-xl p-5 flex flex-wrap gap-6">
+        <section class="bg-gray-50 rounded-xl p-5 space-y-2.5">
             @if ($hotel->phone)
-                <p class="text-sm text-gray-700 flex items-center gap-2">
-                    <svg class="w-4 h-4 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                    {{ $hotel->phone }}
-                </p>
+            <p class="text-sm text-gray-700 flex items-center gap-2">
+                <svg class="w-4 h-4 text-[#2D6A4F] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                {{ $hotel->phone }}
+            </p>
             @endif
+            @include('hoteles._reveal_email', ['emailId' => 'bas-email'])
             @if ($hotel->website)
-                <a href="{{ $hotel->website }}" target="_blank" class="text-sm text-[#2D6A4F] hover:underline flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                    Sitio web
-                </a>
+            <a href="{{ $hotel->website }}" target="_blank" class="text-sm text-[#2D6A4F] hover:underline flex items-center gap-1.5">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                Sitio web
+            </a>
             @endif
         </section>
-        @endif
 
         <section>
             <h2 class="text-xl font-bold text-[#1A1A1A] mb-6">Contactar al hotel</h2>

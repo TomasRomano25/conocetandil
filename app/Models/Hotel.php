@@ -50,6 +50,16 @@ class Hotel extends Model
         return $this->hasOne(HotelOrder::class)->latest();
     }
 
+    public function views()
+    {
+        return $this->hasMany(HotelView::class);
+    }
+
+    public function contacts()
+    {
+        return $this->hasMany(HotelContact::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

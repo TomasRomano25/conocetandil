@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Mail\HotelContactMail;
 use App\Models\Hotel;
+use App\Models\HotelContact;
+use App\Models\HotelView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -77,6 +79,15 @@ class HotelController extends Controller
 
         $hotel->load(['plan', 'images', 'rooms']);
 
+        // Record unique daily session view (silent fail)
+        try {
+            HotelView::firstOrCreate([
+                'hotel_id'    => $hotel->id,
+                'session_id'  => session()->getId(),
+                'viewed_date' => today()->toDateString(),
+            ]);
+        } catch (\Throwable) {}
+
         return view('hoteles.show', compact('hotel'));
     }
 
@@ -91,6 +102,17 @@ class HotelController extends Controller
             'message' => 'required|string|max:2000',
         ]);
 
+        // Save contact to DB first
+        $contact = HotelContact::create([
+            'hotel_id'     => $hotel->id,
+            'sender_name'  => $data['name'],
+            'sender_email' => $data['email'],
+            'sender_phone' => $data['phone'] ?? null,
+            'message'      => $data['message'],
+            'email_sent'   => false,
+        ]);
+
+        // Attempt to send email
         try {
             Mail::to($hotel->email)->send(new HotelContactMail(
                 hotel: $hotel,
@@ -99,8 +121,9 @@ class HotelController extends Controller
                 senderPhone: $data['phone'] ?? '',
                 contactMessage: $data['message'],
             ));
+            $contact->update(['email_sent' => true]);
         } catch (\Throwable) {
-            // Silent fail — same pattern as messaging module
+            // Silent fail — email saved to DB regardless
         }
 
         return redirect()->back()->with('contact_success', true);

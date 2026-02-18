@@ -167,6 +167,59 @@
     </div>
     @endif
 
+    {{-- Analytics mini-card --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Analíticas</p>
+            <a href="{{ route('admin.hoteles.analytics') }}" class="text-xs text-[#2D6A4F] hover:underline font-semibold">Ver dashboard →</a>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div class="bg-gray-50 rounded-xl p-4 text-center">
+                <p class="text-2xl font-bold text-[#1A1A1A]">{{ number_format($hotelStats['total_views']) }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">Visitas totales</p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-4 text-center">
+                <p class="text-2xl font-bold text-[#2D6A4F]">{{ number_format($hotelStats['month_views']) }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">Este mes</p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-4 text-center">
+                <p class="text-2xl font-bold text-[#52B788]">{{ number_format($hotelStats['today_views']) }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">Hoy</p>
+            </div>
+            <div class="bg-amber-50 rounded-xl p-4 text-center">
+                <p class="text-2xl font-bold text-amber-600">{{ number_format($hotelStats['total_contacts']) }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">Contactos</p>
+            </div>
+        </div>
+
+        @if ($recentContacts->isNotEmpty())
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Últimos contactos</p>
+        <div class="space-y-2">
+            @foreach ($recentContacts as $contact)
+            <div class="flex items-start gap-3 text-sm border border-gray-100 rounded-lg p-3">
+                <div class="w-7 h-7 rounded-full bg-[#2D6A4F]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span class="text-[#2D6A4F] text-xs font-bold">{{ strtoupper(substr($contact->sender_name, 0, 1)) }}</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-[#1A1A1A]">{{ $contact->sender_name }}</p>
+                    <p class="text-gray-500 text-xs">{{ $contact->sender_email }}</p>
+                    <p class="text-gray-600 text-xs mt-1 truncate">{{ $contact->message }}</p>
+                </div>
+                <span class="text-xs text-gray-300 flex-shrink-0">{{ $contact->created_at->format('d/m') }}</span>
+            </div>
+            @endforeach
+        </div>
+        <div class="mt-3 text-right">
+            <a href="{{ route('admin.hotel-contactos.index', ['hotel_id' => $hotel->id]) }}"
+               class="text-xs text-[#2D6A4F] hover:underline font-semibold">
+                Ver todos los contactos →
+            </a>
+        </div>
+        @else
+        <p class="text-sm text-gray-400 text-center py-4">No hay contactos todavía.</p>
+        @endif
+    </div>
+
     {{-- Danger zone --}}
     <div class="bg-white rounded-xl shadow-sm border border-red-100 p-6">
         <p class="text-xs font-bold text-red-400 uppercase tracking-widest mb-3">Eliminar hotel</p>

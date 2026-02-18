@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\FormController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\SeccionesController;
 use App\Http\Controllers\Admin\HotelController as AdminHotelController;
+use App\Http\Controllers\Admin\HotelContactController as AdminHotelContactController;
 use App\Http\Controllers\Admin\HotelPlanController;
 use App\Http\Controllers\Admin\HotelOrderController;
 use App\Http\Controllers\HotelController;
@@ -155,6 +156,7 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
 
     // Hoteles
     Route::get('hoteles', [AdminHotelController::class, 'index'])->name('hoteles.index');
+    Route::get('hoteles/analiticas', [AdminHotelController::class, 'analytics'])->name('hoteles.analytics');
     Route::get('hoteles/{hotel}', [AdminHotelController::class, 'show'])->name('hoteles.show');
     Route::post('hoteles/{hotel}/aprobar', [AdminHotelController::class, 'approve'])->name('hoteles.approve');
     Route::post('hoteles/{hotel}/rechazar', [AdminHotelController::class, 'reject'])->name('hoteles.reject');
@@ -165,6 +167,9 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::post('hotel-planes', [HotelPlanController::class, 'store'])->name('hotel-planes.store');
     Route::put('hotel-planes/{hotelPlan}', [HotelPlanController::class, 'update'])->name('hotel-planes.update');
     Route::delete('hotel-planes/{hotelPlan}', [HotelPlanController::class, 'destroy'])->name('hotel-planes.destroy');
+
+    // Contactos de hotel
+    Route::get('hotel-contactos', [AdminHotelContactController::class, 'index'])->name('hotel-contactos.index');
 
     // Pedidos de hotel
     Route::get('hotel-pedidos', [HotelOrderController::class, 'index'])->name('hotel-pedidos.index');

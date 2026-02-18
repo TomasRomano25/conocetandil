@@ -110,7 +110,7 @@
 
             {{-- Hoteles (collapsible) --}}
             @php
-                $hotelesActive = request()->routeIs('admin.hoteles.*') || request()->routeIs('admin.hotel-planes.*') || request()->routeIs('admin.hotel-pedidos.*');
+                $hotelesActive = request()->routeIs('admin.hoteles.*') || request()->routeIs('admin.hotel-planes.*') || request()->routeIs('admin.hotel-pedidos.*') || request()->routeIs('admin.hotel-contactos.*');
                 $pendingHotelOrders = \App\Models\HotelOrder::where('status','pending')->count();
                 $pendingHoteles = \App\Models\Hotel::where('status','pending')->count();
                 $hotelBadge = $pendingHotelOrders + $pendingHoteles;
@@ -145,6 +145,14 @@
                         @if ($pendingHotelOrders > 0)
                             <span class="ml-auto bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{ $pendingHotelOrders }}</span>
                         @endif
+                    </a>
+                    <a href="{{ route('admin.hoteles.analytics') }}"
+                        class="flex items-center px-3 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.hoteles.analytics') ? 'text-[#52B788] font-semibold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+                        Analíticas
+                    </a>
+                    <a href="{{ route('admin.hotel-contactos.index') }}"
+                        class="flex items-center px-3 py-2 rounded-lg text-sm transition {{ request()->routeIs('admin.hotel-contactos.*') ? 'text-[#52B788] font-semibold' : 'text-gray-400 hover:text-white hover:bg-gray-800' }}">
+                        Contactos
                     </a>
                 </div>
             </div>
