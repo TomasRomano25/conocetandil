@@ -29,10 +29,15 @@
                     name="search"
                     value="{{ $selectedSearch }}"
                     placeholder="Buscá por nombre o dirección..."
-                    class="w-full bg-white text-gray-900 pl-11 pr-28 py-3.5 rounded-2xl text-sm font-medium shadow-xl focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                    class="w-full bg-white text-gray-900 pl-11 pr-14 sm:pr-28 py-3.5 rounded-2xl text-sm font-medium shadow-xl focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                {{-- Mobile: icon-only button; desktop: text button --}}
                 <button type="submit"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-[#2D6A4F] hover:bg-[#52B788] text-white text-sm font-semibold px-4 py-2 rounded-xl transition">
-                    Buscar
+                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-[#2D6A4F] hover:bg-[#52B788] text-white font-semibold rounded-xl transition
+                           flex items-center justify-center w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2">
+                    <svg class="w-4 h-4 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+                    </svg>
+                    <span class="hidden sm:inline text-sm">Buscar</span>
                 </button>
             </div>
         </form>
@@ -43,63 +48,62 @@
 <div class="bg-white border-b shadow-sm sticky top-0 z-30" id="filter-bar">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div class="flex items-center gap-3 py-3 overflow-x-auto">
+        @php
+            $amenityQs = collect($selectedAmenities)->map(fn($a) => 'amenities[]=' . rawurlencode($a))->join('&');
+            $searchQs  = $selectedSearch !== '' ? 'search=' . rawurlencode($selectedSearch) : '';
+            $baseQs    = collect([$searchQs, $amenityQs])->filter()->join('&');
+            $amenityCount = count($selectedAmenities);
+        @endphp
 
-            {{-- Type pills --}}
-            @php
-                // Build amenity query string to persist across type changes
-                $amenityQs = collect($selectedAmenities)->map(fn($a) => 'amenities[]=' . rawurlencode($a))->join('&');
-                $searchQs  = $selectedSearch !== '' ? 'search=' . rawurlencode($selectedSearch) : '';
-                $baseQs    = collect([$searchQs, $amenityQs])->filter()->join('&');
-            @endphp
+        {{-- Mobile: pills wrap, then actions row. Desktop: single row. --}}
+        <div class="flex flex-col sm:flex-row sm:items-center gap-y-2 sm:gap-x-3 py-3">
 
-            <a href="{{ route('hoteles.index') }}{{ $baseQs ? '?' . $baseQs : '' }}"
-                class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition
-                    {{ $selectedType === '' ? 'bg-[#2D6A4F] text-white border-[#2D6A4F]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#2D6A4F] hover:text-[#2D6A4F]' }}">
-                Todos
-            </a>
+            {{-- Type pills — wrap on mobile, no horizontal scroll --}}
+            <div class="flex flex-wrap gap-2 flex-1">
+                <a href="{{ route('hoteles.index') }}{{ $baseQs ? '?' . $baseQs : '' }}"
+                    class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold border transition
+                        {{ $selectedType === '' ? 'bg-[#2D6A4F] text-white border-[#2D6A4F]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#2D6A4F] hover:text-[#2D6A4F]' }}">
+                    Todos
+                </a>
+                @foreach ($hotelTypes as $type)
+                @php $typeQs = collect([$searchQs, 'type=' . rawurlencode($type), $amenityQs])->filter()->join('&'); @endphp
+                <a href="{{ route('hoteles.index') }}?{{ $typeQs }}"
+                    class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold border transition
+                        {{ $selectedType === $type ? 'bg-[#2D6A4F] text-white border-[#2D6A4F]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#2D6A4F] hover:text-[#2D6A4F]' }}">
+                    {{ $type }}
+                </a>
+                @endforeach
+            </div>
 
-            @foreach ($hotelTypes as $type)
-            @php $typeQs = collect([$searchQs, 'type=' . rawurlencode($type), $amenityQs])->filter()->join('&'); @endphp
-            <a href="{{ route('hoteles.index') }}?{{ $typeQs }}"
-                class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition
-                    {{ $selectedType === $type ? 'bg-[#2D6A4F] text-white border-[#2D6A4F]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#2D6A4F] hover:text-[#2D6A4F]' }}">
-                {{ $type }}
-            </a>
-            @endforeach
+            {{-- Actions: Servicios + Limpiar — always in a row, below pills on mobile --}}
+            <div class="flex items-center gap-3 flex-shrink-0">
+                <div class="hidden sm:block h-6 w-px bg-gray-200"></div>
 
-            {{-- Divider --}}
-            <div class="flex-shrink-0 h-6 w-px bg-gray-200 mx-1"></div>
+                <button type="button" id="servicios-btn" onclick="toggleServiciosPanel()"
+                    class="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold border transition
+                        {{ $amenityCount > 0 ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400' }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+                    </svg>
+                    Servicios
+                    @if ($amenityCount > 0)
+                        <span class="bg-white text-[#1A1A1A] text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center leading-none">{{ $amenityCount }}</span>
+                    @endif
+                    <svg id="servicios-chevron" class="w-3.5 h-3.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
 
-            {{-- Servicios dropdown trigger --}}
-            @php $amenityCount = count($selectedAmenities); @endphp
-            <button type="button" id="servicios-btn" onclick="toggleServiciosPanel()"
-                class="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition
-                    {{ $amenityCount > 0 ? 'bg-[#1A1A1A] text-white border-[#1A1A1A]' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400' }}">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
-                </svg>
-                Servicios
-                @if ($amenityCount > 0)
-                    <span class="bg-white text-[#1A1A1A] text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center leading-none">{{ $amenityCount }}</span>
+                @if ($selectedType !== '' || $amenityCount > 0 || $selectedSearch !== '')
+                <a href="{{ route('hoteles.index') }}"
+                    class="text-xs text-gray-400 hover:text-red-500 font-semibold flex items-center gap-1 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Limpiar
+                </a>
                 @endif
-                <svg id="servicios-chevron" class="w-3.5 h-3.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                </svg>
-            </button>
-
-            {{-- Spacer + Clear --}}
-            <div class="flex-1"></div>
-
-            @if ($selectedType !== '' || $amenityCount > 0 || $selectedSearch !== '')
-            <a href="{{ route('hoteles.index') }}"
-                class="flex-shrink-0 text-xs text-gray-400 hover:text-red-500 font-semibold flex items-center gap-1 transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-                Limpiar
-            </a>
-            @endif
+            </div>
 
         </div>
 
@@ -149,7 +153,7 @@
                 </button>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-5">
                 @php
                 $amenityIcons = [
                     'WiFi'               => 'M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0',
