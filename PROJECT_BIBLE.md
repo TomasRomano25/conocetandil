@@ -230,7 +230,7 @@ storage/app/
 | is_admin | boolean | default: false |
 | premium_expires_at | timestamp | nullable — null means no premium |
 | timestamps | | |
- 
+
 ### `lugares`
 | Column | Type | Notes |
 |--------|------|-------|
