@@ -767,7 +767,6 @@ Full Airbnb-inspired redesign:
   --color-black: #1A1A1A;
 } 
 ```
-
 ### JS (`resources/js/app.js`)
 Imports `bootstrap.js` (Axios + CSRF) and registers SortableJS globally as `window.Sortable`.
 
