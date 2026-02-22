@@ -8,8 +8,6 @@ class PageView extends Model
 {
     protected $fillable = ['page', 'entity_slug', 'session_id', 'viewed_date'];
 
-    protected $casts = ['viewed_date' => 'date'];
-
     /**
      * Record a unique daily view (silent fail on duplicate).
      */
