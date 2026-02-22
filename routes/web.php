@@ -53,10 +53,10 @@ Route::get('/api/validate-coupon', [CouponController::class, 'validate'])->name(
 
 // MercadoPago callbacks (auth required)
 Route::middleware('auth')->group(function () {
-    Route::post('/checkout/{order}/mercadopago', [MercadoPagoController::class, 'createMembershipPreference'])->name('checkout.mp.membership');
     Route::get('/checkout/mercadopago/callback', [MercadoPagoController::class, 'membershipCallback'])->name('checkout.mp.membership.callback');
-    Route::post('/hoteles/checkout/{hotelOrder}/mercadopago', [MercadoPagoController::class, 'createHotelPreference'])->name('checkout.mp.hotel');
+    Route::get('/checkout/{order}/mercadopago', [MercadoPagoController::class, 'createMembershipPreference'])->name('checkout.mp.membership');
     Route::get('/hoteles/checkout/mercadopago/callback', [MercadoPagoController::class, 'hotelCallback'])->name('checkout.mp.hotel.callback');
+    Route::get('/hoteles/checkout/{hotelOrder}/mercadopago', [MercadoPagoController::class, 'createHotelPreference'])->name('checkout.mp.hotel');
 });
 
 // MercadoPago webhook (fully public, no CSRF)

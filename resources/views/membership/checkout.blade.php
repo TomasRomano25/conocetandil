@@ -257,7 +257,7 @@
                     <span class="font-bold text-[#2D6A4F]">{{ $plan->formattedEffectivePrice() }}</span>
                 </div>
 
-                <div id="discount-row" class="hidden flex justify-between text-sm text-green-600 pb-2">
+                <div id="discount-row" class="hidden justify-between text-sm text-green-600 pb-2">
                     <span>Descuento</span>
                     <span id="discount-display">-$0</span>
                 </div>
@@ -361,7 +361,8 @@ function validateCoupon() {
                 document.getElementById('promotion-id-input').value = data.promotion_id;
                 result.className = 'mt-2 text-sm text-green-600 font-semibold';
                 result.textContent = '✓ ' + data.message;
-                document.getElementById('discount-row').classList.remove('hidden');
+                var dr = document.getElementById('discount-row');
+                dr.classList.remove('hidden'); dr.classList.add('flex');
                 document.getElementById('discount-display').textContent = '-' + data.discount_formatted;
                 var total = baseAmount - appliedDiscount;
                 document.getElementById('total-display').textContent = '$' + total.toLocaleString('es-AR');
@@ -370,7 +371,8 @@ function validateCoupon() {
                 document.getElementById('promotion-id-input').value = '';
                 result.className = 'mt-2 text-sm text-red-600';
                 result.textContent = data.message;
-                document.getElementById('discount-row').classList.add('hidden');
+                var dr2 = document.getElementById('discount-row');
+                dr2.classList.add('hidden'); dr2.classList.remove('flex');
                 document.getElementById('total-display').textContent = '$' + baseAmount.toLocaleString('es-AR');
             }
         });

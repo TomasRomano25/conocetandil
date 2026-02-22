@@ -254,7 +254,7 @@
                     <span class="font-semibold text-[#1A1A1A]">{{ $order->plan->formattedEffectivePrice() }}</span>
                 </div>
 
-                <div id="hotel-discount-row" class="hidden flex justify-between text-sm py-1.5 text-green-600">
+                <div id="hotel-discount-row" class="hidden justify-between text-sm py-1.5 text-green-600">
                     <span>Descuento</span>
                     <span id="hotel-discount-display">-$0</span>
                 </div>
@@ -348,7 +348,8 @@ function validateHotelCoupon() {
                 document.getElementById('hotel-promotion-id-input').value = data.promotion_id;
                 result.className = 'mt-2 text-sm text-green-600 font-semibold';
                 result.textContent = '✓ ' + data.message;
-                document.getElementById('hotel-discount-row').classList.remove('hidden');
+                var hdr = document.getElementById('hotel-discount-row');
+                hdr.classList.remove('hidden'); hdr.classList.add('flex');
                 document.getElementById('hotel-discount-display').textContent = '-' + data.discount_formatted;
                 var total = hotelBaseAmount - hotelAppliedDiscount;
                 document.getElementById('hotel-total-display').textContent = '$' + total.toLocaleString('es-AR');
@@ -358,7 +359,8 @@ function validateHotelCoupon() {
                 document.getElementById('hotel-promotion-id-input').value = '';
                 result.className = 'mt-2 text-sm text-red-600';
                 result.textContent = data.message;
-                document.getElementById('hotel-discount-row').classList.add('hidden');
+                var hdr2 = document.getElementById('hotel-discount-row');
+                hdr2.classList.add('hidden'); hdr2.classList.remove('flex');
                 document.getElementById('hotel-total-display').textContent = '$' + hotelBaseAmount.toLocaleString('es-AR');
                 document.getElementById('checkout-total-display').textContent = '$' + hotelBaseAmount.toLocaleString('es-AR');
             }
