@@ -28,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
                     'mail.from.address'            => Configuration::get('smtp_from_email', config('mail.from.address')),
                     'mail.from.name'               => Configuration::get('smtp_from_name', config('mail.from.name')),
                 ]);
+
+                // Purge any cached mailer instances so they pick up the new config
+                app('mail.manager')->forgetMailers();
             }
         } catch (\Throwable) {
             // DB not yet available (e.g. during migrations) — skip silently

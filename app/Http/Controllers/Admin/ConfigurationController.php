@@ -243,11 +243,31 @@ class ConfigurationController extends Controller
     public function testSmtp()
     {
         $host      = Configuration::get('smtp_host');
+        $port      = Configuration::get('smtp_port', 587);
+        $encryption = Configuration::get('smtp_encryption', 'tls') ?: null;
+        $username  = Configuration::get('smtp_username');
+        $password  = Configuration::get('smtp_password');
         $fromEmail = Configuration::get('smtp_from_email');
+        $fromName  = Configuration::get('smtp_from_name', 'Conoce Tandil');
 
         if (! $host || ! $fromEmail) {
             return response()->json(['success' => false, 'message' => 'Configurá primero el host SMTP y el email remitente.']);
         }
+
+        // Always apply config explicitly — don't rely on AppServiceProvider cache
+        config([
+            'mail.default'                 => 'smtp',
+            'mail.mailers.smtp.host'       => $host,
+            'mail.mailers.smtp.port'       => $port,
+            'mail.mailers.smtp.encryption' => $encryption,
+            'mail.mailers.smtp.username'   => $username,
+            'mail.mailers.smtp.password'   => $password,
+            'mail.from.address'            => $fromEmail,
+            'mail.from.name'               => $fromName,
+        ]);
+
+        // Force Laravel to create a fresh mailer instance with the new config
+        app('mail.manager')->forgetMailers();
 
         try {
             \Illuminate\Support\Facades\Mail::mailer('smtp')->raw(
@@ -257,9 +277,15 @@ class ConfigurationController extends Controller
                 }
             );
 
-            return response()->json(['success' => true, 'message' => "Email enviado a {$fromEmail}. Revisá tu bandeja de entrada."]);
+            return response()->json([
+                'success' => true,
+                'message' => "Email enviado a {$fromEmail} vía {$host}:{$port}. Revisá tu bandeja de entrada (y spam).",
+            ]);
         } catch (\Throwable $e) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => "Error enviando vía {$host}:{$port} — " . $e->getMessage(),
+            ]);
         }
     }
 
