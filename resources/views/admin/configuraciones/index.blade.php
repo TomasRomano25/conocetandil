@@ -448,6 +448,161 @@
     </div>
 
     {{-- ══════════════════════════════════════════════════════════
+         MÉTODOS DE PAGO (HABILITADOS + MERCADOPAGO)
+         ══════════════════════════════════════════════════════════ --}}
+    @php
+        $mpEnabled = $paymentMethods['mercadopago_enabled'] === '1';
+        $btEnabled = $paymentMethods['bank_transfer_enabled'] === '1';
+        $mpBadge   = $mpEnabled ? 'MP activo' : ($btEnabled ? 'Solo transferencia' : 'Sin métodos');
+        $mpBadgeColor = $mpEnabled ? 'bg-blue-100 text-blue-700' : ($btEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500');
+    @endphp
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <button type="button" onclick="toggleSection('payment-methods')"
+            class="w-full px-6 py-4 flex items-center gap-3 text-left hover:bg-gray-50 transition group">
+            <div class="w-9 h-9 bg-[#2D6A4F]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-[#1A1A1A]">Métodos de Pago</p>
+                <p class="text-xs text-gray-500 mt-0.5">Transferencia bancaria y MercadoPago</p>
+            </div>
+            <span class="text-xs font-medium {{ $mpBadgeColor }} px-2 py-1 rounded-full flex-shrink-0">{{ $mpBadge }}</span>
+            <svg id="chevron-payment-methods" class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+
+        <div id="section-payment-methods" class="hidden border-t border-gray-100">
+            <form method="POST" action="{{ route('admin.configuraciones.payment-methods.update') }}" class="px-6 py-5 space-y-6">
+                @csrf
+
+                {{-- Métodos habilitados --}}
+                <div>
+                    <p class="text-sm font-bold text-gray-700 mb-3">Métodos habilitados</p>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between py-2">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-700">Transferencia bancaria</p>
+                                <p class="text-xs text-gray-500 mt-0.5">Permite pagar enviando comprobante manual</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="payment_bank_transfer_enabled" value="1" class="sr-only peer"
+                                    {{ $paymentMethods['bank_transfer_enabled'] === '1' ? 'checked' : '' }}>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer
+                                            peer-checked:after:translate-x-full peer-checked:after:border-white
+                                            after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                                            after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all
+                                            peer-checked:bg-[#2D6A4F]"></div>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between py-2">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-700">MercadoPago</p>
+                                <p class="text-xs text-gray-500 mt-0.5">Pago online con tarjeta, débito o efectivo</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" name="payment_mercadopago_enabled" value="1" class="sr-only peer"
+                                    id="mp-enabled-toggle"
+                                    {{ $paymentMethods['mercadopago_enabled'] === '1' ? 'checked' : '' }}
+                                    onchange="document.getElementById('mp-credentials-section').classList.toggle('hidden', !this.checked)">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer
+                                            peer-checked:after:translate-x-full peer-checked:after:border-white
+                                            after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                                            after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all
+                                            peer-checked:bg-[#2D6A4F]"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- MercadoPago credentials --}}
+                <div id="mp-credentials-section" class="{{ $paymentMethods['mercadopago_enabled'] === '1' ? '' : 'hidden' }} border-t border-gray-100 pt-5 space-y-5">
+                    <p class="text-sm font-bold text-gray-700">Credenciales de MercadoPago</p>
+
+                    {{-- Sandbox toggle --}}
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700">Modo sandbox (pruebas)</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Activá esto mientras hacés pruebas. Desactivá en producción.</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="mp_sandbox" value="1" class="sr-only peer"
+                                {{ $paymentMethods['mp_sandbox'] === '1' ? 'checked' : '' }}>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer
+                                        peer-checked:after:translate-x-full peer-checked:after:border-white
+                                        after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                                        after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all
+                                        peer-checked:bg-amber-500"></div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Public Key</label>
+                            <input type="text" name="mp_public_key"
+                                value="{{ old('mp_public_key', $paymentMethods['mp_public_key']) }}"
+                                placeholder="APP_USR-..."
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Access Token</label>
+                            <input type="password" name="mp_access_token"
+                                placeholder="Dejar vacío para no cambiar"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                            @if ($paymentMethods['mp_access_token_set'])
+                                <p class="text-xs text-green-600 mt-1">✓ Access Token guardado</p>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Test connection button --}}
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="testMpConnection()"
+                            class="inline-flex items-center gap-2 border-2 border-[#2D6A4F] text-[#2D6A4F] hover:bg-[#2D6A4F] hover:text-white font-semibold py-2 px-4 rounded-lg transition text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Probar conexión
+                        </button>
+                        <span id="mp-test-result" class="text-sm hidden"></span>
+                    </div>
+
+                    {{-- Webhook URL --}}
+                    @if ($paymentMethods['mp_access_token_set'])
+                    <div class="bg-gray-50 rounded-lg px-4 py-3">
+                        <p class="text-xs font-semibold text-gray-600 mb-1">URL de Webhook (configurar en MP)</p>
+                        <div class="font-mono text-xs text-gray-700 break-all select-all bg-white border border-gray-200 rounded px-3 py-2">
+                            {{ route('webhooks.mercadopago') }}
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Documentation block --}}
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-4 text-sm text-blue-800 space-y-2">
+                        <p class="font-bold">¿Cómo obtener las credenciales?</p>
+                        <ol class="list-decimal list-inside space-y-1 text-xs text-blue-700">
+                            <li>Ingresá a <a href="https://www.mercadopago.com.ar/developers/panel" target="_blank" class="underline font-semibold">mercadopago.com.ar/developers/panel</a></li>
+                            <li>Creá una aplicación o seleccioná una existente</li>
+                            <li>En <strong>Credenciales de producción</strong> encontrás la <em>Public Key</em> y el <em>Access Token</em> reales</li>
+                            <li>Para pruebas usá las <strong>Credenciales de prueba</strong> (sandbox) y activá el modo sandbox arriba</li>
+                            <li>En la sección <strong>Webhooks</strong> del panel, configurá la URL que aparece arriba</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit"
+                        class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm">
+                        Guardar métodos de pago
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════════════════════
          FILTROS DE ITINERARIOS
          ══════════════════════════════════════════════════════════ --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -537,6 +692,34 @@
 </div>
 
 <script>
+    function testMpConnection() {
+        var resultEl = document.getElementById('mp-test-result');
+        resultEl.className = 'text-sm text-gray-500';
+        resultEl.textContent = 'Probando...';
+        resultEl.classList.remove('hidden');
+
+        fetch('{{ route('admin.configuraciones.payment-methods.test-mp') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                resultEl.className = 'text-sm text-green-600 font-semibold';
+            } else {
+                resultEl.className = 'text-sm text-red-600';
+            }
+            resultEl.textContent = data.message;
+        })
+        .catch(() => {
+            resultEl.className = 'text-sm text-red-600';
+            resultEl.textContent = 'Error de red al probar la conexión.';
+        });
+    }
+
     function toggleSection(id) {
         const section = document.getElementById('section-' + id);
         const chevron = document.getElementById('chevron-' + id);

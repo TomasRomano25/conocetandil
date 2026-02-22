@@ -8,7 +8,7 @@ class HotelOrder extends Model
 {
     protected $fillable = [
         'hotel_id', 'user_id', 'plan_id', 'amount',
-        'status', 'transfer_reference', 'promotion_id', 'discount', 'admin_notes', 'completed_at',
+        'status', 'transfer_reference', 'mp_preference_id', 'promotion_id', 'discount', 'admin_notes', 'completed_at',
     ];
 
     protected function casts(): array

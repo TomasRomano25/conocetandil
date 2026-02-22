@@ -75,6 +75,11 @@ class MembershipController extends Controller
             Promotion::find($promotionId)->increment('uses_count');
         }
 
+        // If paying via MercadoPago, redirect to MP preference creation
+        if ($request->boolean('redirect_to_mp')) {
+            return redirect()->route('checkout.mp.membership', $order);
+        }
+
         return redirect()->route('membership.confirmacion', $order);
     }
 

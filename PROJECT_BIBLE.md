@@ -1,6 +1,6 @@
 # Conoce Tandil — Project Bible
 
-> **Last updated:** 2026-02-18 (Promotion/discount system + Hotel checkout flow + reCAPTCHA v3 on all public forms)
+> **Last updated:** 2026-02-22 (MercadoPago integration — payment methods admin card, MP service, MP controller, webhook, checkout views updated)
 > **Purpose:** Single source of truth for the entire project. Share this file with developers or AI assistants to provide full context.
 
 ---
@@ -31,6 +31,7 @@
 22. [Analytics Module](#22-analytics-module)
 23. [Hotel Directory Module](#23-hotel-directory-module)
 24. [Known Limitations & Pending Work](#24-known-limitations--pending-work)
+25. [MercadoPago Integration](#25-mercadopago-integration)
 
 ---
 
@@ -1663,6 +1664,64 @@ Stored at `storage/app/analytics/service-account.json` (not in git).
 - Access token: 50 minutes (`ga4_access_token` cache key)
 - Metrics data: 1 hour (`ga4_metrics_{propertyId}` cache key)
 - "Actualizar datos" button clears both caches
+
+---
+
+## 25. MercadoPago Integration
+
+### Overview
+Full MercadoPago Checkout Pro integration for both membership and hotel orders.
+
+### Config keys (in `configurations` table)
+| Key | Default | Description |
+|---|---|---|
+| `payment_bank_transfer_enabled` | `'1'` | Show bank transfer option in checkout |
+| `payment_mercadopago_enabled` | `'0'` | Show MercadoPago option in checkout |
+| `mp_sandbox` | `'1'` | Use sandbox (test) credentials |
+| `mp_public_key` | `''` | MP Public Key |
+| `mp_access_token` | `''` | MP Access Token (stored securely) |
+
+### New files
+- `app/Services/MercadoPagoService.php` — HTTP wrapper (no SDK). Methods: `createPreference()`, `getPayment()`, `isConfigured()`, `isSandbox()`, `getAccessToken()`.
+- `app/Http/Controllers/MercadoPagoController.php` — Handles preference creation, callbacks, webhook.
+
+### New migration
+`2026_02_22_070837_add_mp_preference_id_to_orders_and_hotel_orders` — adds nullable `mp_preference_id` string to both `orders` and `hotel_orders`.
+
+### Routes
+| Method | Path | Name | Description |
+|---|---|---|---|
+| POST | `/checkout/{order}/mercadopago` | `checkout.mp.membership` | Create membership MP preference |
+| GET | `/checkout/mercadopago/callback` | `checkout.mp.membership.callback` | Handle MP redirect for memberships |
+| POST | `/hoteles/checkout/{hotelOrder}/mercadopago` | `checkout.mp.hotel` | Create hotel MP preference |
+| GET | `/hoteles/checkout/mercadopago/callback` | `checkout.mp.hotel.callback` | Handle MP redirect for hotel orders |
+| POST | `/webhooks/mercadopago` | `webhooks.mercadopago` | MP webhook (CSRF-exempt, no auth) |
+
+### Admin config
+- Card "Métodos de Pago" in `/admin/configuraciones` (after reCAPTCHA card)
+- Toggles for bank transfer and MP per method
+- MP credentials section (sandbox toggle, public key, access token)
+- "Probar conexión" button — hits `POST /admin/configuraciones/payment-methods/test-mp` → calls `/users/me` MP API
+- Webhook URL displayed once credentials are saved
+
+### Checkout flow
+1. User visits `/premium/checkout/{plan}` or `/hoteles/checkout/{order}`
+2. If both methods enabled: tabs shown. If only one: only that panel shown.
+3. **Bank transfer**: existing flow unchanged.
+4. **MercadoPago**: form POSTs to existing `store`/`storeCheckout` with `redirect_to_mp=1` hidden field → order created → controller redirects to `checkout.mp.membership/hotel` → `createPreference()` called → redirect to MP `init_point` or `sandbox_init_point`.
+5. MP redirects to callback URL with `?status=approved|failure|pending&order_id=X`
+6. On `approved`: `$order->complete()` called immediately from callback (also via webhook for reliability).
+
+### Webhook
+- POST `/webhooks/mercadopago` is CSRF-exempt (configured in `bootstrap/app.php`)
+- On `type=payment` + `status=approved`: finds order by `external_reference` (`membership_{id}` or `hotel_{id}`) and calls `complete()`
+- Always returns HTTP 200
+
+### MP preference config
+- `currency_id: ARS`
+- `installments: 1, default_installments: 1` (no cuotas)
+- `auto_return: approved`
+- `notification_url`: webhook route
 
 ---
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Configuration;
+use App\Services\MercadoPagoService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -69,7 +70,15 @@ class ConfigurationController extends Controller
             'all_seasons' => $allSeasons,
         ];
 
-        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha', 'itineraryFilters'));
+        $paymentMethods = [
+            'bank_transfer_enabled'  => Configuration::get('payment_bank_transfer_enabled', '1'),
+            'mercadopago_enabled'    => Configuration::get('payment_mercadopago_enabled', '0'),
+            'mp_sandbox'             => Configuration::get('mp_sandbox', '1'),
+            'mp_public_key'          => Configuration::get('mp_public_key', ''),
+            'mp_access_token_set'    => !empty(Configuration::get('mp_access_token', '')),
+        ];
+
+        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha', 'itineraryFilters', 'paymentMethods'));
     }
 
     public function updateBackup(Request $request)
@@ -163,6 +172,58 @@ class ConfigurationController extends Controller
 
         return redirect()->route('admin.configuraciones.index')
             ->with('success', 'Filtros de itinerarios guardados correctamente.');
+    }
+
+    public function updatePaymentMethods(Request $request)
+    {
+        $request->validate([
+            'mp_public_key'   => 'nullable|string|max:255',
+            'mp_access_token' => 'nullable|string|max:255',
+        ]);
+
+        Configuration::set('payment_bank_transfer_enabled', $request->boolean('payment_bank_transfer_enabled') ? '1' : '0');
+        Configuration::set('payment_mercadopago_enabled',   $request->boolean('payment_mercadopago_enabled') ? '1' : '0');
+        Configuration::set('mp_sandbox',                    $request->boolean('mp_sandbox') ? '1' : '0');
+        Configuration::set('mp_public_key',                 $request->input('mp_public_key') ?? '');
+
+        if ($request->filled('mp_access_token')) {
+            Configuration::set('mp_access_token', $request->input('mp_access_token'));
+        }
+
+        return redirect()->route('admin.configuraciones.index')
+            ->with('success', 'Métodos de pago guardados correctamente.');
+    }
+
+    public function testMercadoPago()
+    {
+        $mp = new MercadoPagoService();
+
+        if (! $mp->isConfigured()) {
+            return response()->json(['success' => false, 'message' => 'Access Token no configurado.']);
+        }
+
+        try {
+            // We test by hitting the /users/me endpoint with the token
+            $response = \Illuminate\Support\Facades\Http::withToken($mp->getAccessToken())
+                ->get('https://api.mercadopago.com/users/me');
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $email = $data['email'] ?? 'desconocido';
+                $mode  = $mp->isSandbox() ? 'sandbox' : 'producción';
+                return response()->json([
+                    'success' => true,
+                    'message' => "Conexión exitosa. Cuenta: {$email} (modo {$mode}).",
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Credenciales inválidas. Código: ' . $response->status(),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
     }
 
     public function updateSmtp(Request $request)

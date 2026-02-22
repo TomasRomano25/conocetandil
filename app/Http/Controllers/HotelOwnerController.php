@@ -346,6 +346,11 @@ class HotelOwnerController extends Controller
 
         $order->update($updates);
 
+        // If paying via MercadoPago, redirect to MP preference creation
+        if ($request->boolean('redirect_to_mp')) {
+            return redirect()->route('checkout.mp.hotel', $order);
+        }
+
         return redirect()->route('hoteles.owner.confirmacion', $order);
     }
 

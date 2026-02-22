@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin'   => \App\Http\Middleware\AdminMiddleware::class,
             'premium' => \App\Http\Middleware\PremiumMiddleware::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/mercadopago',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

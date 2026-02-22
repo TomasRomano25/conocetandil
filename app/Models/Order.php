@@ -8,7 +8,7 @@ class Order extends Model
 {
     protected $fillable = [
         'user_id', 'plan_id', 'status', 'total',
-        'transfer_reference', 'promotion_id', 'discount', 'admin_notes', 'completed_at',
+        'transfer_reference', 'mp_preference_id', 'promotion_id', 'discount', 'admin_notes', 'completed_at',
     ];
 
     protected $casts = [

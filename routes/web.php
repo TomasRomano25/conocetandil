@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\HotelOwnerController;
+use App\Http\Controllers\MercadoPagoController;
 use Illuminate\Support\Facades\Route;
 
 // Hotel public routes (static before slug)
@@ -49,6 +50,17 @@ Route::middleware('auth')->prefix('hoteles')->name('hoteles.')->group(function (
 
 // Coupon AJAX validation (public)
 Route::get('/api/validate-coupon', [CouponController::class, 'validate'])->name('coupon.validate');
+
+// MercadoPago callbacks (auth required)
+Route::middleware('auth')->group(function () {
+    Route::post('/checkout/{order}/mercadopago', [MercadoPagoController::class, 'createMembershipPreference'])->name('checkout.mp.membership');
+    Route::get('/checkout/mercadopago/callback', [MercadoPagoController::class, 'membershipCallback'])->name('checkout.mp.membership.callback');
+    Route::post('/hoteles/checkout/{hotelOrder}/mercadopago', [MercadoPagoController::class, 'createHotelPreference'])->name('checkout.mp.hotel');
+    Route::get('/hoteles/checkout/mercadopago/callback', [MercadoPagoController::class, 'hotelCallback'])->name('checkout.mp.hotel.callback');
+});
+
+// MercadoPago webhook (fully public, no CSRF)
+Route::post('/webhooks/mercadopago', [MercadoPagoController::class, 'webhook'])->name('webhooks.mercadopago');
 
 // Public routes
 Route::get('/', [PageController::class, 'inicio'])->name('inicio');
@@ -117,6 +129,8 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::post('configuraciones/payment', [ConfigurationController::class, 'updatePayment'])->name('configuraciones.payment.update');
     Route::post('configuraciones/recaptcha', [ConfigurationController::class, 'updateRecaptcha'])->name('configuraciones.recaptcha.update');
     Route::post('configuraciones/itinerarios', [ConfigurationController::class, 'updateItineraryFilters'])->name('configuraciones.itinerarios.update');
+    Route::post('configuraciones/payment-methods', [ConfigurationController::class, 'updatePaymentMethods'])->name('configuraciones.payment-methods.update');
+    Route::post('configuraciones/payment-methods/test-mp', [ConfigurationController::class, 'testMercadoPago'])->name('configuraciones.payment-methods.test-mp');
 
     // Mensajes
     Route::get('mensajes', [AdminMessageController::class, 'index'])->name('mensajes.index');
