@@ -81,7 +81,8 @@ class MembershipController extends Controller
             $mp = app(MercadoPagoService::class);
             if (! $mp->isConfigured()) {
                 return redirect()->route('membership.checkout', $plan->slug)
-                    ->with('error', 'MercadoPago no está configurado. Usá transferencia bancaria.');
+                    ->with('error', 'MercadoPago no está configurado correctamente. Contactá al administrador.')
+                    ->with('open_mp_tab', true);
             }
             $finalAmount = max(0.01, (float) $order->total - (float) $order->discount);
             try {
@@ -99,7 +100,8 @@ class MembershipController extends Controller
                 return redirect()->away($initPoint);
             } catch (\Throwable $e) {
                 return redirect()->route('membership.checkout', $plan->slug)
-                    ->with('error', 'Error al conectar con MercadoPago: ' . $e->getMessage());
+                    ->with('error', 'Error al conectar con MercadoPago: ' . $e->getMessage())
+                    ->with('open_mp_tab', true);
             }
         }
 

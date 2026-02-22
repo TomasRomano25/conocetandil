@@ -352,7 +352,8 @@ class HotelOwnerController extends Controller
             $mp = app(MercadoPagoService::class);
             if (! $mp->isConfigured()) {
                 return redirect()->route('hoteles.owner.checkout', $order)
-                    ->with('error', 'MercadoPago no está configurado. Usá transferencia bancaria.');
+                    ->with('error', 'MercadoPago no está configurado correctamente. Contactá al administrador.')
+                    ->with('open_mp_tab', true);
             }
             $order->load('plan');
             $finalAmount = max(0.01, (float) $order->amount - (float) $order->discount);
@@ -371,7 +372,8 @@ class HotelOwnerController extends Controller
                 return redirect()->away($initPoint);
             } catch (\Throwable $e) {
                 return redirect()->route('hoteles.owner.checkout', $order)
-                    ->with('error', 'Error al conectar con MercadoPago: ' . $e->getMessage());
+                    ->with('error', 'Error al conectar con MercadoPago: ' . $e->getMessage())
+                    ->with('open_mp_tab', true);
             }
         }
 

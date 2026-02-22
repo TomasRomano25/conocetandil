@@ -18,6 +18,18 @@
 
     <h1 class="text-2xl font-bold text-[#1A1A1A] mb-8">Finalizar registro del hotel</h1>
 
+    @if(session('error'))
+    <div class="mb-6 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 flex items-start gap-2">
+        <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        {{ session('error') }}
+    </div>
+    @endif
+    @if($errors->any())
+    <div class="mb-6 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+        @foreach($errors->all() as $e)<p>{{ $e }}</p>@endforeach
+    </div>
+    @endif
+
     <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
 
         {{-- Left: Payment methods --}}
@@ -281,6 +293,12 @@
 
 <script>
 @if ($bothEnabled ?? false)
+document.addEventListener('DOMContentLoaded', function() {
+    @if(session('open_mp_tab'))
+    switchHotelPayment('mp');
+    @endif
+});
+
 function switchHotelPayment(mode) {
     var transferPanels = ['hotel-panel-transfer', 'hotel-transfer-amount-reminder', 'hotel-transfer-form-panel'];
     var mpPanels = ['hotel-panel-mp'];
