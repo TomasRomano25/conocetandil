@@ -85,7 +85,7 @@ class InicioSectionSeeder extends Seeder
         ];
 
         foreach ($sections as $section) {
-            InicioSection::updateOrCreate(['key' => $section['key']], $section);
+            InicioSection::firstOrCreate(['key' => $section['key']], $section);
         }
     }
 }
