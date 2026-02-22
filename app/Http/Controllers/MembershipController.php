@@ -41,6 +41,13 @@ class MembershipController extends Controller
             'promotion_id'       => 'nullable|integer|exists:promotions,id',
         ]);
 
+        // Reuse existing pending order for this user+plan to avoid duplicate orders
+        $existingOrder = Order::where('user_id', auth()->id())
+            ->where('plan_id', $plan->id)
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
+
         $discount = 0;
         $promotionId = null;
 
@@ -55,25 +62,35 @@ class MembershipController extends Controller
             }
         }
 
-        $order = Order::create([
-            'user_id'            => auth()->id(),
-            'plan_id'            => $plan->id,
-            'status'             => 'pending',
-            'total'              => $plan->effective_price,
-            'discount'           => $discount,
-            'promotion_id'       => $promotionId,
-            'transfer_reference' => $request->transfer_reference,
-        ]);
-
-        if ($promotionId) {
-            PromotionUse::create([
-                'promotion_id'    => $promotionId,
-                'user_id'         => auth()->id(),
-                'orderable_type'  => 'membership',
-                'orderable_id'    => $order->id,
-                'discount_amount' => $discount,
+        if ($existingOrder) {
+            $existingOrder->update([
+                'total'              => $plan->effective_price,
+                'discount'           => $discount,
+                'promotion_id'       => $promotionId,
+                'transfer_reference' => $request->transfer_reference,
             ]);
-            Promotion::find($promotionId)->increment('uses_count');
+            $order = $existingOrder;
+        } else {
+            $order = Order::create([
+                'user_id'            => auth()->id(),
+                'plan_id'            => $plan->id,
+                'status'             => 'pending',
+                'total'              => $plan->effective_price,
+                'discount'           => $discount,
+                'promotion_id'       => $promotionId,
+                'transfer_reference' => $request->transfer_reference,
+            ]);
+
+            if ($promotionId) {
+                PromotionUse::create([
+                    'promotion_id'    => $promotionId,
+                    'user_id'         => auth()->id(),
+                    'orderable_type'  => 'membership',
+                    'orderable_id'    => $order->id,
+                    'discount_amount' => $discount,
+                ]);
+                Promotion::find($promotionId)->increment('uses_count');
+            }
         }
 
         // If paying via MercadoPago, create preference and redirect directly
