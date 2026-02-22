@@ -321,7 +321,7 @@
         <div class="divider"></div>
 
         <div class="footer">
-            <p>¿Querés recibir novedades? Escribinos a <a href="mailto:hola@conocetandil.com">hola@conocetandil.com</a></p>
+            <p>¿Querés recibir novedades? Escribinos a <a href="mailto:comercial@conocetandil.com">comercial@conocetandil.com</a></p>
             <p style="margin-top: 0.5rem;">© {{ date('Y') }} Conoce Tandil — Tandil, Buenos Aires, Argentina</p>
         </div>
 
