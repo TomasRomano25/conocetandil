@@ -6,9 +6,53 @@
 @section('content')
     <div class="mb-6 flex justify-between items-center">
         <p class="text-gray-600">Gestioná los lugares turísticos de Tandil.</p>
-        <a href="{{ route('admin.lugares.create') }}" class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2 px-4 rounded-lg transition">
-            + Nuevo Lugar
-        </a>
+        <div class="flex gap-2">
+            <button onclick="document.getElementById('import-modal').classList.remove('hidden')"
+                class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg transition text-sm">
+                Importar JSON
+            </button>
+            <a href="{{ route('admin.lugares.create') }}" class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2 px-4 rounded-lg transition">
+                + Nuevo Lugar
+            </a>
+        </div>
+    </div>
+
+    @if (session('success'))
+        <div class="mb-4 p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg text-sm">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    {{-- Import Modal --}}
+    <div id="import-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <h2 class="text-lg font-semibold text-[#1A1A1A] mb-1">Importar Lugares desde JSON</h2>
+            <p class="text-sm text-gray-500 mb-4">
+                Si un lugar con el mismo <strong>título</strong> ya existe, sus datos serán actualizados. Los lugares nuevos se crearán automáticamente.
+            </p>
+            <form method="POST" action="{{ route('admin.lugares.import') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Archivo JSON</label>
+                    <input type="file" name="json_file" accept=".json,.txt" required
+                        class="block w-full text-sm text-gray-600 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 p-2">
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="document.getElementById('import-modal').classList.add('hidden')"
+                        class="py-2 px-4 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
+                        Importar
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

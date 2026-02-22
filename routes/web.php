@@ -92,6 +92,7 @@ Route::middleware(['auth', 'premium'])->prefix('premium')->name('premium.')->gro
 // Admin routes
 Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('lugares/import', [LugarController::class, 'import'])->name('lugares.import');
     Route::resource('lugares', LugarController::class)->parameters(['lugares' => 'lugar']);
     Route::resource('usuarios', UserController::class)->except(['show']);
 

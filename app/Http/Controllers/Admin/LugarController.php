@@ -146,6 +146,67 @@ class LugarController extends Controller
         return redirect()->route('admin.lugares.index')->with('success', 'Lugar actualizado correctamente.');
     }
 
+    public function import(Request $request)
+    {
+        $request->validate([
+            'json_file' => 'required|file|mimes:json,txt|max:2048',
+        ]);
+
+        $content = file_get_contents($request->file('json_file')->getRealPath());
+        $data = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
+            return back()->with('error', 'El archivo JSON no es válido.');
+        }
+
+        $created = 0;
+        $updated = 0;
+        $errors  = [];
+
+        foreach ($data as $index => $item) {
+            if (empty($item['title'])) {
+                $errors[] = "Fila " . ($index + 1) . ": falta el campo 'title'.";
+                continue;
+            }
+
+            $fields = [
+                'direction'             => $item['direction'] ?? '',
+                'description'           => $item['description'] ?? '',
+                'image'                 => $item['image'] ?? null,
+                'featured'              => !empty($item['featured']),
+                'is_premium'            => !empty($item['is_premium']),
+                'order'                 => $item['order'] ?? 0,
+                'category'              => $item['category'] ?? null,
+                'rating'                => isset($item['rating']) ? (float) $item['rating'] : null,
+                'phone'                 => $item['phone'] ?? null,
+                'website'               => $item['website'] ?? null,
+                'opening_hours'         => $item['opening_hours'] ?? null,
+                'promotion_title'       => $item['promotion_title'] ?? null,
+                'promotion_description' => $item['promotion_description'] ?? null,
+                'promotion_url'         => $item['promotion_url'] ?? null,
+                'latitude'              => isset($item['latitude']) ? (float) $item['latitude'] : null,
+                'longitude'             => isset($item['longitude']) ? (float) $item['longitude'] : null,
+            ];
+
+            $existing = Lugar::where('title', $item['title'])->first();
+
+            if ($existing) {
+                $existing->update($fields);
+                $updated++;
+            } else {
+                Lugar::create(array_merge(['title' => $item['title']], $fields));
+                $created++;
+            }
+        }
+
+        $message = "Importación completada: {$created} creados, {$updated} actualizados.";
+        if (!empty($errors)) {
+            $message .= ' Errores: ' . implode(' | ', $errors);
+        }
+
+        return redirect()->route('admin.lugares.index')->with('success', $message);
+    }
+
     public function destroy(Lugar $lugar)
     {
         if ($lugar->image) {
