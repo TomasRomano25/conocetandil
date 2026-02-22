@@ -160,7 +160,24 @@
                             class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
                     </div>
                 </div>
-                <div class="flex justify-end">
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    {{-- Test SMTP button --}}
+                    <div class="flex items-center gap-3">
+                        <button type="button" id="btn-test-smtp"
+                            onclick="testSmtp()"
+                            class="border border-[#2D6A4F] text-[#2D6A4F] hover:bg-[#2D6A4F] hover:text-white font-semibold py-2.5 px-5 rounded-lg transition text-sm flex items-center gap-2">
+                            <svg id="smtp-test-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                            <svg id="smtp-test-spinner" class="w-4 h-4 hidden animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                            </svg>
+                            Enviar mail de prueba
+                        </button>
+                        <span id="smtp-test-result" class="text-sm hidden"></span>
+                    </div>
                     <button type="submit"
                         class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm">
                         Guardar configuración SMTP
@@ -792,6 +809,43 @@
         .catch(() => {
             resultEl.className = 'text-sm text-red-600';
             resultEl.textContent = 'Error de red al probar la conexión.';
+        });
+    }
+
+    function testSmtp() {
+        const btn    = document.getElementById('btn-test-smtp');
+        const icon   = document.getElementById('smtp-test-icon');
+        const spin   = document.getElementById('smtp-test-spinner');
+        const result = document.getElementById('smtp-test-result');
+
+        btn.disabled = true;
+        icon.classList.add('hidden');
+        spin.classList.remove('hidden');
+        result.className = 'text-sm hidden';
+        result.textContent = '';
+
+        fetch('{{ route('admin.configuraciones.smtp.test') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+            },
+        })
+        .then(r => r.json())
+        .then(data => {
+            result.className = data.success ? 'text-sm text-green-600 font-semibold' : 'text-sm text-red-600';
+            result.textContent = data.message;
+            result.classList.remove('hidden');
+        })
+        .catch(() => {
+            result.className = 'text-sm text-red-600';
+            result.textContent = 'Error de red.';
+            result.classList.remove('hidden');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            icon.classList.remove('hidden');
+            spin.classList.add('hidden');
         });
     }
 

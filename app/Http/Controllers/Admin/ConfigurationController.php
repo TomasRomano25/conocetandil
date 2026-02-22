@@ -240,6 +240,39 @@ class ConfigurationController extends Controller
         }
     }
 
+    public function testSmtp()
+    {
+        $host      = Configuration::get('smtp_host');
+        $fromEmail = Configuration::get('smtp_from_email');
+
+        if (! $host || ! $fromEmail) {
+            return response()->json(['success' => false, 'message' => 'Configurá primero el host SMTP y el email remitente.']);
+        }
+
+        config([
+            'mail.mailers.smtp.host'       => $host,
+            'mail.mailers.smtp.port'       => Configuration::get('smtp_port', 587),
+            'mail.mailers.smtp.encryption' => Configuration::get('smtp_encryption', 'tls') ?: null,
+            'mail.mailers.smtp.username'   => Configuration::get('smtp_username'),
+            'mail.mailers.smtp.password'   => Configuration::get('smtp_password'),
+            'mail.from.address'            => $fromEmail,
+            'mail.from.name'               => Configuration::get('smtp_from_name', 'Conoce Tandil'),
+        ]);
+
+        try {
+            \Illuminate\Support\Facades\Mail::raw(
+                'Este es un email de prueba enviado desde el panel de administración de Conoce Tandil. Si lo ves, ¡la configuración SMTP funciona correctamente!',
+                function ($message) use ($fromEmail) {
+                    $message->to($fromEmail)->subject('Prueba de Email — Conoce Tandil');
+                }
+            );
+
+            return response()->json(['success' => true, 'message' => "Email enviado a {$fromEmail}. Revisá tu bandeja de entrada."]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+    }
+
     public function updateSmtp(Request $request)
     {
         $request->validate([
