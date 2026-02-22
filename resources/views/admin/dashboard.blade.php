@@ -10,7 +10,21 @@
 @endphp
 
 @section('content')
-<div class="space-y-6">
+
+{{-- Tab switcher --}}
+<div class="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 w-fit">
+    <button onclick="switchTab('overview')" id="tab-overview"
+        class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition">
+        Resumen
+    </button>
+    <button onclick="switchTab('traffic')" id="tab-traffic"
+        class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition">
+        Tráfico
+    </button>
+</div>
+
+{{-- OVERVIEW TAB --}}
+<div id="panel-overview" class="space-y-6">
 
 {{-- ════════════════════════════════════════════════════════════
      HERO KPI CARDS
@@ -551,10 +565,179 @@
     </a>
 </div>
 
-</div>{{-- end space-y-6 --}}
+</div>{{-- end panel-overview --}}
+
+
+{{-- ════════════════════════════════════════════════════════════
+     TRAFFIC TAB
+     ════════════════════════════════════════════════════════════ --}}
+<div id="panel-traffic" class="hidden space-y-6">
+
+    {{-- Traffic KPI cards --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        @foreach([
+            ['Vistas hoy',        $trafficKpis['today'], 'text-[#2D6A4F]', 'bg-[#2D6A4F]/10'],
+            ['Esta semana',       $trafficKpis['week'],  'text-blue-600',  'bg-blue-50'],
+            ['Este mes',          $trafficKpis['month'], 'text-violet-600','bg-violet-50'],
+            ['Total histórico',   $trafficKpis['total'], 'text-gray-700',  'bg-gray-100'],
+        ] as [$label, $value, $textColor, $bgColor])
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div class="w-10 h-10 {{ $bgColor }} rounded-xl flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 {{ $textColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+            </div>
+            <p class="text-2xl font-bold text-[#1A1A1A]">{{ number_format($value) }}</p>
+            <p class="text-xs text-gray-500 mt-0.5">{{ $label }}</p>
+        </div>
+        @endforeach
+    </div>
+
+    {{-- Daily traffic chart --}}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div class="flex items-center justify-between mb-5">
+            <div>
+                <h2 class="text-sm font-bold text-[#1A1A1A]">Visitas diarias</h2>
+                <p class="text-xs text-gray-400 mt-0.5">Últimos 30 días · por tipo de página</p>
+            </div>
+            <div class="flex items-center gap-4 text-xs text-gray-500">
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-[#2D6A4F] inline-block"></span>Lugares</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-amber-400 inline-block"></span>Hoteles</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-blue-400 inline-block"></span>Otras</span>
+            </div>
+        </div>
+        <div class="h-56">
+            <canvas id="trafficChart"></canvas>
+        </div>
+    </div>
+
+    {{-- Top pages + top lugares --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+        {{-- Top pages by views --}}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h3 class="text-sm font-bold text-[#1A1A1A]">Páginas más visitadas</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Vistas únicas por sesión/día · históricas</p>
+            </div>
+            @php $maxPageViews = $topPages->max('total') ?: 1; @endphp
+            <div class="divide-y divide-gray-50">
+                @forelse($topPages as $pg)
+                <div class="px-5 py-3">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-xs font-semibold text-[#1A1A1A]">{{ $pg['page'] }}</span>
+                        <div class="flex items-center gap-3 text-xs">
+                            <span class="text-gray-400">{{ $pg['month'] }} este mes</span>
+                            <span class="font-bold text-[#1A1A1A] min-w-[2rem] text-right">{{ number_format($pg['total']) }}</span>
+                        </div>
+                    </div>
+                    <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-[#52B788] rounded-full"
+                             style="width: {{ round(($pg['total'] / $maxPageViews) * 100) }}%"></div>
+                    </div>
+                </div>
+                @empty
+                <div class="px-5 py-10 text-center text-xs text-gray-400">Sin datos de tráfico todavía.</div>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- Top lugares --}}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h3 class="text-sm font-bold text-[#1A1A1A]">Lugares más visitados</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Vistas únicas históricas · top 10</p>
+            </div>
+            @php $maxLugarViews = collect($topLugares)->max('total') ?: 1; @endphp
+            <div class="divide-y divide-gray-50">
+                @forelse($topLugares as $i => $item)
+                <div class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition">
+                    <span class="text-xs font-bold text-gray-300 w-4 text-center">{{ $i + 1 }}</span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-semibold text-[#1A1A1A] truncate">{{ $item['title'] }}</p>
+                        <div class="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-[#2D6A4F] rounded-full"
+                                 style="width: {{ round(($item['total'] / $maxLugarViews) * 100) }}%"></div>
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <p class="text-xs font-bold text-[#1A1A1A]">{{ number_format($item['total']) }}</p>
+                        <p class="text-xs text-gray-400">{{ $item['month'] }} mes</p>
+                    </div>
+                </div>
+                @empty
+                <div class="px-5 py-10 text-center text-xs text-gray-400">Sin visitas registradas todavía.</div>
+                @endforelse
+            </div>
+        </div>
+
+    </div>
+
+    {{-- Top hoteles --}}
+    @if($topHoteles->count())
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-100">
+            <h3 class="text-sm font-bold text-[#1A1A1A]">Hoteles más visitados</h3>
+            <p class="text-xs text-gray-400 mt-0.5">Vistas únicas históricas · top 10</p>
+        </div>
+        @php $maxHotelViews = collect($topHoteles)->max('total') ?: 1; @endphp
+        <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-gray-50">
+            @foreach($topHoteles as $i => $item)
+            <div class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition">
+                <span class="text-xs font-bold text-gray-300 w-4 text-center">{{ $i + 1 }}</span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-semibold text-[#1A1A1A] truncate">{{ $item['name'] }}</p>
+                    <div class="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-amber-400 rounded-full"
+                             style="width: {{ round(($item['total'] / $maxHotelViews) * 100) }}%"></div>
+                    </div>
+                </div>
+                <div class="text-right flex-shrink-0">
+                    <p class="text-xs font-bold text-[#1A1A1A]">{{ number_format($item['total']) }}</p>
+                    <p class="text-xs text-gray-400">{{ $item['month'] }} mes</p>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <p class="text-xs text-gray-400 text-center pb-2">
+        Las vistas se registran una vez por sesión por día · sin datos de visitantes anónimos previos a esta versión.
+        @if($trafficKpis['total'] === 0) Comenzará a acumular datos desde ahora. @endif
+    </p>
+
+</div>{{-- end panel-traffic --}}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+// ── Tab switching ─────────────────────────────────────────────────
+function switchTab(tab) {
+    ['overview', 'traffic'].forEach(t => {
+        document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
+        const btn = document.getElementById('tab-' + t);
+        if (t === tab) {
+            btn.classList.add('bg-white', 'shadow-sm', 'text-[#1A1A1A]');
+            btn.classList.remove('text-gray-500');
+        } else {
+            btn.classList.remove('bg-white', 'shadow-sm', 'text-[#1A1A1A]');
+            btn.classList.add('text-gray-500');
+        }
+    });
+    localStorage.setItem('dash_tab', tab);
+    // init traffic chart lazily on first open
+    if (tab === 'traffic' && !window._trafficChartInit) {
+        window._trafficChartInit = true;
+        initTrafficChart();
+    }
+}
+// Restore last tab
+document.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('dash_tab') || 'overview';
+    switchTab(saved);
+});
+
 Chart.defaults.font.family = 'Inter, sans-serif';
 Chart.defaults.color = '#6b7280';
 
@@ -694,6 +877,60 @@ new Chart(document.getElementById('userChart'), {
         }
     }
 });
+
+// ── Traffic chart (lazy) ─────────────────────────────────────────
+function initTrafficChart() {
+    new Chart(document.getElementById('trafficChart'), {
+        type: 'bar',
+        data: {
+            labels: @json($trafficDailyLabels),
+            datasets: [
+                {
+                    label: 'Lugares',
+                    data: @json($trafficDailyGroups['lugar']),
+                    backgroundColor: GREEN,
+                    borderRadius: 3,
+                    borderSkipped: false,
+                },
+                {
+                    label: 'Hoteles',
+                    data: @json($trafficDailyGroups['hotel']),
+                    backgroundColor: AMBER,
+                    borderRadius: 3,
+                    borderSkipped: false,
+                },
+                {
+                    label: 'Otras',
+                    data: @json($trafficDailyGroups['otros']),
+                    backgroundColor: '#60a5fa',
+                    borderRadius: 3,
+                    borderSkipped: false,
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    grid: { display: false },
+                    ticks: { font: { size: 10 }, maxTicksLimit: 10 }
+                },
+                y: {
+                    stacked: true,
+                    grid: { color: '#f3f4f6' },
+                    ticks: { font: { size: 10 }, stepSize: 1 },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
 
 // ── Hotel views chart ─────────────────────────────────────────────
 new Chart(document.getElementById('hotelViewChart'), {

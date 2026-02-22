@@ -7,6 +7,7 @@ use App\Models\Hotel;
 use App\Models\HotelContact;
 use App\Models\HotelView;
 use App\Models\Configuration;
+use App\Models\PageView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -15,6 +16,7 @@ class HotelController extends Controller
 {
     public function index(Request $request)
     {
+        PageView::record('hoteles');
         // All active hotels with plan loaded (for tier grouping)
         $all = Hotel::active()->with(['plan'])->get();
 
@@ -88,6 +90,7 @@ class HotelController extends Controller
                 'session_id'  => session()->getId(),
                 'viewed_date' => today()->toDateString(),
             ]);
+            PageView::record('hotel', $hotel->slug);
         } catch (\Throwable) {}
 
         return view('hoteles.show', compact('hotel'));

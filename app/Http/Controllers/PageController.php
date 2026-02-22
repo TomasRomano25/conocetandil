@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Form;
 use App\Models\InicioSection;
 use App\Models\Lugar;
+use App\Models\PageView;
 
 class PageController extends Controller
 {
     public function inicio()
     {
+        PageView::record('inicio');
         $featuredLugares = Lugar::with('images')->featured()->ordered()->limit(6)->get();
         $sections = InicioSection::visible()->ordered()->get()->keyBy('key');
 
@@ -18,6 +20,7 @@ class PageController extends Controller
 
     public function lugares()
     {
+        PageView::record('lugares');
         $q        = trim(request('q', ''));
         $category = trim(request('category', ''));
 
@@ -44,6 +47,7 @@ class PageController extends Controller
 
     public function lugar(Lugar $lugar)
     {
+        PageView::record('lugar', $lugar->slug);
         $lugar->load('images');
 
         $relatedPlaces = Lugar::with('images')
@@ -57,12 +61,14 @@ class PageController extends Controller
 
     public function guias()
     {
+        PageView::record('guias');
         $guiasBanner = InicioSection::where('key', 'guias_hero')->first();
         return view('pages.guias', compact('guiasBanner'));
     }
 
     public function contacto()
     {
+        PageView::record('contacto');
         $form = Form::with('visibleFields')
             ->where('slug', 'contacto')
             ->where('active', true)

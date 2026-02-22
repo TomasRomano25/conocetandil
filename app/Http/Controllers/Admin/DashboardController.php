@@ -9,6 +9,7 @@ use App\Models\HotelView;
 use App\Models\Lugar;
 use App\Models\Message;
 use App\Models\Order;
+use App\Models\PageView;
 use App\Models\Promotion;
 use App\Models\PromotionUse;
 use App\Models\User;
@@ -174,6 +175,105 @@ class DashboardController extends Controller
         $recentOrders      = Order::with(['user', 'plan'])->latest()->take(5)->get();
         $recentHotelOrders = HotelOrder::with(['user', 'hotel', 'plan'])->latest()->take(5)->get();
 
+        // ── Traffic / Page views ─────────────────────────────────────
+        $trafficKpis = [
+            'total'   => PageView::count(),
+            'month'   => PageView::where('viewed_date', '>=', now()->startOfMonth()->toDateString())->count(),
+            'week'    => PageView::where('viewed_date', '>=', now()->startOfWeek()->toDateString())->count(),
+            'today'   => PageView::where('viewed_date', today()->toDateString())->count(),
+        ];
+
+        // Daily views last 30 days split by page group
+        $pageLabels       = ['inicio', 'lugares', 'lugar', 'guias', 'contacto', 'hoteles', 'hotel'];
+        $trafficByDateRaw = PageView::where('viewed_date', '>=', now()->subDays(29)->toDateString())
+            ->select('viewed_date', 'page', DB::raw('count(*) as cnt'))
+            ->groupBy('viewed_date', 'page')
+            ->get()
+            ->groupBy('viewed_date');
+
+        $trafficDailyLabels = [];
+        $trafficDailyTotal  = [];
+        $trafficDailyGroups = ['lugar' => [], 'hotel' => [], 'otros' => []]; // stacked groups
+
+        for ($i = 29; $i >= 0; $i--) {
+            $day                  = now()->subDays($i)->toDateString();
+            $trafficDailyLabels[] = now()->subDays($i)->format('d/m');
+            $dayRows              = $trafficByDateRaw[$day] ?? collect();
+            $dayTotal             = $dayRows->sum('cnt');
+            $trafficDailyTotal[]  = $dayTotal;
+
+            $lugarViews = $dayRows->whereIn('page', ['lugar'])->sum('cnt');
+            $hotelViews = $dayRows->whereIn('page', ['hotel'])->sum('cnt');
+            $otherViews = $dayRows->whereNotIn('page', ['lugar', 'hotel'])->sum('cnt');
+
+            $trafficDailyGroups['lugar'][] = $lugarViews;
+            $trafficDailyGroups['hotel'][] = $hotelViews;
+            $trafficDailyGroups['otros'][] = $otherViews;
+        }
+
+        // Top pages (all time)
+        $pageLabelsMap = [
+            'inicio'   => 'Inicio',
+            'lugares'  => 'Listado de Lugares',
+            'lugar'    => 'Páginas de Lugares',
+            'guias'    => 'Guías',
+            'contacto' => 'Contacto',
+            'hoteles'  => 'Listado de Hoteles',
+            'hotel'    => 'Páginas de Hoteles',
+        ];
+
+        $topPages = PageView::select('page', DB::raw('count(*) as total'))
+            ->groupBy('page')
+            ->orderByDesc('total')
+            ->get()
+            ->map(fn($r) => [
+                'page'  => $pageLabelsMap[$r->page] ?? $r->page,
+                'total' => $r->total,
+                'month' => PageView::where('page', $r->page)
+                               ->where('viewed_date', '>=', now()->startOfMonth()->toDateString())
+                               ->count(),
+            ]);
+
+        // Top individual lugares (by page_views, last 30 days + all time)
+        $topLugares = PageView::where('page', 'lugar')
+            ->select('entity_slug', DB::raw('count(*) as total'))
+            ->groupBy('entity_slug')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get()
+            ->map(function ($r) {
+                $lugar = Lugar::where('slug', $r->entity_slug)->first();
+                return [
+                    'title' => $lugar->title ?? $r->entity_slug,
+                    'slug'  => $r->entity_slug,
+                    'total' => $r->total,
+                    'month' => PageView::where('page', 'lugar')
+                                   ->where('entity_slug', $r->entity_slug)
+                                   ->where('viewed_date', '>=', now()->startOfMonth()->toDateString())
+                                   ->count(),
+                ];
+            });
+
+        // Top individual hotels (by page_views all time)
+        $topHoteles = PageView::where('page', 'hotel')
+            ->select('entity_slug', DB::raw('count(*) as total'))
+            ->groupBy('entity_slug')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get()
+            ->map(function ($r) {
+                $hotel = Hotel::where('slug', $r->entity_slug)->first();
+                return [
+                    'name'  => $hotel->name ?? $r->entity_slug,
+                    'slug'  => $r->entity_slug,
+                    'total' => $r->total,
+                    'month' => PageView::where('page', 'hotel')
+                                   ->where('entity_slug', $r->entity_slug)
+                                   ->where('viewed_date', '>=', now()->startOfMonth()->toDateString())
+                                   ->count(),
+                ];
+            });
+
         return view('admin.dashboard', compact(
             'totalRevenue', 'membershipRevenue', 'hotelRevenue',
             'thisMonthRevenue', 'lastMonthRevenue', 'revenueMoM',
@@ -185,7 +285,9 @@ class DashboardController extends Controller
             'revenueLabels', 'revenueMembership', 'revenueHotel',
             'userLabels', 'userCounts',
             'hotelViewLabels', 'hotelViewCounts',
-            'recentOrders', 'recentHotelOrders'
+            'recentOrders', 'recentHotelOrders',
+            'trafficKpis', 'trafficDailyLabels', 'trafficDailyTotal',
+            'trafficDailyGroups', 'topPages', 'topLugares', 'topHoteles'
         ));
     }
 }
