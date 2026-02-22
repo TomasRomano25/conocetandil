@@ -180,64 +180,64 @@
 
             {{-- MercadoPago panel --}}
             @if ($mercadopagoEnabled)
-            @php
-                $mpOrderExists = session('mp_order_id');
-            @endphp
-            <div id="panel-mp" class="{{ $bothEnabled ? 'hidden' : '' }} space-y-5">
-                {{-- Amount reminder --}}
-                <div class="bg-[#2D6A4F]/5 border border-[#2D6A4F]/20 rounded-2xl p-5">
-                    <p class="text-sm text-[#2D6A4F] font-semibold mb-1">Total a pagar</p>
-                    @if ($plan->hasSale())
-                        <div class="flex items-baseline gap-2">
-                            <s class="text-gray-400 text-lg">{{ $plan->formattedPrice() }}</s>
-                            <span class="text-3xl font-bold text-[#2D6A4F]">{{ $plan->formattedEffectivePrice() }}</span>
+            <div id="panel-mp" class="{{ $bothEnabled ? 'hidden' : '' }} space-y-4">
+
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    {{-- MP header --}}
+                    <div class="bg-[#009EE3] px-6 py-4 flex items-center gap-3">
+                        <svg class="w-7 h-7 text-white flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M22.977 8.138c-.005-.018-.01-.036-.015-.054C22.004 4.461 18.39 2 14.222 2H7.652C6.234 2 5.03 3.02 4.812 4.422L2.014 19.578A1.5 1.5 0 003.5 21.25h4.11l1.032-6.55.032-.193c.218-1.402 1.422-2.422 2.84-2.422h.892c3.59 0 6.401-1.46 7.222-5.683.003-.017.006-.034.008-.05a4.27 4.27 0 00.07-.562c.024-.3.024-.614-.001-.902z"/>
+                        </svg>
+                        <div>
+                            <p class="font-bold text-white text-sm">Pagar con MercadoPago</p>
+                            <p class="text-blue-100 text-xs">Tarjeta, débito o efectivo · Pago seguro</p>
                         </div>
-                    @else
-                        <p class="text-3xl font-bold text-[#2D6A4F]">{{ $plan->formattedEffectivePrice() }}</p>
-                    @endif
-                    <p class="text-xs text-gray-500 mt-1">Plan {{ $plan->name }} · {{ $plan->durationLabel() }}</p>
-                </div>
+                    </div>
 
-                {{-- MP first: create order then redirect --}}
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <h2 class="font-bold text-[#1A1A1A] mb-4">Pagar con MercadoPago</h2>
-                    <p class="text-sm text-gray-500 mb-6">
-                        Al hacer clic serás redirigido a MercadoPago para completar el pago de forma segura. Podés pagar con tarjeta de crédito, débito o efectivo.
-                    </p>
-
-                    {{-- Step 1: Create order via transfer form (hidden), then show MP button --}}
-                    <form id="mp-membership-form" method="POST" action="{{ route('membership.store', $plan->slug) }}">
-                        @csrf
-                        <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-mp-membership">
-                        <input type="hidden" name="promotion_id" id="mp-promotion-id-input">
-                        <input type="hidden" name="redirect_to_mp" value="1">
-
-                        {{-- Coupon (shared logic) --}}
-                        <div class="mb-5 border border-gray-200 rounded-xl p-4">
-                            <p class="text-sm font-semibold text-gray-700 mb-2">¿Tenés un código de descuento?</p>
-                            <div class="flex gap-2">
-                                <input type="text" id="mp-coupon-code"
-                                    placeholder="CODIGO"
-                                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-[#52B788]">
-                                <button type="button" onclick="validateMpCoupon()"
-                                    class="bg-[#2D6A4F] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#1A1A1A] transition">
-                                    Aplicar
-                                </button>
+                    <div class="px-6 py-5">
+                        {{-- Amount --}}
+                        <div class="flex items-center justify-between py-3 border-b border-gray-100 mb-5">
+                            <span class="text-sm text-gray-500">Total a pagar</span>
+                            <div class="text-right">
+                                @if ($plan->hasSale())
+                                    <s class="text-gray-400 text-sm block">{{ $plan->formattedPrice() }}</s>
+                                    <span class="text-xl font-bold text-[#2D6A4F]" id="mp-total-display">{{ $plan->formattedEffectivePrice() }}</span>
+                                @else
+                                    <span class="text-xl font-bold text-[#2D6A4F]" id="mp-total-display">{{ $plan->formattedEffectivePrice() }}</span>
+                                @endif
                             </div>
-                            <div id="mp-coupon-result" class="hidden mt-2 text-sm"></div>
                         </div>
 
-                        <button type="submit"
-                            class="w-full bg-[#009EE3] hover:bg-[#007ab8] text-white font-bold py-4 rounded-xl transition text-base flex items-center justify-center gap-3">
-                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M22.977 8.138c-.005-.018-.01-.036-.015-.054C22.004 4.461 18.39 2 14.222 2H7.652C6.234 2 5.03 3.02 4.812 4.422L2.014 19.578A1.5 1.5 0 003.5 21.25h4.11l1.032-6.55.032-.193c.218-1.402 1.422-2.422 2.84-2.422h.892c3.59 0 6.401-1.46 7.222-5.683.003-.017.006-.034.008-.05a4.27 4.27 0 00.07-.562c.024-.3.024-.614-.001-.902z"/>
-                            </svg>
-                            Pagar con MercadoPago
-                        </button>
-                        <p class="text-xs text-gray-400 text-center mt-3">
-                            Serás redirigido al sitio seguro de MercadoPago.
-                        </p>
-                    </form>
+                        <form id="mp-membership-form" method="POST" action="{{ route('membership.store', $plan->slug) }}">
+                            @csrf
+                            <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-mp-membership">
+                            <input type="hidden" name="promotion_id" id="mp-promotion-id-input">
+                            <input type="hidden" name="redirect_to_mp" value="1">
+
+                            {{-- Coupon --}}
+                            <div class="mb-5">
+                                <p class="text-sm font-semibold text-gray-700 mb-2">¿Tenés un código de descuento?</p>
+                                <div class="flex gap-2">
+                                    <input type="text" id="mp-coupon-code"
+                                        placeholder="CODIGO"
+                                        class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                                    <button type="button" onclick="validateMpCoupon()"
+                                        class="bg-[#2D6A4F] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-[#1A1A1A] transition">
+                                        Aplicar
+                                    </button>
+                                </div>
+                                <div id="mp-coupon-result" class="hidden mt-2 text-sm"></div>
+                            </div>
+
+                            <button type="submit" id="mp-membership-btn"
+                                class="w-full bg-[#009EE3] hover:bg-[#0088cc] text-white font-bold py-4 rounded-xl transition text-base flex items-center justify-center gap-2">
+                                Continuar al pago →
+                            </button>
+                            <p class="text-xs text-gray-400 text-center mt-2">
+                                Serás redirigido al sitio seguro de MercadoPago
+                            </p>
+                        </form>
+                    </div>
                 </div>
             </div>
             @endif
@@ -325,11 +325,14 @@ function validateMpCoupon() {
                 document.getElementById('mp-promotion-id-input').value = data.promotion_id;
                 result.className = 'mt-2 text-sm text-green-600 font-semibold';
                 result.textContent = '✓ ' + data.message;
+                var total = baseAmount - data.discount;
+                document.getElementById('mp-total-display').textContent = '$' + total.toLocaleString('es-AR');
             } else {
                 mpAppliedDiscount = 0;
                 document.getElementById('mp-promotion-id-input').value = '';
                 result.className = 'mt-2 text-sm text-red-600';
                 result.textContent = data.message;
+                document.getElementById('mp-total-display').textContent = '$' + baseAmount.toLocaleString('es-AR');
             }
         });
 }
@@ -379,13 +382,18 @@ function validateCoupon() {
 }
 
 @if(\App\Models\Configuration::get('recaptcha_site_key'))
-document.getElementById('membership-checkout-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var form = this;
-    grecaptcha.ready(function() {
-        grecaptcha.execute('{{ \App\Models\Configuration::get("recaptcha_site_key") }}', {action: 'checkout'}).then(function(token) {
-            document.getElementById('g-recaptcha-membership').value = token;
-            form.submit();
+['membership-checkout-form', 'mp-membership-form'].forEach(function(formId) {
+    var form = document.getElementById(formId);
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var f = this;
+        var tokenField = formId === 'mp-membership-form' ? 'g-recaptcha-mp-membership' : 'g-recaptcha-membership';
+        grecaptcha.ready(function() {
+            grecaptcha.execute('{{ \App\Models\Configuration::get("recaptcha_site_key") }}', {action: 'checkout'}).then(function(token) {
+                document.getElementById(tokenField).value = token;
+                f.submit();
+            });
         });
     });
 });

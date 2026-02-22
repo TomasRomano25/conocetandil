@@ -10,6 +10,7 @@ use App\Models\HotelPlan;
 use App\Models\HotelView;
 use App\Models\Promotion;
 use App\Models\PromotionUse;
+use App\Services\MercadoPagoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -346,9 +347,32 @@ class HotelOwnerController extends Controller
 
         $order->update($updates);
 
-        // If paying via MercadoPago, redirect to MP preference creation
+        // If paying via MercadoPago, create preference and redirect directly
         if ($request->boolean('redirect_to_mp')) {
-            return redirect()->route('checkout.mp.hotel', $order);
+            $mp = app(MercadoPagoService::class);
+            if (! $mp->isConfigured()) {
+                return redirect()->route('hoteles.owner.checkout', $order)
+                    ->with('error', 'MercadoPago no está configurado. Usá transferencia bancaria.');
+            }
+            $order->load('plan');
+            $finalAmount = max(0.01, (float) $order->amount - (float) $order->discount);
+            try {
+                $preference = $mp->createPreference(
+                    items: [['title' => $order->hotel->name . ' — Plan ' . $order->plan->name, 'unit_price' => $finalAmount]],
+                    externalRef: 'hotel_' . $order->id,
+                    successUrl: route('checkout.mp.hotel.callback') . '?order_id=' . $order->id . '&status=approved',
+                    failureUrl:  route('checkout.mp.hotel.callback') . '?order_id=' . $order->id . '&status=failure',
+                    pendingUrl:  route('checkout.mp.hotel.callback') . '?order_id=' . $order->id . '&status=pending',
+                );
+                $order->update(['mp_preference_id' => $preference['id']]);
+                $initPoint = $mp->isSandbox()
+                    ? ($preference['sandbox_init_point'] ?? $preference['init_point'])
+                    : $preference['init_point'];
+                return redirect()->away($initPoint);
+            } catch (\Throwable $e) {
+                return redirect()->route('hoteles.owner.checkout', $order)
+                    ->with('error', 'Error al conectar con MercadoPago: ' . $e->getMessage());
+            }
         }
 
         return redirect()->route('hoteles.owner.confirmacion', $order);

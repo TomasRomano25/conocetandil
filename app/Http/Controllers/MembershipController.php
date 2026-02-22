@@ -7,6 +7,7 @@ use App\Models\MembershipPlan;
 use App\Models\Order;
 use App\Models\Promotion;
 use App\Models\PromotionUse;
+use App\Services\MercadoPagoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -75,9 +76,31 @@ class MembershipController extends Controller
             Promotion::find($promotionId)->increment('uses_count');
         }
 
-        // If paying via MercadoPago, redirect to MP preference creation
+        // If paying via MercadoPago, create preference and redirect directly
         if ($request->boolean('redirect_to_mp')) {
-            return redirect()->route('checkout.mp.membership', $order);
+            $mp = app(MercadoPagoService::class);
+            if (! $mp->isConfigured()) {
+                return redirect()->route('membership.checkout', $plan->slug)
+                    ->with('error', 'MercadoPago no está configurado. Usá transferencia bancaria.');
+            }
+            $finalAmount = max(0.01, (float) $order->total - (float) $order->discount);
+            try {
+                $preference = $mp->createPreference(
+                    items: [['title' => 'Plan ' . $plan->name . ' — Conoce Tandil', 'unit_price' => $finalAmount]],
+                    externalRef: 'membership_' . $order->id,
+                    successUrl: route('checkout.mp.membership.callback') . '?order_id=' . $order->id . '&status=approved',
+                    failureUrl:  route('checkout.mp.membership.callback') . '?order_id=' . $order->id . '&status=failure',
+                    pendingUrl:  route('checkout.mp.membership.callback') . '?order_id=' . $order->id . '&status=pending',
+                );
+                $order->update(['mp_preference_id' => $preference['id']]);
+                $initPoint = $mp->isSandbox()
+                    ? ($preference['sandbox_init_point'] ?? $preference['init_point'])
+                    : $preference['init_point'];
+                return redirect()->away($initPoint);
+            } catch (\Throwable $e) {
+                return redirect()->route('membership.checkout', $plan->slug)
+                    ->with('error', 'Error al conectar con MercadoPago: ' . $e->getMessage());
+            }
         }
 
         return redirect()->route('membership.confirmacion', $order);
