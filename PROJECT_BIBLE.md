@@ -531,6 +531,7 @@ storage/app/
 |--------|-----|-------------------|------|
 | GET | `/admin` | DashboardController@index | admin.dashboard |
 | RESOURCE | `/admin/lugares` | LugarController | admin.lugares.* |
+| POST | `/admin/lugares/import` | LugarController@import | admin.lugares.import |
 | RESOURCE | `/admin/usuarios` (no show) | UserController | admin.usuarios.* |
 | GET | `/admin/inicio` | InicioSectionController@index | admin.inicio.index |
 | POST | `/admin/inicio/reorder` | InicioSectionController@reorder | admin.inicio.reorder |
@@ -886,6 +887,13 @@ Stat cards: total Lugares + total Users.
 
 ### Lugares Manager (`/admin/lugares`)
 Full CRUD. Create/Edit form: title, direction, description, main image, gallery (multi-file with drag sort), order, featured, category, rating, phone, website, opening_hours, lat/lng, promotion section.
+
+**JSON Bulk Import** (`POST /admin/lugares/import`, route: `admin.lugares.import`):
+- "Importar JSON" button on index page opens a modal with a file picker
+- Accepts a `.json` file containing an array of lugar objects
+- Upserts by `title`: updates existing record if title matches, creates new otherwise
+- All fields supported: title, direction, description, image (path string), featured, is_premium, order, category, rating, phone, website, opening_hours, promotion_title, promotion_description, promotion_url, latitude, longitude
+- Flash message reports count of created + updated + any row-level errors
 
 ### Users Manager (`/admin/usuarios`)
 CRUD (no show). Cannot delete self.
