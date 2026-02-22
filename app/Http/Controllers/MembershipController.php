@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\Admin\NewOrderMail;
 use App\Models\Configuration;
 use App\Models\MembershipPlan;
 use App\Models\Order;
@@ -10,6 +11,7 @@ use App\Models\PromotionUse;
 use App\Services\MercadoPagoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 
 class MembershipController extends Controller
 {
@@ -90,6 +92,13 @@ class MembershipController extends Controller
                     'discount_amount' => $discount,
                 ]);
                 Promotion::find($promotionId)->increment('uses_count');
+            }
+
+            if (Configuration::get('smtp_host')) {
+                $adminEmail = Configuration::get('smtp_from_email');
+                if ($adminEmail) {
+                    try { Mail::to($adminEmail)->send(new NewOrderMail($order->load('plan', 'user'), 'membership')); } catch (\Throwable) {}
+                }
             }
         }
 

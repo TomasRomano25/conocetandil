@@ -75,10 +75,30 @@ class HotelOrder extends Model
             'status'       => 'completed',
             'completed_at' => now(),
         ]);
+
+        $this->load('hotel', 'plan', 'user');
+
+        if (\App\Models\Configuration::get('smtp_host')) {
+            $adminEmail = \App\Models\Configuration::get('smtp_from_email');
+            if ($adminEmail) {
+                try { \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\Admin\OrderCompletedMail($this, 'hotel')); } catch (\Throwable) {}
+            }
+            try { \Illuminate\Support\Facades\Mail::to($this->user->email)->send(new \App\Mail\Customer\OrderCompletedMail($this, 'hotel')); } catch (\Throwable) {}
+        }
     }
 
     public function cancel(): void
     {
         $this->update(['status' => 'cancelled']);
+
+        $this->load('hotel', 'plan', 'user');
+
+        if (\App\Models\Configuration::get('smtp_host')) {
+            $adminEmail = \App\Models\Configuration::get('smtp_from_email');
+            if ($adminEmail) {
+                try { \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\Admin\OrderCancelledMail($this, 'hotel')); } catch (\Throwable) {}
+            }
+            try { \Illuminate\Support\Facades\Mail::to($this->user->email)->send(new \App\Mail\Customer\OrderCancelledMail($this, 'hotel')); } catch (\Throwable) {}
+        }
     }
 }

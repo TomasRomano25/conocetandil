@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\Admin\NewOrderMail;
 use App\Models\Configuration;
 use App\Models\Hotel;
 use App\Models\HotelContact;
@@ -13,6 +14,7 @@ use App\Models\PromotionUse;
 use App\Services\MercadoPagoService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -346,6 +348,13 @@ class HotelOwnerController extends Controller
         }
 
         $order->update($updates);
+
+        if (Configuration::get('smtp_host')) {
+            $adminEmail = Configuration::get('smtp_from_email');
+            if ($adminEmail) {
+                try { Mail::to($adminEmail)->send(new NewOrderMail($order->load('hotel', 'plan', 'user'), 'hotel')); } catch (\Throwable) {}
+            }
+        }
 
         // If paying via MercadoPago, create preference and redirect directly
         if ($request->boolean('redirect_to_mp')) {

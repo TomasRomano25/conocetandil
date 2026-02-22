@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\Admin\NewUserMail;
 use App\Models\Configuration;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
@@ -9,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 
@@ -77,6 +79,13 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
+
+        if (Configuration::get('smtp_host')) {
+            $adminEmail = Configuration::get('smtp_from_email');
+            if ($adminEmail) {
+                try { Mail::to($adminEmail)->send(new NewUserMail($user)); } catch (\Throwable) {}
+            }
+        }
 
         return redirect()->intended(route('premium.upsell'));
     }

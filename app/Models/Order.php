@@ -67,10 +67,30 @@ class Order extends Model
             'status'       => 'completed',
             'completed_at' => now(),
         ]);
+
+        $this->load('plan', 'user');
+
+        if (\App\Models\Configuration::get('smtp_host')) {
+            $adminEmail = \App\Models\Configuration::get('smtp_from_email');
+            if ($adminEmail) {
+                try { \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\Admin\OrderCompletedMail($this, 'membership')); } catch (\Throwable) {}
+            }
+            try { \Illuminate\Support\Facades\Mail::to($this->user->email)->send(new \App\Mail\Customer\OrderCompletedMail($this, 'membership')); } catch (\Throwable) {}
+        }
     }
 
     public function cancel(): void
     {
         $this->update(['status' => 'cancelled']);
+
+        $this->load('plan', 'user');
+
+        if (\App\Models\Configuration::get('smtp_host')) {
+            $adminEmail = \App\Models\Configuration::get('smtp_from_email');
+            if ($adminEmail) {
+                try { \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\Admin\OrderCancelledMail($this, 'membership')); } catch (\Throwable) {}
+            }
+            try { \Illuminate\Support\Facades\Mail::to($this->user->email)->send(new \App\Mail\Customer\OrderCancelledMail($this, 'membership')); } catch (\Throwable) {}
+        }
     }
 }
