@@ -176,7 +176,6 @@
                     </p>
                 </form>
             </div>
-            </div>{{-- /hotel-panel-transfer --}}
 
             {{-- MercadoPago panel --}}
             @if ($mercadopagoEnabled)
