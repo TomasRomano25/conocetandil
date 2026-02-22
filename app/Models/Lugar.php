@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Lugar extends Model
 {
@@ -10,6 +11,7 @@ class Lugar extends Model
 
     protected $fillable = [
         'title',
+        'slug',
         'direction',
         'description',
         'image',
@@ -40,6 +42,28 @@ class Lugar extends Model
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    public static function generateSlug(string $title, ?int $ignoreId = null): string
+    {
+        $base = Str::slug($title);
+        $slug = $base;
+        $i    = 2;
+
+        while (
+            static::where('slug', $slug)
+                ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
+                ->exists()
+        ) {
+            $slug = $base . '-' . $i++;
+        }
+
+        return $slug;
     }
 
     public function images()

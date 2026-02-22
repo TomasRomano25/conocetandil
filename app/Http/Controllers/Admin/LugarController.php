@@ -47,7 +47,8 @@ class LugarController extends Controller
 
         $validated['featured']   = $request->boolean('featured');
         $validated['is_premium'] = $request->boolean('is_premium');
-        $validated['order'] = $request->input('order', 0);
+        $validated['order']      = $request->input('order', 0);
+        $validated['slug']       = Lugar::generateSlug($validated['title']);
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('lugares', 'public');
@@ -108,6 +109,7 @@ class LugarController extends Controller
 
         $validated['featured']   = $request->boolean('featured');
         $validated['is_premium'] = $request->boolean('is_premium');
+        $validated['slug']       = Lugar::generateSlug($validated['title'], $lugar->id);
 
         if ($request->hasFile('image')) {
             if ($lugar->image) {
@@ -191,9 +193,11 @@ class LugarController extends Controller
             $existing = Lugar::where('title', $item['title'])->first();
 
             if ($existing) {
+                $fields['slug'] = Lugar::generateSlug($item['title'], $existing->id);
                 $existing->update($fields);
                 $updated++;
             } else {
+                $fields['slug'] = Lugar::generateSlug($item['title']);
                 Lugar::create(array_merge(['title' => $item['title']], $fields));
                 $created++;
             }
