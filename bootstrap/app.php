@@ -13,6 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo('/register');
 
+        $middleware->appendToGroup('web', \App\Http\Middleware\MaintenanceMode::class);
+
         $middleware->alias([
             'admin'   => \App\Http\Middleware\AdminMiddleware::class,
             'premium' => \App\Http\Middleware\PremiumMiddleware::class,

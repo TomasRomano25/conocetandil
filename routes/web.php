@@ -131,6 +131,7 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::post('configuraciones/itinerarios', [ConfigurationController::class, 'updateItineraryFilters'])->name('configuraciones.itinerarios.update');
     Route::post('configuraciones/payment-methods', [ConfigurationController::class, 'updatePaymentMethods'])->name('configuraciones.payment-methods.update');
     Route::post('configuraciones/payment-methods/test-mp', [ConfigurationController::class, 'testMercadoPago'])->name('configuraciones.payment-methods.test-mp');
+    Route::post('configuraciones/mantenimiento', [ConfigurationController::class, 'updateMaintenance'])->name('configuraciones.mantenimiento.update');
 
     // Mensajes
     Route::get('mensajes', [AdminMessageController::class, 'index'])->name('mensajes.index');

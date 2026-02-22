@@ -78,7 +78,21 @@ class ConfigurationController extends Controller
             'mp_access_token_set'    => !empty(Configuration::get('mp_access_token', '')),
         ];
 
-        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha', 'itineraryFilters', 'paymentMethods'));
+        $currentIp = request()->ip();
+
+        $maintenanceConfig = [
+            'enabled'   => Configuration::get('maintenance_enabled', '0'),
+            'whitelist' => Configuration::get('maintenance_whitelist', ''),
+        ];
+
+        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha', 'itineraryFilters', 'paymentMethods', 'currentIp', 'maintenanceConfig'));
+    }
+
+    public function updateMaintenance(Request $request)
+    {
+        Configuration::set('maintenance_enabled', $request->boolean('maintenance_enabled') ? '1' : '0');
+        Configuration::set('maintenance_whitelist', $request->input('maintenance_whitelist', ''));
+        return redirect()->route('admin.configuraciones.index')->with('success', 'Configuración de mantenimiento guardada.');
     }
 
     public function updateBackup(Request $request)

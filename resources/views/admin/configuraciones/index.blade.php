@@ -8,6 +8,81 @@
 <div class="max-w-3xl space-y-3">
 
     {{-- ══════════════════════════════════════════════════════════
+         MANTENIMIENTO
+         ══════════════════════════════════════════════════════════ --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <button type="button" onclick="toggleSection('mantenimiento')"
+            class="w-full px-6 py-4 flex items-center gap-3 text-left hover:bg-gray-50 transition group">
+            <div class="w-9 h-9 bg-[#2D6A4F]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-[#1A1A1A]">Modo Mantenimiento</p>
+                <p class="text-xs text-gray-500 mt-0.5">Coming soon page para visitantes</p>
+            </div>
+            @if ($maintenanceConfig['enabled'] === '1')
+                <span class="text-xs font-medium bg-red-100 text-red-700 px-2 py-1 rounded-full flex-shrink-0">Activo</span>
+            @else
+                <span class="text-xs font-medium bg-gray-100 text-gray-500 px-2 py-1 rounded-full flex-shrink-0">Inactivo</span>
+            @endif
+            <svg id="chevron-mantenimiento" class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+
+        <div id="section-mantenimiento" class="hidden border-t border-gray-100">
+            <form method="POST" action="{{ route('admin.configuraciones.mantenimiento.update') }}" class="px-6 py-5 space-y-5">
+                @csrf
+
+                {{-- Toggle --}}
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700">Activar modo mantenimiento</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Los visitantes verán la página "Volvemos pronto"</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="maintenance_enabled" value="1"
+                            class="sr-only peer"
+                            {{ $maintenanceConfig['enabled'] === '1' ? 'checked' : '' }}>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#52B788] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#2D6A4F]"></div>
+                    </label>
+                </div>
+
+                {{-- IP Whitelist --}}
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-sm font-semibold text-gray-700">IPs permitidas (whitelist)</label>
+                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                            <span>Tu IP: <code class="bg-gray-100 px-1.5 py-0.5 rounded font-mono text-[#2D6A4F]">{{ $currentIp }}</code></span>
+                            <button type="button"
+                                onclick="addMyIp('{{ $currentIp }}')"
+                                class="text-xs font-medium text-[#2D6A4F] hover:text-[#52B788] underline underline-offset-2 transition">
+                                Agregar mi IP
+                            </button>
+                        </div>
+                    </div>
+                    <textarea name="maintenance_whitelist" id="maintenance-whitelist" rows="4"
+                        placeholder="Una IP por línea&#10;192.168.1.1&#10;10.0.0.1"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#52B788] resize-none">{{ old('maintenance_whitelist', $maintenanceConfig['whitelist']) }}</textarea>
+                    <p class="text-xs text-gray-400 mt-1">Las IPs en esta lista podrán acceder al sitio aunque el mantenimiento esté activo.</p>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit"
+                        class="bg-[#2D6A4F] hover:bg-[#1e4d38] text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition">
+                        Guardar configuración
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════════════════════
          SMTP
          ══════════════════════════════════════════════════════════ --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -718,6 +793,16 @@
             resultEl.className = 'text-sm text-red-600';
             resultEl.textContent = 'Error de red al probar la conexión.';
         });
+    }
+
+    function addMyIp(ip) {
+        const ta = document.getElementById('maintenance-whitelist');
+        const current = ta.value.trim();
+        const lines = current ? current.split('\n').map(l => l.trim()).filter(Boolean) : [];
+        if (!lines.includes(ip)) {
+            lines.push(ip);
+            ta.value = lines.join('\n');
+        }
     }
 
     function toggleSection(id) {
