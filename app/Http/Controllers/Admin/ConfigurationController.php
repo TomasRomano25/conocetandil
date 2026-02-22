@@ -56,7 +56,20 @@ class ConfigurationController extends Controller
             'secret_key' => Configuration::get('recaptcha_secret_key', ''),
         ];
 
-        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha'));
+        $allDays    = range(1, 7);
+        $allTypes   = ['nature' => '🌿 Naturaleza', 'gastronomy' => '🧀 Gastronomía', 'adventure' => '🧗 Aventura', 'relax' => '🛁 Relax', 'mixed' => '✨ Mixto'];
+        $allSeasons = ['summer' => '☀️ Verano', 'winter' => '❄️ Invierno', 'all' => '🍃 No sé'];
+
+        $itineraryFilters = [
+            'days'    => json_decode(Configuration::get('itinerary_days_enabled',    json_encode($allDays)), true)    ?? $allDays,
+            'types'   => json_decode(Configuration::get('itinerary_types_enabled',   json_encode(array_keys($allTypes))), true)   ?? array_keys($allTypes),
+            'seasons' => json_decode(Configuration::get('itinerary_seasons_enabled', json_encode(array_keys($allSeasons))), true) ?? array_keys($allSeasons),
+            'all_days'    => $allDays,
+            'all_types'   => $allTypes,
+            'all_seasons' => $allSeasons,
+        ];
+
+        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha', 'itineraryFilters'));
     }
 
     public function updateBackup(Request $request)
@@ -132,6 +145,24 @@ class ConfigurationController extends Controller
 
         return redirect()->route('admin.configuraciones.index')
             ->with('success', 'Configuración de reCAPTCHA guardada.');
+    }
+
+    public function updateItineraryFilters(Request $request)
+    {
+        $days    = array_map('intval', $request->input('days', []));
+        $types   = $request->input('types', []);
+        $seasons = $request->input('seasons', []);
+
+        $validDays    = array_values(array_filter($days, fn($d) => $d >= 1 && $d <= 7));
+        $validTypes   = array_values(array_intersect($types, ['nature', 'gastronomy', 'adventure', 'relax', 'mixed']));
+        $validSeasons = array_values(array_intersect($seasons, ['summer', 'winter', 'all']));
+
+        Configuration::set('itinerary_days_enabled',    json_encode($validDays));
+        Configuration::set('itinerary_types_enabled',   json_encode($validTypes));
+        Configuration::set('itinerary_seasons_enabled', json_encode($validSeasons));
+
+        return redirect()->route('admin.configuraciones.index')
+            ->with('success', 'Filtros de itinerarios guardados correctamente.');
     }
 
     public function updateSmtp(Request $request)

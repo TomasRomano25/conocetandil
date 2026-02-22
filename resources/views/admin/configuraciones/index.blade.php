@@ -447,6 +447,93 @@
         </div>
     </div>
 
+    {{-- ══════════════════════════════════════════════════════════
+         FILTROS DE ITINERARIOS
+         ══════════════════════════════════════════════════════════ --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <button type="button" onclick="toggleSection('itinerarios')"
+            class="w-full px-6 py-4 flex items-center gap-3 text-left hover:bg-gray-50 transition group">
+            <div class="w-9 h-9 bg-[#2D6A4F]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+                </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-[#1A1A1A]">Filtros del Planificador de Itinerarios</p>
+                <p class="text-xs text-gray-500 mt-0.5">Habilitá o deshabilitá opciones del cuestionario Premium</p>
+            </div>
+            <svg id="chevron-itinerarios" class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+
+        <div id="section-itinerarios" class="hidden border-t border-gray-100">
+            <form method="POST" action="{{ route('admin.configuraciones.itinerarios.update') }}" class="px-6 py-5 space-y-6">
+                @csrf
+                <p class="text-xs text-gray-500">Las opciones deshabilitadas no aparecerán en el cuestionario del Planificador Premium. Si deshabilita todas las opciones de una categoría, se mostrará igual con todas activas.</p>
+
+                {{-- Days --}}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Días disponibles</label>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($itineraryFilters['all_days'] as $d)
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="days[]" value="{{ $d }}"
+                                {{ in_array($d, $itineraryFilters['days']) ? 'checked' : '' }}
+                                class="sr-only peer">
+                            <span class="flex items-center justify-center w-10 h-10 rounded-xl border-2 border-gray-200 text-sm font-bold text-gray-500 peer-checked:border-[#2D6A4F] peer-checked:bg-[#2D6A4F] peer-checked:text-white transition select-none">
+                                {{ $d }}
+                            </span>
+                        </label>
+                        @endforeach
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1.5">días</p>
+                </div>
+
+                {{-- Types --}}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Tipos de experiencia</label>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($itineraryFilters['all_types'] as $key => $label)
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="types[]" value="{{ $key }}"
+                                {{ in_array($key, $itineraryFilters['types']) ? 'checked' : '' }}
+                                class="sr-only peer">
+                            <span class="inline-flex items-center px-3 py-2 rounded-xl border-2 border-gray-200 text-sm font-medium text-gray-600 peer-checked:border-[#2D6A4F] peer-checked:bg-[#2D6A4F]/10 peer-checked:text-[#2D6A4F] transition select-none">
+                                {{ $label }}
+                            </span>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Seasons --}}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Temporadas</label>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($itineraryFilters['all_seasons'] as $key => $label)
+                        <label class="cursor-pointer">
+                            <input type="checkbox" name="seasons[]" value="{{ $key }}"
+                                {{ in_array($key, $itineraryFilters['seasons']) ? 'checked' : '' }}
+                                class="sr-only peer">
+                            <span class="inline-flex items-center px-3 py-2 rounded-xl border-2 border-gray-200 text-sm font-medium text-gray-600 peer-checked:border-[#2D6A4F] peer-checked:bg-[#2D6A4F]/10 peer-checked:text-[#2D6A4F] transition select-none">
+                                {{ $label }}
+                            </span>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-1">
+                    <button type="submit"
+                        class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm">
+                        Guardar filtros
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 
 <script>

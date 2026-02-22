@@ -116,6 +116,7 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::post('configuraciones/smtp', [ConfigurationController::class, 'updateSmtp'])->name('configuraciones.smtp.update');
     Route::post('configuraciones/payment', [ConfigurationController::class, 'updatePayment'])->name('configuraciones.payment.update');
     Route::post('configuraciones/recaptcha', [ConfigurationController::class, 'updateRecaptcha'])->name('configuraciones.recaptcha.update');
+    Route::post('configuraciones/itinerarios', [ConfigurationController::class, 'updateItineraryFilters'])->name('configuraciones.itinerarios.update');
 
     // Mensajes
     Route::get('mensajes', [AdminMessageController::class, 'index'])->name('mensajes.index');

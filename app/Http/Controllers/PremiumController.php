@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Configuration;
 use App\Models\Itinerary;
 use App\Models\InicioSection;
 use App\Models\Order;
@@ -36,7 +37,24 @@ class PremiumController extends Controller
     /** Planner questionnaire — only premium users */
     public function planner()
     {
-        return view('premium.planner');
+        $allDays    = range(1, 7);
+        $allTypes   = ['nature' => ['🌿', 'Naturaleza'], 'gastronomy' => ['🧀', 'Gastronomía'], 'adventure' => ['🧗', 'Aventura'], 'relax' => ['🛁', 'Relax'], 'mixed' => ['✨', 'Mixto']];
+        $allSeasons = ['summer' => ['☀️', 'Verano'], 'winter' => ['❄️', 'Invierno'], 'all' => ['🍃', 'No sé']];
+
+        $enabledDays    = json_decode(Configuration::get('itinerary_days_enabled',    json_encode($allDays)), true)                ?? $allDays;
+        $enabledTypes   = json_decode(Configuration::get('itinerary_types_enabled',   json_encode(array_keys($allTypes))), true)   ?? array_keys($allTypes);
+        $enabledSeasons = json_decode(Configuration::get('itinerary_seasons_enabled', json_encode(array_keys($allSeasons))), true) ?? array_keys($allSeasons);
+
+        // Fallback: if all disabled, show all
+        if (empty($enabledDays))    $enabledDays    = $allDays;
+        if (empty($enabledTypes))   $enabledTypes   = array_keys($allTypes);
+        if (empty($enabledSeasons)) $enabledSeasons = array_keys($allSeasons);
+
+        $days    = $enabledDays;
+        $types   = array_filter($allTypes,   fn($k) => in_array($k, $enabledTypes),   ARRAY_FILTER_USE_KEY);
+        $seasons = array_filter($allSeasons, fn($k) => in_array($k, $enabledSeasons), ARRAY_FILTER_USE_KEY);
+
+        return view('premium.planner', compact('days', 'types', 'seasons'));
     }
 
     /** Results — match itineraries against questionnaire answers */

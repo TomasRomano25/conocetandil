@@ -22,11 +22,11 @@
         <div>
             <label class="block text-sm font-bold text-[#1A1A1A] mb-3">¿Cuántos días vas a estar?</label>
             <div class="flex flex-wrap gap-3">
-                @foreach(range(1,7) as $d)
+                @foreach($days as $d)
                 <label class="cursor-pointer">
                     <input type="radio" name="days" value="{{ $d }}" class="sr-only peer"
                         {{ old('days', request('days')) == $d ? 'checked' : '' }}
-                        {{ $d === 2 ? 'required' : '' }}>
+                        {{ $loop->first ? 'required' : '' }}>
                     <span class="flex items-center justify-center w-12 h-12 rounded-xl border-2 border-gray-200 text-sm font-bold text-gray-500 peer-checked:border-[#2D6A4F] peer-checked:bg-[#2D6A4F] peer-checked:text-white transition">
                         {{ $d }}
                     </span>
@@ -40,16 +40,10 @@
         <div>
             <label class="block text-sm font-bold text-[#1A1A1A] mb-3">¿Qué tipo de experiencia preferís?</label>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                @foreach([
-                    'nature'      => ['🌿', 'Naturaleza'],
-                    'gastronomy'  => ['🧀', 'Gastronomía'],
-                    'adventure'   => ['🧗', 'Aventura'],
-                    'relax'       => ['🛁', 'Relax'],
-                    'mixed'       => ['✨', 'Mixto'],
-                ] as $val => [$icon, $label])
+                @foreach($types as $val => [$icon, $label])
                 <label class="cursor-pointer">
                     <input type="radio" name="type" value="{{ $val }}" class="sr-only peer"
-                        {{ old('type', request('type', 'mixed')) === $val ? 'checked' : '' }}>
+                        {{ old('type', request('type', array_key_first($types))) === $val ? 'checked' : '' }}>
                     <span class="flex flex-col items-center gap-1 py-3 px-2 rounded-xl border-2 border-gray-200 text-center peer-checked:border-[#2D6A4F] peer-checked:bg-[#2D6A4F]/5 transition">
                         <span class="text-2xl">{{ $icon }}</span>
                         <span class="text-xs font-semibold text-gray-700 peer-checked:text-[#2D6A4F]">{{ $label }}</span>
@@ -63,10 +57,10 @@
         <div>
             <label class="block text-sm font-bold text-[#1A1A1A] mb-3">¿En qué temporada viajás?</label>
             <div class="grid grid-cols-3 gap-3">
-                @foreach(['summer'=>['☀️','Verano'],'winter'=>['❄️','Invierno'],'all'=>['🍃','No sé']] as $val=>[$icon,$label])
+                @foreach($seasons as $val => [$icon, $label])
                 <label class="cursor-pointer">
                     <input type="radio" name="season" value="{{ $val }}" class="sr-only peer"
-                        {{ old('season', request('season', 'all')) === $val ? 'checked' : '' }}>
+                        {{ old('season', request('season', array_key_first($seasons))) === $val ? 'checked' : '' }}>
                     <span class="flex flex-col items-center gap-1 py-3 px-2 rounded-xl border-2 border-gray-200 text-center peer-checked:border-[#2D6A4F] peer-checked:bg-[#2D6A4F]/5 transition">
                         <span class="text-2xl">{{ $icon }}</span>
                         <span class="text-xs font-semibold text-gray-700">{{ $label }}</span>
