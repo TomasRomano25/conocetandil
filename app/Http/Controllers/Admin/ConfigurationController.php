@@ -249,18 +249,8 @@ class ConfigurationController extends Controller
             return response()->json(['success' => false, 'message' => 'Configurá primero el host SMTP y el email remitente.']);
         }
 
-        config([
-            'mail.mailers.smtp.host'       => $host,
-            'mail.mailers.smtp.port'       => Configuration::get('smtp_port', 587),
-            'mail.mailers.smtp.encryption' => Configuration::get('smtp_encryption', 'tls') ?: null,
-            'mail.mailers.smtp.username'   => Configuration::get('smtp_username'),
-            'mail.mailers.smtp.password'   => Configuration::get('smtp_password'),
-            'mail.from.address'            => $fromEmail,
-            'mail.from.name'               => Configuration::get('smtp_from_name', 'Conoce Tandil'),
-        ]);
-
         try {
-            \Illuminate\Support\Facades\Mail::raw(
+            \Illuminate\Support\Facades\Mail::mailer('smtp')->raw(
                 'Este es un email de prueba enviado desde el panel de administración de Conoce Tandil. Si lo ves, ¡la configuración SMTP funciona correctamente!',
                 function ($message) use ($fromEmail) {
                     $message->to($fromEmail)->subject('Prueba de Email — Conoce Tandil');
