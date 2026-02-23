@@ -6,231 +6,455 @@
     <title>Iniciar Sesión — Conoce Tandil</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        * { font-family: 'Inter', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap');
 
-        .brand-panel {
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { -webkit-text-size-adjust: 100%; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100svh;
+            min-height: 100vh;
             background-color: #13251B;
             background-image:
-                radial-gradient(circle at 15% 85%, rgba(45,106,79,0.45) 0%, transparent 45%),
-                radial-gradient(circle at 85% 15%, rgba(82,183,136,0.12) 0%, transparent 40%),
-                radial-gradient(circle at 50% 50%, rgba(45,106,79,0.08) 0%, transparent 70%);
+                radial-gradient(ellipse at 80% 0%, rgba(82,183,136,0.18) 0%, transparent 50%),
+                radial-gradient(ellipse at 5% 90%, rgba(45,106,79,0.55) 0%, transparent 45%);
         }
+
+        /* ─── Page layout ─────────────────────────────────────── */
+        .page-wrap {
+            display: flex;
+            flex-direction: column;
+            min-height: 100svh;
+            min-height: 100vh;
+        }
+
+        /* ─── Mobile brand hero ────────────────────────────────── */
+        .mobile-hero {
+            padding: 52px 28px 72px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0;
+            position: relative;
+            z-index: 1;
+        }
+        .mobile-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        .logo-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .logo-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            background: rgba(82,183,136,0.25);
+            border: 1px solid rgba(82,183,136,0.3);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .logo-icon svg { width: 18px; height: 18px; color: #52B788; }
+        .logo-name {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: -0.01em;
+        }
+        .back-link {
+            font-size: 0.8125rem;
+            color: rgba(255,255,255,0.45);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.15s;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+        .hero-heading {
+            font-size: 2.375rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .hero-heading em {
+            font-style: normal;
+            color: #52B788;
+        }
+        .hero-sub {
+            font-size: 0.9375rem;
+            color: rgba(255,255,255,0.5);
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        /* ─── Form card ────────────────────────────────────────── */
+        .form-card {
+            background: #fff;
+            border-radius: 28px 28px 0 0;
+            flex: 1;
+            padding: 36px 24px 48px;
+            margin-top: -24px;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 -4px 40px rgba(0,0,0,0.18);
+        }
+
+        /* ─── Form elements ────────────────────────────────────── */
+        .form-title {
+            font-size: 1.3125rem;
+            font-weight: 700;
+            color: #111827;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+        .form-subtitle {
+            font-size: 0.875rem;
+            color: #9CA3AF;
+            margin-bottom: 28px;
+        }
+        .field-group { margin-bottom: 16px; }
+        .field-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .field-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        .field-hint {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #2D6A4F;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .field-hint:hover { color: #111827; }
 
         .input-field {
             display: block;
             width: 100%;
-            background: #fff;
+            height: 52px;
+            background: #F9FAFB;
             border: 1.5px solid #E5E7EB;
-            border-radius: 10px;
-            padding: 12px 16px;
-            font-size: 0.9375rem;
+            border-radius: 12px;
+            padding: 0 16px;
+            font-size: 1rem;
             color: #111827;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            font-family: inherit;
             outline: none;
+            -webkit-appearance: none;
+            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
         }
-        .input-field::placeholder { color: #C9CDD4; }
+        .input-field::placeholder { color: #D1D5DB; }
         .input-field:focus {
+            background: #fff;
             border-color: #2D6A4F;
-            box-shadow: 0 0 0 3px rgba(45,106,79,0.12);
+            box-shadow: 0 0 0 4px rgba(45,106,79,0.10);
         }
-        .input-field:hover:not(:focus) { border-color: #D1D5DB; }
+
+        .remember-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 6px 0 24px;
+        }
+        .remember-row input[type="checkbox"] {
+            width: 18px; height: 18px;
+            border-radius: 5px;
+            border: 1.5px solid #D1D5DB;
+            accent-color: #2D6A4F;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .remember-row label {
+            font-size: 0.875rem;
+            color: #6B7280;
+            cursor: pointer;
+            user-select: none;
+        }
 
         .btn-primary {
+            display: block;
             width: 100%;
+            height: 54px;
             background: #2D6A4F;
             color: #fff;
-            font-size: 0.9375rem;
+            font-size: 1rem;
             font-weight: 600;
-            padding: 13px 24px;
-            border-radius: 10px;
+            font-family: inherit;
+            border-radius: 14px;
             border: none;
             cursor: pointer;
-            transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
-            box-shadow: 0 1px 3px rgba(45,106,79,0.3), 0 4px 12px rgba(45,106,79,0.15);
+            letter-spacing: -0.01em;
+            transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+            box-shadow: 0 2px 8px rgba(45,106,79,0.35), 0 1px 2px rgba(45,106,79,0.2);
+            -webkit-tap-highlight-color: transparent;
         }
         .btn-primary:hover {
-            background: #255A41;
-            box-shadow: 0 2px 6px rgba(45,106,79,0.35), 0 8px 20px rgba(45,106,79,0.2);
+            background: #245c43;
+            box-shadow: 0 4px 16px rgba(45,106,79,0.4), 0 2px 4px rgba(45,106,79,0.2);
             transform: translateY(-1px);
         }
         .btn-primary:active {
             background: #1D4A35;
             transform: translateY(0);
-            box-shadow: 0 1px 3px rgba(45,106,79,0.3);
+            box-shadow: 0 1px 4px rgba(45,106,79,0.3);
         }
 
-        .feature-dot {
-            width: 6px;
-            height: 6px;
-            background: #52B788;
-            border-radius: 50%;
-            flex-shrink: 0;
-            margin-top: 6px;
+        .card-footer {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #F3F4F6;
+            text-align: center;
+        }
+        .card-footer p {
+            font-size: 0.9375rem;
+            color: #9CA3AF;
+        }
+        .card-footer a {
+            font-weight: 600;
+            color: #111827;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .card-footer a:hover { color: #2D6A4F; }
+
+        .alert-error {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+        }
+        .alert-error p {
+            font-size: 0.875rem;
+            color: #DC2626;
+            line-height: 1.5;
+        }
+        .alert-success {
+            background: rgba(45,106,79,0.07);
+            border: 1px solid rgba(45,106,79,0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+        }
+        .alert-success p {
+            font-size: 0.875rem;
+            color: #2D6A4F;
+        }
+
+        /* ─── Desktop override: split layout ──────────────────── */
+        @media (min-width: 1024px) {
+            body {
+                background-color: #13251B;
+                background-image:
+                    radial-gradient(ellipse at 80% 0%, rgba(82,183,136,0.18) 0%, transparent 50%),
+                    radial-gradient(ellipse at 5% 90%, rgba(45,106,79,0.55) 0%, transparent 45%);
+            }
+            .page-wrap {
+                flex-direction: row;
+                min-height: 100vh;
+            }
+
+            /* Left brand panel */
+            .mobile-hero {
+                width: 44%;
+                flex-shrink: 0;
+                padding: 52px 60px;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 0;
+            }
+            .mobile-topbar { margin-bottom: 0; }
+            .hero-heading {
+                font-size: 3.25rem;
+                margin-bottom: 16px;
+            }
+            .hero-sub { font-size: 1rem; max-width: 280px; }
+            .hero-features { display: flex; flex-direction: column; gap: 14px; margin-top: 40px; }
+            .hero-feature {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .feature-dot {
+                width: 7px; height: 7px;
+                background: #52B788;
+                border-radius: 50%;
+                flex-shrink: 0;
+                margin-top: 6px;
+            }
+            .hero-feature span {
+                font-size: 0.9375rem;
+                color: rgba(255,255,255,0.65);
+                line-height: 1.5;
+            }
+
+            /* Right form panel */
+            .form-card {
+                flex: 1;
+                border-radius: 0;
+                margin-top: 0;
+                padding: 0;
+                box-shadow: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #fff;
+            }
+            .form-inner {
+                width: 100%;
+                max-width: 400px;
+                padding: 0 40px;
+            }
+            .form-title { font-size: 1.75rem; margin-bottom: 8px; }
+            .form-subtitle { margin-bottom: 36px; }
+        }
+
+        @media (min-width: 1280px) {
+            .mobile-hero { padding: 64px 72px; }
+            .hero-heading { font-size: 3.75rem; }
         }
     </style>
 </head>
-<body class="min-h-screen flex bg-white">
+<body>
+<div class="page-wrap">
 
-    {{-- ═══════════════════════════════ LEFT — Brand Panel ═══════════════════════════════ --}}
-    <div class="brand-panel hidden lg:flex lg:w-[44%] xl:w-[42%] flex-col justify-between p-12 xl:p-16 relative overflow-hidden flex-shrink-0">
-
-        {{-- Decorative ring top-right --}}
-        <div class="absolute -top-24 -right-24 w-80 h-80 rounded-full border border-white/5 pointer-events-none"></div>
-        <div class="absolute -top-12 -right-12 w-56 h-56 rounded-full border border-white/5 pointer-events-none"></div>
-
-        {{-- Top: logo --}}
-        <div>
-            <a href="{{ route('inicio') }}" class="inline-flex items-center gap-3 group">
-                <div class="w-9 h-9 rounded-xl bg-[#2D6A4F] flex items-center justify-center flex-shrink-0 group-hover:bg-[#52B788] transition-colors duration-200">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    {{-- ══════════ BRAND SECTION (hero on mobile / left panel on desktop) ══════════ --}}
+    <div class="mobile-hero">
+        <div class="mobile-topbar">
+            <a href="{{ route('inicio') }}" class="logo-badge">
+                <span class="logo-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
-                </div>
-                <span class="text-white font-semibold text-lg tracking-tight">Conoce Tandil</span>
+                </span>
+                <span class="logo-name">Conoce Tandil</span>
+            </a>
+            <a href="{{ route('inicio') }}" class="back-link">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Volver
             </a>
         </div>
 
-        {{-- Middle: headline & features --}}
         <div>
-            <h1 class="text-white text-4xl xl:text-5xl font-bold leading-[1.15] tracking-tight mb-6">
-                Explorá Tandil<br>
-                <span class="text-[#52B788]">como nunca</span><br>
-                antes.
+            <h1 class="hero-heading">
+                Bienvenido<br>de <em>nuevo.</em>
             </h1>
-            <p class="text-white/55 text-base leading-relaxed mb-10 max-w-xs">
-                Itinerarios, lugares únicos y experiencias pensadas para que tu visita sea inolvidable.
-            </p>
+            <p class="hero-sub">Ingresá y seguí explorando lo mejor de Tandil.</p>
 
-            <ul class="space-y-4">
-                <li class="flex items-start gap-3">
-                    <span class="feature-dot mt-[7px]"></span>
-                    <span class="text-white/70 text-sm leading-snug">Lugares seleccionados con reseñas reales</span>
-                </li>
-                <li class="flex items-start gap-3">
-                    <span class="feature-dot mt-[7px]"></span>
-                    <span class="text-white/70 text-sm leading-snug">Itinerarios premium según tus intereses</span>
-                </li>
-                <li class="flex items-start gap-3">
-                    <span class="feature-dot mt-[7px]"></span>
-                    <span class="text-white/70 text-sm leading-snug">Guías actualizadas por locales</span>
-                </li>
-            </ul>
+            {{-- Desktop-only feature list --}}
+            <div class="hero-features" style="display:none" id="hero-features-list">
+                <div class="hero-feature">
+                    <span class="feature-dot"></span>
+                    <span>Lugares seleccionados con reseñas reales</span>
+                </div>
+                <div class="hero-feature">
+                    <span class="feature-dot"></span>
+                    <span>Itinerarios premium según tus intereses</span>
+                </div>
+                <div class="hero-feature">
+                    <span class="feature-dot"></span>
+                    <span>Guías actualizadas por locales</span>
+                </div>
+            </div>
         </div>
 
-        {{-- Bottom: back link --}}
-        <div>
-            <a href="{{ route('inicio') }}"
-                class="inline-flex items-center gap-2 text-white/40 hover:text-white/80 text-sm transition-colors duration-200">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div style="display:none" id="hero-back-bottom">
+            <a href="{{ route('inicio') }}" class="back-link">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                 </svg>
                 Volver al sitio
             </a>
         </div>
-
-        {{-- Decorative bottom-left ring --}}
-        <div class="absolute -bottom-32 -left-32 w-96 h-96 rounded-full border border-white/5 pointer-events-none"></div>
     </div>
 
-    {{-- ═══════════════════════════════ RIGHT — Form Panel ═══════════════════════════════ --}}
-    <div class="flex-1 flex flex-col justify-center px-6 py-10 sm:px-10 lg:px-16 xl:px-24">
+    {{-- ══════════ FORM CARD (bottom sheet on mobile / right panel on desktop) ══════════ --}}
+    <div class="form-card">
+        <div class="form-inner" id="form-inner">
 
-        {{-- Mobile: brand + back --}}
-        <div class="lg:hidden flex items-center justify-between mb-10">
-            <a href="{{ route('inicio') }}" class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-[#2D6A4F] flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                </div>
-                <span class="font-semibold text-gray-900">Conoce Tandil</span>
-            </a>
-            <a href="{{ route('inicio') }}" class="text-sm text-gray-400 hover:text-gray-600 transition-colors">
-                ← Volver
-            </a>
-        </div>
+            <p class="form-title">Iniciar sesión</p>
+            <p class="form-subtitle">Ingresá tus datos para continuar</p>
 
-        {{-- Form container --}}
-        <div class="w-full max-w-[400px] mx-auto">
-
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 tracking-tight">Bienvenido de nuevo</h2>
-                <p class="text-gray-400 text-sm mt-1.5">Ingresá con tu cuenta para continuar.</p>
-            </div>
-
-            {{-- Session status --}}
             @if (session('status'))
-                <div class="bg-[#2D6A4F]/8 border border-[#2D6A4F]/20 text-[#2D6A4F] px-4 py-3 rounded-xl text-sm mb-6">
-                    {{ session('status') }}
-                </div>
+                <div class="alert-success"><p>{{ session('status') }}</p></div>
             @endif
 
-            {{-- Errors --}}
             @if ($errors->any())
-                <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm mb-6 space-y-0.5">
+                <div class="alert-error">
                     @foreach ($errors->all() as $error)
                         <p>{{ $error }}</p>
                     @endforeach
                 </div>
             @endif
 
-            <form method="POST" action="{{ url('/login') }}" class="space-y-5">
+            <form method="POST" action="{{ url('/login') }}">
                 @csrf
 
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                        Correo electrónico
-                    </label>
-                    <input type="email" name="email" id="email" value="{{ old('email') }}" required autofocus
+                <div class="field-group">
+                    <div class="field-header">
+                        <label for="email" class="field-label">Correo electrónico</label>
+                    </div>
+                    <input type="email" name="email" id="email"
+                        value="{{ old('email') }}" required autofocus
                         placeholder="nombre@email.com"
                         class="input-field">
                 </div>
 
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <label for="password" class="block text-sm font-medium text-gray-700">
-                            Contraseña
-                        </label>
-                        <a href="{{ route('password.request') }}"
-                            class="text-xs font-medium text-[#2D6A4F] hover:text-[#1A1A1A] transition-colors duration-150">
-                            ¿Olvidaste la tuya?
-                        </a>
+                <div class="field-group">
+                    <div class="field-header">
+                        <label for="password" class="field-label">Contraseña</label>
+                        <a href="{{ route('password.request') }}" class="field-hint">¿Olvidaste la tuya?</a>
                     </div>
-                    <input type="password" name="password" id="password" required
-                        placeholder="Tu contraseña"
+                    <input type="password" name="password" id="password"
+                        required placeholder="Tu contraseña"
                         class="input-field">
                 </div>
 
-                <div class="flex items-center gap-2.5">
-                    <input type="checkbox" name="remember" id="remember"
-                        class="w-4 h-4 rounded border-gray-300 text-[#2D6A4F] focus:ring-[#2D6A4F]/25 cursor-pointer">
-                    <label for="remember" class="text-sm text-gray-500 cursor-pointer select-none">
-                        Mantenerme conectado
-                    </label>
+                <div class="remember-row">
+                    <input type="checkbox" name="remember" id="remember">
+                    <label for="remember">Mantenerme conectado</label>
                 </div>
 
-                <div class="pt-1">
-                    <button type="submit" class="btn-primary">
-                        Ingresar
-                    </button>
-                </div>
+                <button type="submit" class="btn-primary">Ingresar</button>
             </form>
 
-            <div class="mt-8 pt-6 border-t border-gray-100">
-                <p class="text-sm text-gray-400 text-center">
-                    ¿No tenés cuenta?
-                    <a href="{{ route('register') }}"
-                        class="font-semibold text-gray-900 hover:text-[#2D6A4F] transition-colors duration-150 ml-1">
-                        Registrate gratis
-                    </a>
-                </p>
+            <div class="card-footer">
+                <p>¿No tenés cuenta? <a href="{{ route('register') }}">Registrate gratis</a></p>
             </div>
 
         </div>
     </div>
 
+</div>
+
+<script>
+    // Show desktop-only elements on large screens
+    function applyDesktopLayout() {
+        var isDesktop = window.innerWidth >= 1024;
+        var featureList = document.getElementById('hero-features-list');
+        var backBottom = document.getElementById('hero-back-bottom');
+        var formInner = document.getElementById('form-inner');
+        if (featureList) featureList.style.display = isDesktop ? 'flex' : 'none';
+        if (backBottom) backBottom.style.display = isDesktop ? 'block' : 'none';
+    }
+    applyDesktopLayout();
+    window.addEventListener('resize', applyDesktopLayout);
+</script>
 </body>
 </html>
