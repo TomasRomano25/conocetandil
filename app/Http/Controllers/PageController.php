@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Form;
 use App\Models\InicioSection;
 use App\Models\Lugar;
+use App\Models\LugarBanner;
 use App\Models\PageView;
 
 class PageController extends Controller
@@ -42,7 +43,10 @@ class PageController extends Controller
 
         $lugaresBanner = InicioSection::where('key', 'lugares_hero')->first();
 
-        return view('pages.lugares', compact('lugares', 'categories', 'q', 'category', 'lugaresBanner'));
+        // Load active promotional banners keyed by position
+        $lugarBanners = LugarBanner::active()->orderBy('position')->get()->keyBy('position');
+
+        return view('pages.lugares', compact('lugares', 'categories', 'q', 'category', 'lugaresBanner', 'lugarBanners'));
     }
 
     public function lugar(Lugar $lugar)

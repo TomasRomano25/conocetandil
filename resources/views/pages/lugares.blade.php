@@ -82,8 +82,13 @@
                     </a>
                 </div>
             @else
+                {{-- Grid with banners injected between cards --}}
+                @php $lugarCount = 0; @endphp
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     @foreach($lugares as $lugar)
+                        @php $lugarCount++; @endphp
+
+                        {{-- Lugar card --}}
                         <a href="{{ route('lugar.show', $lugar) }}" class="bg-white rounded-xl shadow-md hover:shadow-xl transition overflow-hidden border border-gray-100 block group">
                             <div class="relative h-48 bg-gradient-to-br from-[#2D6A4F]/20 to-[#52B788]/20 flex items-center justify-center overflow-hidden">
                                 @if ($lugar->cover_image)
@@ -113,6 +118,14 @@
                                 <p class="text-gray-600 text-sm">{{ Str::limit($lugar->description, 120) }}</p>
                             </div>
                         </a>
+
+                        {{-- Promotional banner after Nth card (spans full grid width) --}}
+                        @if(isset($lugarBanners[$lugarCount]))
+                            @php $banner = $lugarBanners[$lugarCount]; @endphp
+                            <div class="col-span-1 sm:col-span-2 lg:col-span-3">
+                                @include('partials.lugar-banner', ['banner' => $banner])
+                            </div>
+                        @endif
                     @endforeach
                 </div>
             @endif

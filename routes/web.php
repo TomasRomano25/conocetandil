@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\HotelContactController as AdminHotelContactContro
 use App\Http\Controllers\Admin\HotelPlanController;
 use App\Http\Controllers\Admin\HotelOrderController;
 use App\Http\Controllers\Admin\PromotionController;
+use App\Http\Controllers\Admin\LugarBannerController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\HotelOwnerController;
@@ -201,6 +202,9 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::post('promociones', [PromotionController::class, 'store'])->name('promociones.store');
     Route::put('promociones/{promo}', [PromotionController::class, 'update'])->name('promociones.update');
     Route::delete('promociones/{promo}', [PromotionController::class, 'destroy'])->name('promociones.destroy');
+
+    // Banners en Lugares
+    Route::resource('lugar-banners', LugarBannerController::class)->parameters(['lugar-banners' => 'lugarBanner']);
 
     // Contactos de hotel
     Route::get('hotel-contactos', [AdminHotelContactController::class, 'index'])->name('hotel-contactos.index');
