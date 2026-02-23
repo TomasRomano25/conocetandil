@@ -9,58 +9,97 @@
     @if($rcKey)
     <script src="https://www.google.com/recaptcha/api.js?render={{ $rcKey }}" async defer></script>
     @endif
+    <style>
+        body {
+            background-color: #F5F4F0;
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(45,106,79,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(82,183,136,0.05) 0%, transparent 50%);
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-[#2D6A4F] flex items-center justify-center px-4 py-12">
-    <div class="w-full max-w-md">
+<body class="min-h-screen flex flex-col items-center justify-center px-4 py-10">
+
+    {{-- Back to site --}}
+    <div class="w-full max-w-sm mb-6">
+        <a href="{{ route('inicio') }}"
+            class="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#2D6A4F] transition-colors duration-200">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Volver al sitio
+        </a>
+    </div>
+
+    {{-- Card --}}
+    <div class="w-full max-w-sm">
+
+        {{-- Brand --}}
         <div class="text-center mb-8">
-            <a href="{{ route('inicio') }}" class="text-3xl font-bold text-white tracking-tight">Conoce Tandil</a>
-            <p class="text-[#52B788] mt-2">Creá tu cuenta gratuita</p>
+            <a href="{{ route('inicio') }}"
+                class="inline-block text-2xl font-bold text-[#1A1A1A] tracking-tight hover:text-[#2D6A4F] transition-colors duration-200">
+                Conoce Tandil
+            </a>
+            <p class="text-gray-400 text-sm mt-1.5 font-normal">Creá tu cuenta gratuita y explorá Tandil</p>
         </div>
 
-        <div class="bg-white rounded-xl shadow-2xl p-8">
-            <h2 class="text-2xl font-bold text-[#1A1A1A] mb-6 text-center">Registrarse</h2>
+        <div class="bg-white rounded-2xl shadow-[0_2px_24px_rgba(0,0,0,0.07)] border border-gray-100 px-7 py-8 sm:px-8">
 
+            {{-- Errors --}}
             @if ($errors->any())
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+                <div class="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm">
                     @foreach ($errors->all() as $error)
-                        <p class="text-sm">{{ $error }}</p>
+                        <p>{{ $error }}</p>
                     @endforeach
                 </div>
             @endif
 
-            <form id="register-form" method="POST" action="{{ route('register') }}">
+            <form id="register-form" method="POST" action="{{ route('register') }}" class="space-y-4">
                 @csrf
                 <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-register">
 
-                <div class="mb-4">
-                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+                <div>
+                    <label for="name" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        Nombre completo
+                    </label>
                     <input type="text" name="name" id="name" value="{{ old('name') }}" required autofocus
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52B788] focus:border-transparent">
+                        placeholder="Tu nombre"
+                        class="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/25 focus:border-[#2D6A4F] transition-all duration-200">
                 </div>
 
-                <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <div>
+                    <label for="email" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        Email
+                    </label>
                     <input type="email" name="email" id="email" value="{{ old('email') }}" required
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52B788] focus:border-transparent">
+                        placeholder="tu@email.com"
+                        class="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/25 focus:border-[#2D6A4F] transition-all duration-200">
                 </div>
 
-                <div class="mb-4">
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                <div>
+                    <label for="password" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        Contraseña
+                    </label>
                     <input type="password" name="password" id="password" required
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52B788] focus:border-transparent">
-                    <p class="text-xs text-gray-400 mt-1">Mínimo 8 caracteres.</p>
+                        placeholder="Mínimo 8 caracteres"
+                        class="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/25 focus:border-[#2D6A4F] transition-all duration-200">
                 </div>
 
-                <div class="mb-6">
-                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">Confirmar contraseña</label>
+                <div>
+                    <label for="password_confirmation" class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        Confirmar contraseña
+                    </label>
                     <input type="password" name="password_confirmation" id="password_confirmation" required
-                        class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#52B788] focus:border-transparent">
+                        placeholder="Repetí tu contraseña"
+                        class="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/25 focus:border-[#2D6A4F] transition-all duration-200">
                 </div>
 
-                <button type="submit" class="w-full bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-bold py-3 px-4 rounded-lg transition">
+                <button type="submit"
+                    class="w-full bg-[#2D6A4F] hover:bg-[#245c43] active:bg-[#1e4f3a] text-white font-semibold py-3.5 px-4 rounded-xl text-sm tracking-wide transition-all duration-200 shadow-sm hover:shadow-md mt-2">
                     Crear cuenta
                 </button>
             </form>
+
             @if(isset($rcKey) && $rcKey)
             <script>
             document.getElementById('register-form').addEventListener('submit', function(e) {
@@ -76,15 +115,16 @@
             </script>
             @endif
 
-            <p class="text-center text-sm text-gray-500 mt-6">
-                ¿Ya tenés cuenta?
-                <a href="{{ route('login') }}" class="text-[#2D6A4F] font-semibold hover:underline">Iniciar sesión</a>
-            </p>
-        </div>
+            <div class="mt-6 pt-5 border-t border-gray-100 text-center">
+                <p class="text-xs text-gray-400 mb-0.5">¿Ya tenés cuenta?</p>
+                <a href="{{ route('login') }}"
+                    class="inline-block text-sm font-semibold text-[#2D6A4F] hover:underline mt-1 transition-colors duration-200">
+                    Iniciar sesión
+                </a>
+            </div>
 
-        <p class="text-center mt-6">
-            <a href="{{ route('inicio') }}" class="text-white/80 hover:text-white text-sm transition">&larr; Volver al sitio</a>
-        </p>
+        </div>
     </div>
+
 </body>
 </html>
