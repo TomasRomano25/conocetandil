@@ -45,20 +45,29 @@
                 @error('image') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
 
-            {{-- Existing Gallery Images --}}
+            {{-- Existing Gallery Images (drag to reorder) --}}
             @if ($lugar->images->count())
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Galería actual</label>
-                    <div class="flex gap-3 flex-wrap">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Galería actual</label>
+                    <p class="text-xs text-gray-500 mb-2">Arrastrá las imágenes para reordenarlas. La primera es la que se muestra en el catálogo.</p>
+                    <div id="gallery-sort" class="flex gap-3 flex-wrap select-none">
                         @foreach ($lugar->images as $image)
-                            <div class="relative group">
-                                <img src="{{ asset('storage/' . $image->path) }}" alt="Galería" class="h-24 w-24 rounded-lg object-cover">
-                                <label class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition" title="Eliminar">
-                                    <input type="checkbox" name="delete_images[]" value="{{ $image->id }}" class="sr-only">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="relative group cursor-grab active:cursor-grabbing" draggable="true" data-id="{{ $image->id }}">
+                                <img src="{{ asset('storage/' . $image->path) }}" alt="Galería"
+                                    class="h-24 w-24 rounded-lg object-cover pointer-events-none">
+                                {{-- Principal badge --}}
+                                <span class="principal-badge absolute bottom-1 left-1 bg-[#2D6A4F] text-white text-[10px] font-bold px-1.5 py-0.5 rounded hidden">
+                                    Principal
+                                </span>
+                                {{-- Delete --}}
+                                <label class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition z-10" title="Eliminar">
+                                    <input type="checkbox" name="delete_images[]" value="{{ $image->id }}" class="sr-only delete-checkbox">
+                                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                     </svg>
                                 </label>
+                                {{-- Hidden order input --}}
+                                <input type="hidden" name="gallery_order[]" value="{{ $image->id }}">
                             </div>
                         @endforeach
                     </div>
@@ -69,9 +78,9 @@
             <div>
                 <label for="gallery" class="block text-sm font-medium text-gray-700 mb-1">Agregar imágenes a la galería</label>
                 <input type="file" name="gallery[]" id="gallery" accept="image/*" multiple
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]"
-                    onchange="previewGallery(event)">
-                <div id="gallery-preview" class="mt-2 flex gap-2 flex-wrap"></div>
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                <p class="text-xs text-gray-500 mt-1">Podés arrastrar las nuevas imágenes para ordenarlas antes de guardar.</p>
+                <div id="new-gallery-sort" class="mt-2 flex gap-2 flex-wrap select-none"></div>
                 @error('gallery.*') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
 
@@ -192,35 +201,134 @@
     </div>
 
     <script>
-        function previewImage(event) {
+        // --- Main image preview ---
+        document.getElementById('image').addEventListener('change', function (e) {
             const preview = document.getElementById('preview');
-            const file = event.target.files[0];
+            const file = e.target.files[0];
             if (file) {
                 preview.src = URL.createObjectURL(file);
                 preview.classList.remove('hidden');
             }
-        }
+        });
 
-        function previewGallery(event) {
-            const container = document.getElementById('gallery-preview');
-            container.innerHTML = '';
-            Array.from(event.target.files).forEach(file => {
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(file);
-                img.className = 'h-24 w-24 rounded-lg object-cover';
-                container.appendChild(img);
-            });
-        }
-
-        document.querySelectorAll('input[name="delete_images[]"]').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const container = this.closest('.relative');
-                if (this.checked) {
-                    container.classList.add('opacity-40', 'ring-2', 'ring-red-500', 'rounded-lg');
-                } else {
-                    container.classList.remove('opacity-40', 'ring-2', 'ring-red-500', 'rounded-lg');
-                }
+        // --- Delete checkbox visual feedback ---
+        document.querySelectorAll('.delete-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                const card = this.closest('[draggable]');
+                card.classList.toggle('opacity-40', this.checked);
+                card.classList.toggle('ring-2', this.checked);
+                card.classList.toggle('ring-red-500', this.checked);
+                card.classList.toggle('rounded-lg', this.checked);
             });
         });
+
+        // --- Drag-sort for existing gallery ---
+        const existingSort = document.getElementById('gallery-sort');
+        if (existingSort) {
+            initDragSort(existingSort);
+            updatePrincipalBadge(existingSort);
+        }
+
+        // --- New gallery uploads with drag-sort preview ---
+        let newFiles = [];
+        const galleryInput = document.getElementById('gallery');
+        const newSort = document.getElementById('new-gallery-sort');
+
+        galleryInput.addEventListener('change', function () {
+            newFiles = Array.from(this.files);
+            renderNewPreviews();
+        });
+
+        function renderNewPreviews() {
+            newSort.innerHTML = '';
+            newFiles.forEach((file, idx) => {
+                const card = document.createElement('div');
+                card.className = 'relative cursor-grab active:cursor-grabbing';
+                card.draggable = true;
+                card.dataset.newIdx = idx;
+
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.className = 'h-24 w-24 rounded-lg object-cover pointer-events-none';
+
+                const badge = document.createElement('span');
+                badge.className = 'principal-badge absolute bottom-1 left-1 bg-[#2D6A4F] text-white text-[10px] font-bold px-1.5 py-0.5 rounded hidden';
+                badge.textContent = 'Principal';
+
+                card.appendChild(img);
+                card.appendChild(badge);
+                newSort.appendChild(card);
+            });
+
+            // If no existing gallery, new previews also show Principal on first
+            initDragSort(newSort, true);
+            updatePrincipalBadge(existingSort || newSort);
+        }
+
+        // Before submit, rebuild gallery input files in the new order
+        document.querySelector('form').addEventListener('submit', function () {
+            if (newFiles.length === 0) return;
+            const cards = newSort.querySelectorAll('[draggable]');
+            const dt = new DataTransfer();
+            cards.forEach(card => {
+                dt.items.add(newFiles[parseInt(card.dataset.newIdx)]);
+            });
+            galleryInput.files = dt.files;
+        });
+
+        // --- Drag sort utility ---
+        function initDragSort(container, updateFirstBadgeFromExternal) {
+            let dragSrc = null;
+
+            container.addEventListener('dragstart', e => {
+                dragSrc = e.target.closest('[draggable]');
+                if (!dragSrc) return;
+                setTimeout(() => dragSrc.classList.add('opacity-50'), 0);
+            });
+
+            container.addEventListener('dragend', () => {
+                container.querySelectorAll('[draggable]').forEach(el => {
+                    el.classList.remove('opacity-50', 'ring-2', 'ring-[#52B788]', 'rounded-lg');
+                });
+                // Update principal badge: if this is existingSort, use it; if new uploads exist, first of existing still wins
+                updatePrincipalBadge(existingSort && existingSort.children.length ? existingSort : newSort);
+                if (existingSort && existingSort.children.length && newSort.children.length) {
+                    updatePrincipalBadge(newSort); // hide badges on new ones if existing has items
+                }
+            });
+
+            container.addEventListener('dragover', e => {
+                e.preventDefault();
+                const target = e.target.closest('[draggable]');
+                if (target && target !== dragSrc) {
+                    container.querySelectorAll('[draggable]').forEach(el => el.classList.remove('ring-2', 'ring-[#52B788]', 'rounded-lg'));
+                    target.classList.add('ring-2', 'ring-[#52B788]', 'rounded-lg');
+                }
+            });
+
+            container.addEventListener('dragleave', e => {
+                const target = e.target.closest('[draggable]');
+                if (target) target.classList.remove('ring-2', 'ring-[#52B788]', 'rounded-lg');
+            });
+
+            container.addEventListener('drop', e => {
+                e.preventDefault();
+                const target = e.target.closest('[draggable]');
+                if (target && dragSrc && target !== dragSrc && container.contains(dragSrc)) {
+                    target.classList.remove('ring-2', 'ring-[#52B788]', 'rounded-lg');
+                    const allCards = [...container.querySelectorAll('[draggable]')];
+                    const srcIdx = allCards.indexOf(dragSrc);
+                    const tgtIdx = allCards.indexOf(target);
+                    container.insertBefore(dragSrc, srcIdx < tgtIdx ? target.nextSibling : target);
+                }
+            });
+        }
+
+        function updatePrincipalBadge(container) {
+            if (!container) return;
+            container.querySelectorAll('.principal-badge').forEach(b => b.classList.add('hidden'));
+            const first = container.querySelector('[draggable]');
+            if (first) first.querySelector('.principal-badge')?.classList.remove('hidden');
+        }
     </script>
 @endsection

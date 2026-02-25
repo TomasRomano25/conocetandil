@@ -41,10 +41,9 @@
             <div>
                 <label for="gallery" class="block text-sm font-medium text-gray-700 mb-1">Galería de imágenes</label>
                 <input type="file" name="gallery[]" id="gallery" accept="image/*" multiple
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]"
-                    onchange="previewGallery(event)">
-                <p class="text-xs text-gray-500 mt-1">Podés seleccionar múltiples imágenes.</p>
-                <div id="gallery-preview" class="mt-2 flex gap-2 flex-wrap"></div>
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                <p class="text-xs text-gray-500 mt-1">Podés arrastrar las imágenes para ordenarlas. La primera será la que aparece en el catálogo.</p>
+                <div id="new-gallery-sort" class="mt-2 flex gap-2 flex-wrap select-none"></div>
                 @error('gallery.*') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
 
@@ -165,24 +164,111 @@
     </div>
 
     <script>
-        function previewImage(event) {
+        // --- Main image preview ---
+        document.getElementById('image').addEventListener('change', function (e) {
             const preview = document.getElementById('preview');
-            const file = event.target.files[0];
+            const file = e.target.files[0];
             if (file) {
                 preview.src = URL.createObjectURL(file);
                 preview.classList.remove('hidden');
             }
-        }
+        });
 
-        function previewGallery(event) {
-            const container = document.getElementById('gallery-preview');
-            container.innerHTML = '';
-            Array.from(event.target.files).forEach(file => {
+        // --- New gallery uploads with drag-sort preview ---
+        let newFiles = [];
+        const galleryInput = document.getElementById('gallery');
+        const newSort = document.getElementById('new-gallery-sort');
+
+        galleryInput.addEventListener('change', function () {
+            newFiles = Array.from(this.files);
+            renderNewPreviews();
+        });
+
+        function renderNewPreviews() {
+            newSort.innerHTML = '';
+            newFiles.forEach((file, idx) => {
+                const card = document.createElement('div');
+                card.className = 'relative cursor-grab active:cursor-grabbing';
+                card.draggable = true;
+                card.dataset.newIdx = idx;
+
                 const img = document.createElement('img');
                 img.src = URL.createObjectURL(file);
-                img.className = 'h-24 w-24 rounded-lg object-cover';
-                container.appendChild(img);
+                img.className = 'h-24 w-24 rounded-lg object-cover pointer-events-none';
+
+                const badge = document.createElement('span');
+                badge.className = 'principal-badge absolute bottom-1 left-1 bg-[#2D6A4F] text-white text-[10px] font-bold px-1.5 py-0.5 rounded hidden';
+                badge.textContent = 'Principal';
+
+                card.appendChild(img);
+                card.appendChild(badge);
+                newSort.appendChild(card);
             });
+
+            initDragSort(newSort);
+            updatePrincipalBadge(newSort);
+        }
+
+        // Before submit, rebuild gallery input files in the dragged order
+        document.querySelector('form').addEventListener('submit', function () {
+            if (newFiles.length === 0) return;
+            const cards = newSort.querySelectorAll('[draggable]');
+            const dt = new DataTransfer();
+            cards.forEach(card => {
+                dt.items.add(newFiles[parseInt(card.dataset.newIdx)]);
+            });
+            galleryInput.files = dt.files;
+        });
+
+        function initDragSort(container) {
+            let dragSrc = null;
+
+            container.addEventListener('dragstart', e => {
+                dragSrc = e.target.closest('[draggable]');
+                if (!dragSrc) return;
+                setTimeout(() => dragSrc.classList.add('opacity-50'), 0);
+            });
+
+            container.addEventListener('dragend', () => {
+                container.querySelectorAll('[draggable]').forEach(el => {
+                    el.classList.remove('opacity-50', 'ring-2', 'ring-[#52B788]', 'rounded-lg');
+                });
+                updatePrincipalBadge(container);
+            });
+
+            container.addEventListener('dragover', e => {
+                e.preventDefault();
+                const target = e.target.closest('[draggable]');
+                if (target && target !== dragSrc) {
+                    container.querySelectorAll('[draggable]').forEach(el => el.classList.remove('ring-2', 'ring-[#52B788]', 'rounded-lg'));
+                    target.classList.add('ring-2', 'ring-[#52B788]', 'rounded-lg');
+                }
+            });
+
+            container.addEventListener('dragleave', e => {
+                const target = e.target.closest('[draggable]');
+                if (target) target.classList.remove('ring-2', 'ring-[#52B788]', 'rounded-lg');
+            });
+
+            container.addEventListener('drop', e => {
+                e.preventDefault();
+                const target = e.target.closest('[draggable]');
+                if (target && dragSrc && target !== dragSrc && container.contains(dragSrc)) {
+                    target.classList.remove('ring-2', 'ring-[#52B788]', 'rounded-lg');
+                    const allCards = [...container.querySelectorAll('[draggable]')];
+                    const srcIdx = allCards.indexOf(dragSrc);
+                    const tgtIdx = allCards.indexOf(target);
+                    container.insertBefore(dragSrc, srcIdx < tgtIdx ? target.nextSibling : target);
+                }
+                updatePrincipalBadge(container);
+            });
+        }
+
+        function updatePrincipalBadge(container) {
+            if (!container) return;
+            container.querySelectorAll('.principal-badge').forEach(b => b.classList.add('hidden'));
+            const first = container.querySelector('[draggable]');
+            if (first) first.querySelector('.principal-badge')?.classList.remove('hidden');
         }
     </script>
 @endsection

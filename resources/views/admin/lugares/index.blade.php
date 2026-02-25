@@ -4,8 +4,17 @@
 @section('header', 'Lugares')
 
 @section('content')
-    <div class="mb-6 flex justify-between items-center">
-        <p class="text-gray-600">Gestioná los lugares turísticos de Tandil.</p>
+    <div class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <form method="GET" action="{{ route('admin.lugares.index') }}" class="flex gap-2 flex-1 max-w-sm">
+            <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Buscar por título o dirección..."
+                class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+            <button type="submit" class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white px-4 py-2 rounded-lg text-sm transition">
+                Buscar
+            </button>
+            @if($search ?? false)
+                <a href="{{ route('admin.lugares.index') }}" class="py-2 px-3 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">✕</a>
+            @endif
+        </form>
         <div class="flex gap-2">
             <button onclick="document.getElementById('import-modal').classList.remove('hidden')"
                 class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg transition text-sm">

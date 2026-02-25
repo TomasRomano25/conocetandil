@@ -10,10 +10,19 @@ use Illuminate\Support\Facades\Storage;
 
 class LugarController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $lugares = Lugar::ordered()->paginate(10);
-        return view('admin.lugares.index', compact('lugares'));
+        $query = Lugar::ordered();
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('direction', 'like', "%{$search}%");
+            });
+        }
+
+        $lugares = $query->paginate(10)->withQueryString();
+        return view('admin.lugares.index', compact('lugares', 'search'));
     }
 
     public function create()
@@ -95,6 +104,8 @@ class LugarController extends Controller
             'gallery.*' => 'image|max:2048',
             'delete_images' => 'nullable|array',
             'delete_images.*' => 'integer|exists:lugar_images,id',
+            'gallery_order' => 'nullable|array',
+            'gallery_order.*' => 'integer|exists:lugar_images,id',
             'category' => 'nullable|string|max:100',
             'rating' => 'nullable|numeric|min:0|max:5',
             'phone' => 'nullable|string|max:20',
@@ -130,6 +141,13 @@ class LugarController extends Controller
             }
         }
 
+        // Reorder existing gallery images
+        if ($request->filled('gallery_order')) {
+            foreach ($request->input('gallery_order') as $position => $imageId) {
+                LugarImage::where('id', $imageId)->where('lugar_id', $lugar->id)->update(['order' => $position]);
+            }
+        }
+
         // Add new gallery images
         if ($request->hasFile('gallery')) {
             $maxOrder = $lugar->images()->max('order') ?? -1;
@@ -142,7 +160,7 @@ class LugarController extends Controller
             }
         }
 
-        unset($validated['gallery'], $validated['delete_images']);
+        unset($validated['gallery'], $validated['delete_images'], $validated['gallery_order']);
         $lugar->update($validated);
 
         return redirect()->route('admin.lugares.index')->with('success', 'Lugar actualizado correctamente.');
