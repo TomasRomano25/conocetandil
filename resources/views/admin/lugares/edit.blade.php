@@ -33,15 +33,17 @@
             <div>
                 <label for="image" class="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
                 @if ($lugar->image)
-                    <div class="mb-2">
-                        <img src="{{ asset('storage/' . $lugar->image) }}" alt="{{ $lugar->title }}" class="h-32 rounded-lg object-cover">
-                        <p class="text-xs text-gray-500 mt-1">Imagen actual. Subí una nueva para reemplazarla.</p>
+                    <div class="mb-2 relative h-44 w-full rounded-xl overflow-hidden bg-gray-100">
+                        <img src="{{ asset('storage/' . $lugar->image) }}" alt="{{ $lugar->title }}"
+                            class="absolute inset-0 w-full h-full object-cover">
                     </div>
+                    <p class="text-xs text-gray-500 mb-2">Imagen actual. Subí una nueva para reemplazarla.</p>
                 @endif
                 <input type="file" name="image" id="image" accept="image/*"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]"
-                    onchange="previewImage(event)">
-                <img id="preview" class="mt-2 h-32 rounded-lg object-cover hidden">
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                <div id="preview-container" class="mt-2 relative h-44 w-full rounded-xl overflow-hidden bg-gray-100 hidden">
+                    <img id="preview" src="" alt="" class="absolute inset-0 w-full h-full object-cover">
+                </div>
                 @error('image') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
 
@@ -212,10 +214,11 @@
         // --- Main image preview ---
         document.getElementById('image').addEventListener('change', function (e) {
             const preview = document.getElementById('preview');
+            const container = document.getElementById('preview-container');
             const file = e.target.files[0];
             if (file) {
                 preview.src = URL.createObjectURL(file);
-                preview.classList.remove('hidden');
+                container.classList.remove('hidden');
             }
         });
 
