@@ -191,14 +191,6 @@
                         <span class="text-sm font-medium group-hover:underline underline-offset-2">{{ $lugar->direction }}</span>
                     </a>
 
-                    {{-- Mobile-only: primary CTA below title --}}
-                    <div class="lg:hidden mt-5">
-                        <a href="{{ $lugar->google_maps_directions_url }}" target="_blank" rel="noopener"
-                            class="inline-flex items-center justify-center gap-2 bg-[#2D6A4F] hover:bg-[#1A4A35] text-white font-bold py-3.5 px-7 rounded-xl transition-all duration-200 hover:shadow-lg active:scale-[0.98] text-sm">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            Cómo Llegar
-                        </a>
-                    </div>
                 </div>
 
                 <hr class="border-gray-200 mb-8">
@@ -339,22 +331,14 @@
                 @else
                     {{-- Info Card --}}
                     <div class="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.10)] border border-gray-100 overflow-hidden">
-                        {{-- Card header — also acts as mobile toggle --}}
-                        <button type="button" id="info-card-toggle"
-                            onclick="toggleInfoCard()"
-                            class="w-full text-left bg-gradient-to-br from-[#2D6A4F] to-[#1f5540] px-5 py-4 flex items-center justify-between">
-                            <div>
-                                <p class="text-[#74d4a4] text-[0.65rem] font-bold uppercase tracking-[0.12em] mb-0.5">Información práctica</p>
-                                <h3 class="text-white text-base font-bold leading-snug">{{ $lugar->title }}</h3>
-                            </div>
-                            {{-- Chevron: shown on mobile, hidden on desktop --}}
-                            <svg id="info-card-chevron" class="lg:hidden w-5 h-5 text-white/70 transition-transform duration-300 flex-shrink-0 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
+                        {{-- Card header --}}
+                        <div class="bg-gradient-to-br from-[#2D6A4F] to-[#1f5540] px-5 py-4">
+                            <p class="text-[#74d4a4] text-[0.65rem] font-bold uppercase tracking-[0.12em] mb-0.5">Información práctica</p>
+                            <h3 class="text-white text-base font-bold leading-snug">{{ $lugar->title }}</h3>
+                        </div>
 
-                        {{-- Card body: collapsed on mobile, always open on desktop --}}
-                        <div id="info-card-body" class="hidden lg:block">
+                        {{-- Card body: always open --}}
+                        <div id="info-card-body">
                             <div class="px-5 py-5 space-y-4 border-b border-gray-100">
 
                                 {{-- Address --}}
@@ -564,18 +548,6 @@
     @endif
 
     {{-- ========================================
-         STICKY BOTTOM CTA (mobile / tablet)
-         ======================================== --}}
-    <div id="sticky-cta"
-        class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] p-3 z-40 transform translate-y-full transition-transform duration-300">
-        <a href="{{ $lugar->google_maps_directions_url }}" target="_blank" rel="noopener"
-            class="flex items-center justify-center gap-2 w-full bg-[#2D6A4F] hover:bg-[#1A4A35] text-white font-bold py-3.5 rounded-xl transition-all duration-200 text-sm active:scale-[0.98]">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            Cómo Llegar
-        </a>
-    </div>
-
-    {{-- ========================================
          LIGHTBOX
          ======================================== --}}
     <div id="lightbox" class="fixed inset-0 bg-black/97 z-50 hidden flex-col"
@@ -723,23 +695,6 @@
             }, { passive: true });
         })();
 
-        // ── Info card toggle (mobile) ─────────────────
-        window.toggleInfoCard = function () {
-            var body = document.getElementById('info-card-body');
-            var chevron = document.getElementById('info-card-chevron');
-            if (!body) return;
-            // On desktop always open — guard
-            if (window.innerWidth >= 1024) return;
-            var isHidden = body.classList.contains('hidden');
-            if (isHidden) {
-                body.classList.remove('hidden');
-                if (chevron) chevron.style.transform = 'rotate(180deg)';
-            } else {
-                body.classList.add('hidden');
-                if (chevron) chevron.style.transform = 'rotate(0deg)';
-            }
-        };
-
         // ── Collapsible Description (mobile) ─────────
         window.toggleDescription = function () {
             var container = document.getElementById('description-container');
@@ -760,23 +715,7 @@
             }
         };
 
-        // ── Sticky CTA ────────────────────────────────
-        (function () {
-            var stickyCta = document.getElementById('sticky-cta');
-            if (!stickyCta) return;
-            var shown = false;
-            window.addEventListener('scroll', function () {
-                var scrollY = window.scrollY;
-                if (scrollY > 350 && !shown) {
-                    stickyCta.style.transform = 'translateY(0)';
-                    shown = true;
-                } else if (scrollY <= 350 && shown) {
-                    stickyCta.style.transform = 'translateY(100%)';
-                    shown = false;
-                }
-            }, { passive: true });
-        })();
 
-    })();
+})();
     </script>
 @endsection

@@ -52,11 +52,19 @@
                     <p class="text-xs text-gray-500 mb-2">Arrastrá las imágenes para reordenarlas. La primera es la que se muestra en el catálogo.</p>
                     <div id="gallery-sort" class="flex gap-3 flex-wrap select-none">
                         @foreach ($lugar->images as $image)
-                            <div class="relative group cursor-grab active:cursor-grabbing" draggable="true" data-id="{{ $image->id }}">
+                            <div class="relative group w-28 h-28 rounded-xl overflow-hidden shadow-sm border-2 border-transparent cursor-grab active:cursor-grabbing transition-all"
+                                draggable="true" data-id="{{ $image->id }}">
+                                {{-- Image fills container --}}
                                 <img src="{{ asset('storage/' . $image->path) }}" alt="Galería"
-                                    class="h-24 w-24 rounded-lg object-cover pointer-events-none">
+                                    class="absolute inset-0 w-full h-full object-cover pointer-events-none">
+                                {{-- Hover overlay with drag icon --}}
+                                <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all pointer-events-none flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition drop-shadow pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                                    </svg>
+                                </div>
                                 {{-- Principal badge --}}
-                                <span class="principal-badge absolute bottom-1 left-1 bg-[#2D6A4F] text-white text-[10px] font-bold px-1.5 py-0.5 rounded hidden">
+                                <span class="principal-badge absolute bottom-1 left-1 bg-[#2D6A4F] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md hidden z-10">
                                     Principal
                                 </span>
                                 {{-- Delete --}}
@@ -243,19 +251,24 @@
             newSort.innerHTML = '';
             newFiles.forEach((file, idx) => {
                 const card = document.createElement('div');
-                card.className = 'relative cursor-grab active:cursor-grabbing';
+                card.className = 'relative group w-28 h-28 rounded-xl overflow-hidden shadow-sm border-2 border-transparent cursor-grab active:cursor-grabbing transition-all';
                 card.draggable = true;
                 card.dataset.newIdx = idx;
 
                 const img = document.createElement('img');
                 img.src = URL.createObjectURL(file);
-                img.className = 'h-24 w-24 rounded-lg object-cover pointer-events-none';
+                img.className = 'absolute inset-0 w-full h-full object-cover pointer-events-none';
+
+                const overlay = document.createElement('div');
+                overlay.className = 'absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all pointer-events-none flex items-center justify-center';
+                overlay.innerHTML = `<svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition drop-shadow pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>`;
 
                 const badge = document.createElement('span');
-                badge.className = 'principal-badge absolute bottom-1 left-1 bg-[#2D6A4F] text-white text-[10px] font-bold px-1.5 py-0.5 rounded hidden';
+                badge.className = 'principal-badge absolute bottom-1 left-1 bg-[#2D6A4F] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md hidden z-10';
                 badge.textContent = 'Principal';
 
                 card.appendChild(img);
+                card.appendChild(overlay);
                 card.appendChild(badge);
                 newSort.appendChild(card);
             });
@@ -288,7 +301,7 @@
 
             container.addEventListener('dragend', () => {
                 container.querySelectorAll('[draggable]').forEach(el => {
-                    el.classList.remove('opacity-50', 'ring-2', 'ring-[#52B788]', 'rounded-lg');
+                    el.classList.remove('opacity-50', 'border-[#52B788]', '!border-[#52B788]');
                 });
                 // Update principal badge: if this is existingSort, use it; if new uploads exist, first of existing still wins
                 updatePrincipalBadge(existingSort && existingSort.children.length ? existingSort : newSort);
@@ -301,21 +314,21 @@
                 e.preventDefault();
                 const target = e.target.closest('[draggable]');
                 if (target && target !== dragSrc) {
-                    container.querySelectorAll('[draggable]').forEach(el => el.classList.remove('ring-2', 'ring-[#52B788]', 'rounded-lg'));
-                    target.classList.add('ring-2', 'ring-[#52B788]', 'rounded-lg');
+                    container.querySelectorAll('[draggable]').forEach(el => el.classList.remove('!border-[#52B788]'));
+                    target.classList.add('!border-[#52B788]');
                 }
             });
 
             container.addEventListener('dragleave', e => {
                 const target = e.target.closest('[draggable]');
-                if (target) target.classList.remove('ring-2', 'ring-[#52B788]', 'rounded-lg');
+                if (target) target.classList.remove('!border-[#52B788]');
             });
 
             container.addEventListener('drop', e => {
                 e.preventDefault();
                 const target = e.target.closest('[draggable]');
                 if (target && dragSrc && target !== dragSrc && container.contains(dragSrc)) {
-                    target.classList.remove('ring-2', 'ring-[#52B788]', 'rounded-lg');
+                    target.classList.remove('!border-[#52B788]');
                     const allCards = [...container.querySelectorAll('[draggable]')];
                     const srcIdx = allCards.indexOf(dragSrc);
                     const tgtIdx = allCards.indexOf(target);
