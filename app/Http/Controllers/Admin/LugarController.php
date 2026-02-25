@@ -37,6 +37,8 @@ class LugarController extends Controller
             'direction' => 'required|string|max:255',
             'description' => 'required|string',
             'image' => 'nullable|image|max:2048',
+            'image_focal_x' => 'nullable|numeric|min:0|max:100',
+            'image_focal_y' => 'nullable|numeric|min:0|max:100',
             'featured' => 'boolean',
             'is_premium' => 'boolean',
             'order' => 'integer',
@@ -54,10 +56,12 @@ class LugarController extends Controller
             'longitude' => 'nullable|numeric|min:-180|max:180',
         ]);
 
-        $validated['featured']   = $request->boolean('featured');
-        $validated['is_premium'] = $request->boolean('is_premium');
-        $validated['order']      = $request->input('order', 0);
-        $validated['slug']       = Lugar::generateSlug($validated['title']);
+        $validated['featured']      = $request->boolean('featured');
+        $validated['is_premium']    = $request->boolean('is_premium');
+        $validated['order']         = $request->input('order', 0);
+        $validated['slug']          = Lugar::generateSlug($validated['title']);
+        $validated['image_focal_x'] = $request->input('image_focal_x', 50);
+        $validated['image_focal_y'] = $request->input('image_focal_y', 50);
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('lugares', 'public');
@@ -97,6 +101,8 @@ class LugarController extends Controller
             'direction' => 'required|string|max:255',
             'description' => 'required|string',
             'image' => 'nullable|image|max:2048',
+            'image_focal_x' => 'nullable|numeric|min:0|max:100',
+            'image_focal_y' => 'nullable|numeric|min:0|max:100',
             'featured' => 'boolean',
             'is_premium' => 'boolean',
             'order' => 'integer',
@@ -106,6 +112,10 @@ class LugarController extends Controller
             'delete_images.*' => 'integer|exists:lugar_images,id',
             'gallery_order' => 'nullable|array',
             'gallery_order.*' => 'integer|exists:lugar_images,id',
+            'existing_focal_x' => 'nullable|array',
+            'existing_focal_x.*' => 'numeric|min:0|max:100',
+            'existing_focal_y' => 'nullable|array',
+            'existing_focal_y.*' => 'numeric|min:0|max:100',
             'category' => 'nullable|string|max:100',
             'rating' => 'nullable|numeric|min:0|max:5',
             'phone' => 'nullable|string|max:20',
@@ -118,9 +128,11 @@ class LugarController extends Controller
             'longitude' => 'nullable|numeric|min:-180|max:180',
         ]);
 
-        $validated['featured']   = $request->boolean('featured');
-        $validated['is_premium'] = $request->boolean('is_premium');
-        $validated['slug']       = Lugar::generateSlug($validated['title'], $lugar->id);
+        $validated['featured']      = $request->boolean('featured');
+        $validated['is_premium']    = $request->boolean('is_premium');
+        $validated['slug']          = Lugar::generateSlug($validated['title'], $lugar->id);
+        $validated['image_focal_x'] = $request->input('image_focal_x', $lugar->image_focal_x ?? 50);
+        $validated['image_focal_y'] = $request->input('image_focal_y', $lugar->image_focal_y ?? 50);
 
         if ($request->hasFile('image')) {
             if ($lugar->image) {
@@ -141,10 +153,23 @@ class LugarController extends Controller
             }
         }
 
-        // Reorder existing gallery images
+        // Reorder existing gallery images + save focal points
         if ($request->filled('gallery_order')) {
+            $focalX = $request->input('existing_focal_x', []);
+            $focalY = $request->input('existing_focal_y', []);
             foreach ($request->input('gallery_order') as $position => $imageId) {
-                LugarImage::where('id', $imageId)->where('lugar_id', $lugar->id)->update(['order' => $position]);
+                $update = ['order' => $position];
+                if (isset($focalX[$imageId])) $update['focal_x'] = $focalX[$imageId];
+                if (isset($focalY[$imageId])) $update['focal_y'] = $focalY[$imageId];
+                LugarImage::where('id', $imageId)->where('lugar_id', $lugar->id)->update($update);
+            }
+        } elseif ($request->filled('existing_focal_x')) {
+            // Focal points only (no reorder submitted)
+            $focalX = $request->input('existing_focal_x', []);
+            $focalY = $request->input('existing_focal_y', []);
+            foreach ($focalX as $imageId => $fx) {
+                LugarImage::where('id', $imageId)->where('lugar_id', $lugar->id)
+                    ->update(['focal_x' => $fx, 'focal_y' => $focalY[$imageId] ?? 50]);
             }
         }
 
@@ -160,7 +185,7 @@ class LugarController extends Controller
             }
         }
 
-        unset($validated['gallery'], $validated['delete_images'], $validated['gallery_order']);
+        unset($validated['gallery'], $validated['delete_images'], $validated['gallery_order'], $validated['existing_focal_x'], $validated['existing_focal_y']);
         $lugar->update($validated);
 
         return redirect()->route('admin.lugares.index')->with('success', 'Lugar actualizado correctamente.');

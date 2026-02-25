@@ -15,6 +15,8 @@ class Lugar extends Model
         'direction',
         'description',
         'image',
+        'image_focal_x',
+        'image_focal_y',
         'featured',
         'is_premium',
         'order',
@@ -30,7 +32,7 @@ class Lugar extends Model
         'longitude',
     ];
 
-    protected $appends = ['cover_image'];
+    protected $appends = ['cover_image', 'cover_focal_point'];
 
     protected function casts(): array
     {
@@ -41,6 +43,8 @@ class Lugar extends Model
             'rating' => 'decimal:1',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
+            'image_focal_x' => 'decimal:2',
+            'image_focal_y' => 'decimal:2',
         ];
     }
 
@@ -80,6 +84,17 @@ class Lugar extends Model
         }
 
         return $this->image;
+    }
+
+    public function getCoverFocalPointAttribute(): array
+    {
+        $firstGallery = $this->images->first();
+
+        if ($firstGallery) {
+            return ['x' => $firstGallery->focal_x ?? 50, 'y' => $firstGallery->focal_y ?? 50];
+        }
+
+        return ['x' => $this->image_focal_x ?? 50, 'y' => $this->image_focal_y ?? 50];
     }
 
     public function hasCoordinates(): bool

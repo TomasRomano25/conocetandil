@@ -31,18 +31,39 @@
             </div>
 
             <div>
-                <label for="image" class="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
+                <label for="image" class="block text-sm font-medium text-gray-700 mb-1">Imagen principal</label>
                 @if ($lugar->image)
-                    <div class="mb-2 relative h-44 w-full rounded-xl overflow-hidden bg-gray-100">
+                    <p class="text-xs text-[#2D6A4F] font-medium mb-1">Hacé click en la imagen para ajustar el encuadre (qué parte se muestra al recortar)</p>
+                    <div class="relative h-44 w-full rounded-xl overflow-hidden bg-gray-100 cursor-crosshair mb-2" id="focal-current-container">
                         <img src="{{ asset('storage/' . $lugar->image) }}" alt="{{ $lugar->title }}"
-                            class="absolute inset-0 w-full h-full object-cover">
+                            class="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                            id="focal-current-img"
+                            style="object-position: {{ $lugar->image_focal_x ?? 50 }}% {{ $lugar->image_focal_y ?? 50 }}%">
+                        <div class="absolute inset-0" id="focal-current-area"></div>
+                        <div id="focal-current-dot"
+                            class="absolute w-6 h-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-lg pointer-events-none z-10"
+                            style="left: {{ $lugar->image_focal_x ?? 50 }}%; top: {{ $lugar->image_focal_y ?? 50 }}%; background: rgba(45,106,79,0.75);">
+                            <div class="absolute inset-1 rounded-full border border-white/60"></div>
+                        </div>
                     </div>
-                    <p class="text-xs text-gray-500 mb-2">Imagen actual. Subí una nueva para reemplazarla.</p>
+                    <p class="text-xs text-gray-500 mb-2">Subí una nueva imagen para reemplazarla.</p>
                 @endif
+                <input type="hidden" name="image_focal_x" id="image_focal_x" value="{{ old('image_focal_x', $lugar->image_focal_x ?? 50) }}">
+                <input type="hidden" name="image_focal_y" id="image_focal_y" value="{{ old('image_focal_y', $lugar->image_focal_y ?? 50) }}">
                 <input type="file" name="image" id="image" accept="image/*"
                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#52B788]">
-                <div id="preview-container" class="mt-2 relative h-44 w-full rounded-xl overflow-hidden bg-gray-100 hidden">
-                    <img id="preview" src="" alt="" class="absolute inset-0 w-full h-full object-cover">
+                <div id="preview-container" class="mt-2 relative h-44 w-full rounded-xl overflow-hidden bg-gray-100 cursor-crosshair hidden">
+                    <img id="preview" src="" alt="" class="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                        style="object-position: 50% 50%">
+                    <div class="absolute inset-0" id="focal-preview-area"></div>
+                    <div id="focal-preview-dot"
+                        class="absolute w-6 h-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-lg pointer-events-none z-10"
+                        style="left: 50%; top: 50%; background: rgba(45,106,79,0.75);">
+                        <div class="absolute inset-1 rounded-full border border-white/60"></div>
+                    </div>
+                    <p class="absolute bottom-2 left-0 right-0 text-center pointer-events-none">
+                        <span class="text-white text-xs bg-black/50 px-2 py-1 rounded-full">Click para ajustar encuadre</span>
+                    </p>
                 </div>
                 @error('image') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
             </div>
@@ -58,7 +79,8 @@
                                 draggable="true" data-id="{{ $image->id }}">
                                 {{-- Image fills container --}}
                                 <img src="{{ asset('storage/' . $image->path) }}" alt="Galería"
-                                    class="absolute inset-0 w-full h-full object-cover pointer-events-none">
+                                    class="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                                    style="object-position: {{ $image->focal_x ?? 50 }}% {{ $image->focal_y ?? 50 }}%">
                                 {{-- Hover overlay with drag icon --}}
                                 <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all pointer-events-none flex items-center justify-center">
                                     <svg class="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition drop-shadow pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,6 +91,15 @@
                                 <span class="principal-badge absolute bottom-1 left-1 bg-[#2D6A4F] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md hidden z-10">
                                     Principal
                                 </span>
+                                {{-- Focal point button --}}
+                                <button type="button"
+                                    onclick="openFocalModal({{ $image->id }}, '{{ asset('storage/' . $image->path) }}', {{ $image->focal_x ?? 50 }}, {{ $image->focal_y ?? 50 }})"
+                                    class="absolute bottom-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition z-10" title="Ajustar encuadre">
+                                    <svg class="w-3 h-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                                        <path stroke-linecap="round" stroke-width="2" d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                                    </svg>
+                                </button>
                                 {{-- Delete --}}
                                 <label class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition z-10" title="Eliminar">
                                     <input type="checkbox" name="delete_images[]" value="{{ $image->id }}" class="sr-only delete-checkbox">
@@ -76,8 +107,10 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                     </svg>
                                 </label>
-                                {{-- Hidden order input --}}
+                                {{-- Hidden order + focal inputs --}}
                                 <input type="hidden" name="gallery_order[]" value="{{ $image->id }}">
+                                <input type="hidden" name="existing_focal_x[{{ $image->id }}]" id="gfx-{{ $image->id }}" value="{{ $image->focal_x ?? 50 }}">
+                                <input type="hidden" name="existing_focal_y[{{ $image->id }}]" id="gfy-{{ $image->id }}" value="{{ $image->focal_y ?? 50 }}">
                             </div>
                         @endforeach
                     </div>
@@ -210,8 +243,38 @@
         </form>
     </div>
 
+    {{-- Focal Point Modal --}}
+    <div id="focal-modal" class="hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+            <div class="flex items-center justify-between px-5 py-4 border-b">
+                <div>
+                    <h3 class="font-bold text-[#1A1A1A] text-base">Ajustar encuadre</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Hacé click en la parte de la imagen que querés mostrar</p>
+                </div>
+                <button type="button" onclick="closeFocalModal()" class="text-gray-400 hover:text-gray-700 transition p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="relative cursor-crosshair select-none" id="focal-modal-container">
+                <img id="focal-modal-img" src="" alt="" class="w-full block" style="max-height: 420px; object-fit: contain;">
+                <div class="absolute inset-0" id="focal-modal-area"></div>
+                <div id="focal-modal-dot"
+                    class="absolute w-6 h-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-lg pointer-events-none z-10 hidden"
+                    style="background: rgba(45,106,79,0.75);">
+                    <div class="absolute inset-1 rounded-full border border-white/60"></div>
+                </div>
+            </div>
+            <div class="px-5 py-4 flex justify-end">
+                <button type="button" onclick="closeFocalModal()"
+                    class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2 px-6 rounded-lg transition text-sm">
+                    Listo
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // --- Main image preview ---
+        // --- Main image preview + focal point ---
         document.getElementById('image').addEventListener('change', function (e) {
             const preview = document.getElementById('preview');
             const container = document.getElementById('preview-container');
@@ -219,6 +282,130 @@
             if (file) {
                 preview.src = URL.createObjectURL(file);
                 container.classList.remove('hidden');
+                // Reset focal point to center for new image
+                document.getElementById('image_focal_x').value = 50;
+                document.getElementById('image_focal_y').value = 50;
+                preview.style.objectPosition = '50% 50%';
+                const dot = document.getElementById('focal-preview-dot');
+                dot.style.left = '50%'; dot.style.top = '50%';
+            }
+        });
+
+        // Focal click on existing current image
+        (function () {
+            const area = document.getElementById('focal-current-area');
+            if (!area) return;
+            area.addEventListener('click', function (e) {
+                const rect = area.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+                const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+                document.getElementById('image_focal_x').value = x;
+                document.getElementById('image_focal_y').value = y;
+                const dot = document.getElementById('focal-current-dot');
+                dot.style.left = x + '%'; dot.style.top = y + '%';
+                const img = document.getElementById('focal-current-img');
+                img.style.objectPosition = x + '% ' + y + '%';
+            });
+        })();
+
+        // Focal click on new image preview
+        (function () {
+            const area = document.getElementById('focal-preview-area');
+            if (!area) return;
+            area.addEventListener('click', function (e) {
+                const rect = area.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+                const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+                document.getElementById('image_focal_x').value = x;
+                document.getElementById('image_focal_y').value = y;
+                const dot = document.getElementById('focal-preview-dot');
+                dot.style.left = x + '%'; dot.style.top = y + '%';
+                const img = document.getElementById('preview');
+                img.style.objectPosition = x + '% ' + y + '%';
+            });
+        })();
+
+        // --- Gallery focal point modal ---
+        let _focalImageId = null;
+        window.openFocalModal = function (imageId, src, fx, fy) {
+            _focalImageId = imageId;
+            const modal = document.getElementById('focal-modal');
+            const img = document.getElementById('focal-modal-img');
+            const dot = document.getElementById('focal-modal-dot');
+            img.src = src;
+            img.onload = function () {
+                // Position dot after image loads
+                positionModalDot(fx, fy);
+                dot.classList.remove('hidden');
+            };
+            if (img.complete && img.naturalWidth) {
+                positionModalDot(fx, fy);
+                dot.classList.remove('hidden');
+            }
+            modal.classList.remove('hidden');
+        };
+
+        window.closeFocalModal = function () {
+            document.getElementById('focal-modal').classList.add('hidden');
+            _focalImageId = null;
+        };
+
+        document.getElementById('focal-modal').addEventListener('click', function (e) {
+            if (e.target === this) closeFocalModal();
+        });
+
+        function positionModalDot(fx, fy) {
+            const img = document.getElementById('focal-modal-img');
+            const rect = img.getBoundingClientRect();
+            const container = document.getElementById('focal-modal-container');
+            const cRect = container.getBoundingClientRect();
+            const dot = document.getElementById('focal-modal-dot');
+            // object-fit: contain — calculate the actual image rect inside the container
+            const naturalW = img.naturalWidth, naturalH = img.naturalHeight;
+            const containerW = rect.width, containerH = rect.height;
+            const scale = Math.min(containerW / naturalW, containerH / naturalH);
+            const imgW = naturalW * scale, imgH = naturalH * scale;
+            const offX = (containerW - imgW) / 2;
+            const offY = (containerH - imgH) / 2;
+            const px = offX + (fx / 100) * imgW;
+            const py = offY + (fy / 100) * imgH;
+            dot.style.left = px + 'px';
+            dot.style.top = py + 'px';
+        }
+
+        document.getElementById('focal-modal-area').addEventListener('click', function (e) {
+            if (!_focalImageId) return;
+            const img = document.getElementById('focal-modal-img');
+            const rect = img.getBoundingClientRect();
+            // object-fit: contain calculations
+            const naturalW = img.naturalWidth, naturalH = img.naturalHeight;
+            const containerW = rect.width, containerH = rect.height;
+            const scale = Math.min(containerW / naturalW, containerH / naturalH);
+            const imgW = naturalW * scale, imgH = naturalH * scale;
+            const offX = (containerW - imgW) / 2;
+            const offY = (containerH - imgH) / 2;
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+            // Clamp to image bounds
+            const imgX = Math.max(0, Math.min(clickX - offX, imgW));
+            const imgY = Math.max(0, Math.min(clickY - offY, imgH));
+            const fx = parseFloat((imgX / imgW * 100).toFixed(1));
+            const fy = parseFloat((imgY / imgH * 100).toFixed(1));
+            // Update hidden inputs
+            const xInput = document.getElementById('gfx-' + _focalImageId);
+            const yInput = document.getElementById('gfy-' + _focalImageId);
+            if (xInput) xInput.value = fx;
+            if (yInput) yInput.value = fy;
+            // Move dot
+            const dot = document.getElementById('focal-modal-dot');
+            dot.style.left = (offX + fx / 100 * imgW) + 'px';
+            dot.style.top  = (offY + fy / 100 * imgH) + 'px';
+            dot.classList.remove('hidden');
+            // Update thumbnail object-position live
+            const card = document.querySelector('[data-id="' + _focalImageId + '"]');
+            if (card) {
+                const thumb = card.querySelector('img');
+                if (thumb) thumb.style.objectPosition = fx + '% ' + fy + '%';
             }
         });
 

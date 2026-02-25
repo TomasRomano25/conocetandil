@@ -43,28 +43,41 @@
                 {{-- Desktop: Airbnb-style grid --}}
                 @if ($imageCount === 1)
                     {{-- Single image: full width --}}
+                    @php $singleFp = $lugar->images->first() ? ['x' => $lugar->images->first()->focal_x ?? 50, 'y' => $lugar->images->first()->focal_y ?? 50] : ['x' => $lugar->image_focal_x ?? 50, 'y' => $lugar->image_focal_y ?? 50]; @endphp
                     <div class="hidden md:block relative rounded-2xl overflow-hidden cursor-pointer group" style="height: 500px;"
                          onclick="LugarLightbox.open(0)">
                         <img src="{{ asset('storage/' . $heroImage) }}" alt="{{ $lugar->title }}"
-                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]">
+                            class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                            style="object-position: {{ $singleFp['x'] }}% {{ $singleFp['y'] }}%">
                         <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
                     </div>
                 @else
                     {{-- Multi-image: 2/3 + 1/3 grid --}}
                     <div class="hidden md:grid grid-cols-3 gap-2 rounded-2xl overflow-hidden relative" style="height: 500px;">
                         {{-- Main image (2/3 width) --}}
-                        <div class="col-span-2 relative overflow-hidden cursor-pointer group" onclick="LugarLightbox.open(0)">
+                        @php
+                            $heroFp = $lugar->images->first()
+                                ? ['x' => $lugar->images->first()->focal_x ?? 50, 'y' => $lugar->images->first()->focal_y ?? 50]
+                                : ['x' => $lugar->image_focal_x ?? 50, 'y' => $lugar->image_focal_y ?? 50];
+                        @endphp
+                        <div class="col-span-2 h-full relative overflow-hidden cursor-pointer group" onclick="LugarLightbox.open(0)">
                             <img src="{{ asset('storage/' . $heroImage) }}" alt="{{ $lugar->title }}"
-                                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]">
+                                class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                                style="object-position: {{ $heroFp['x'] }}% {{ $heroFp['y'] }}%">
                             <div class="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300"></div>
                         </div>
                         {{-- Side images (1/3 width) --}}
-                        <div class="grid {{ $imageCount >= 3 ? 'grid-rows-2' : 'grid-rows-1' }} gap-2">
+                        <div class="h-full grid {{ $imageCount >= 3 ? 'grid-rows-2' : 'grid-rows-1' }} gap-2">
                             @foreach ($sideImages as $sideIdx => $imagePath)
-                                @php $realIndex = $sideIdx + 1; @endphp
-                                <div class="relative overflow-hidden cursor-pointer group" onclick="LugarLightbox.open({{ $realIndex }})">
+                                @php
+                                    $realIndex = $sideIdx + 1;
+                                    $sideImg = $lugar->images->get($realIndex);
+                                    $sideFp = $sideImg ? ['x' => $sideImg->focal_x ?? 50, 'y' => $sideImg->focal_y ?? 50] : ['x' => 50, 'y' => 50];
+                                @endphp
+                                <div class="h-full relative overflow-hidden cursor-pointer group" onclick="LugarLightbox.open({{ $realIndex }})">
                                     <img src="{{ asset('storage/' . $imagePath) }}" alt="{{ $lugar->title }}"
-                                        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]">
+                                        class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                                        style="object-position: {{ $sideFp['x'] }}% {{ $sideFp['y'] }}%">
                                     <div class="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300"></div>
                                     {{-- Overlay "+N fotos" on last visible tile if more exist --}}
                                     @if ($sideIdx === 1 && $imageCount > 3)
@@ -92,9 +105,14 @@
                         class="flex h-full transition-transform duration-300 ease-out will-change-transform"
                         style="width: {{ $imageCount * 100 }}%;">
                         @foreach ($allImages as $mIdx => $imagePath)
+                            @php
+                                $mImg = $lugar->images->get($mIdx);
+                                $mFp = $mImg ? ['x' => $mImg->focal_x ?? 50, 'y' => $mImg->focal_y ?? 50] : ['x' => $lugar->image_focal_x ?? 50, 'y' => $lugar->image_focal_y ?? 50];
+                            @endphp
                             <div class="h-full flex-shrink-0" style="width: {{ 100 / $imageCount }}%;">
                                 <img src="{{ asset('storage/' . $imagePath) }}" alt="{{ $lugar->title }}"
-                                    class="w-full h-full object-cover">
+                                    class="w-full h-full object-cover"
+                                    style="object-position: {{ $mFp['x'] }}% {{ $mFp['y'] }}%">
                             </div>
                         @endforeach
                     </div>

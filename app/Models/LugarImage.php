@@ -10,7 +10,17 @@ class LugarImage extends Model
         'lugar_id',
         'path',
         'order',
+        'focal_x',
+        'focal_y',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'focal_x' => 'decimal:2',
+            'focal_y' => 'decimal:2',
+        ];
+    }
 
     public function lugar()
     {

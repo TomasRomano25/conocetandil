@@ -106,8 +106,10 @@
                             class="group block bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                             <div class="relative h-52 overflow-hidden bg-gray-100">
                                 @if ($lugar->cover_image)
+                                    @php $fp = $lugar->cover_focal_point; @endphp
                                     <img src="{{ asset('storage/' . $lugar->cover_image) }}" alt="{{ $lugar->title }}"
-                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                        style="object-position: {{ $fp['x'] }}% {{ $fp['y'] }}%">
                                 @else
                                     <div class="w-full h-full bg-gradient-to-br from-[#0F1F16] to-[#2D6A4F]/50 flex items-center justify-center">
                                         <svg class="w-10 h-10 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
