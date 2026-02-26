@@ -281,8 +281,16 @@
             {
                 msg: '¡Hola! 👋 ¿Te interesa que te ayudemos a planificar tu viaje a Tandil?',
                 options: [
-                    { label: '¡Sí, me interesa!', next: 'cta' },
+                    { label: '¡Sí, me interesa!', next: 1 },
                     { label: 'Ahora no', next: 'dismiss' },
+                ]
+            },
+            {
+                msg: '¿Cuántos días vas a estar en Tandil?',
+                options: [
+                    { label: '1 día',   next: 'cta' },
+                    { label: '2 días',  next: 'cta' },
+                    { label: '3+ días', next: 'cta' },
                 ]
             },
         ];
