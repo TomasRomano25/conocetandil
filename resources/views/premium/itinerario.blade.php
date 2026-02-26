@@ -76,11 +76,11 @@
                 $blockOrder = ['morning', 'lunch', 'afternoon', 'evening', 'flexible'];
             @endphp
 
-            <div class="space-y-3">
+            <div class="space-y-0">
                 @foreach ($blockOrder as $blockKey)
                     @if ($blocks->has($blockKey))
                         {{-- Time block label --}}
-                        <div class="flex items-center gap-2 mt-5 mb-2">
+                        <div class="flex items-center gap-2 mt-6 mb-3">
                             <span class="text-lg">{{ \App\Models\Itinerary::timeBlockIcon($blockKey) }}</span>
                             <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">
                                 {{ \App\Models\Itinerary::timeBlockLabel($blockKey) }}
@@ -88,7 +88,7 @@
                         </div>
 
                         @foreach ($blocks[$blockKey] as $item)
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-0">
                             {{-- Item header --}}
                             <div class="flex">
                                 {{-- Place image --}}
@@ -188,6 +188,28 @@
                             </div>
                             @endif
                         </div>
+
+                        {{-- Travel connector between activities --}}
+                        @if (!$loop->last || $item->travel_minutes_to_next)
+                            @if ($item->travel_minutes_to_next)
+                            <div class="flex flex-col items-center py-1 relative">
+                                {{-- top stem --}}
+                                <div class="w-px h-3 bg-gray-200"></div>
+                                {{-- pill --}}
+                                <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-1.5 shadow-sm z-10">
+                                    <span class="text-sm leading-none">{{ $item->travelIcon() }}</span>
+                                    <span class="text-xs font-semibold text-gray-500">{{ $item->travelLabel() }}</span>
+                                    <span class="text-xs text-gray-300">·</span>
+                                    <span class="text-xs text-gray-400">desplazamiento</span>
+                                </div>
+                                {{-- bottom stem --}}
+                                <div class="w-px h-3 bg-gray-200"></div>
+                            </div>
+                            @elseif (!$loop->last)
+                            <div class="h-3"></div>
+                            @endif
+                        @endif
+
                         @endforeach
                     @endif
                 @endforeach

@@ -68,6 +68,16 @@
                     </div>
                 </div>
             </div>
+            {{-- Travel connector in admin list --}}
+            @if (!$loop->last && $item->travel_minutes_to_next)
+            <div class="flex items-center gap-3 px-5 py-1.5 bg-gray-50/80 border-t border-dashed border-gray-200">
+                <div class="flex-1 border-t border-dashed border-gray-300"></div>
+                <span class="text-xs text-gray-400 font-medium flex items-center gap-1">
+                    {{ $item->travelIcon() }} {{ $item->travelLabel() }} al siguiente
+                </span>
+                <div class="flex-1 border-t border-dashed border-gray-300"></div>
+            </div>
+            @endif
             @endforeach
         </div>
     </div>
@@ -116,7 +126,7 @@
                     <input type="text" name="custom_title" placeholder="Dejar vacío para usar el del lugar"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Duración (min)</label>
                         <input type="number" name="duration_minutes" placeholder="90"
@@ -125,6 +135,11 @@
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Costo estimado</label>
                         <input type="text" name="estimated_cost" placeholder="Gratis"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Viaje al siguiente (min)</label>
+                        <input type="number" name="travel_minutes_to_next" placeholder="15" min="1" max="999"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
                     </div>
                 </div>
@@ -192,7 +207,7 @@
                     <input type="text" name="custom_title" id="edit-custom_title"
                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Duración (min)</label>
                         <input type="number" name="duration_minutes" id="edit-duration_minutes"
@@ -201,6 +216,11 @@
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Costo estimado</label>
                         <input type="text" name="estimated_cost" id="edit-estimated_cost"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Viaje al siguiente (min)</label>
+                        <input type="number" name="travel_minutes_to_next" id="edit-travel_minutes_to_next" min="1" max="999"
                             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788]">
                     </div>
                 </div>
@@ -246,7 +266,7 @@ function openEditModal(id) {
     const form = document.getElementById('edit-form');
     form.action = baseUrl + '/' + id;
     ['day','time_block','custom_title','duration_minutes','estimated_cost',
-     'why_order','contextual_notes','skip_if','why_worth_it'].forEach(f => {
+     'why_order','contextual_notes','skip_if','why_worth_it','travel_minutes_to_next'].forEach(f => {
         const el = document.getElementById('edit-' + f);
         if (el) el.value = item[f] ?? '';
     });

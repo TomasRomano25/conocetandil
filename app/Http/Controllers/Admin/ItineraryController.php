@@ -93,7 +93,8 @@ class ItineraryController extends Controller
             'why_order'        => 'nullable|string|max:500',
             'contextual_notes' => 'nullable|string|max:500',
             'skip_if'          => 'nullable|string|max:300',
-            'why_worth_it'     => 'nullable|string|max:300',
+            'why_worth_it'          => 'nullable|string|max:300',
+            'travel_minutes_to_next' => 'nullable|integer|min:1|max:999',
         ]);
 
         $sortOrder = $itinerario->items()
@@ -106,6 +107,7 @@ class ItineraryController extends Controller
                 'lugar_id', 'day', 'time_block', 'custom_title',
                 'duration_minutes', 'estimated_cost',
                 'why_order', 'contextual_notes', 'skip_if', 'why_worth_it',
+                'travel_minutes_to_next',
             ]),
             ['sort_order' => $sortOrder]
         ));
@@ -126,12 +128,14 @@ class ItineraryController extends Controller
             'why_order'        => 'nullable|string|max:500',
             'contextual_notes' => 'nullable|string|max:500',
             'skip_if'          => 'nullable|string|max:300',
-            'why_worth_it'     => 'nullable|string|max:300',
+            'why_worth_it'          => 'nullable|string|max:300',
+            'travel_minutes_to_next' => 'nullable|integer|min:1|max:999',
         ]);
 
         $item->update($request->only([
             'day', 'time_block', 'custom_title', 'duration_minutes',
             'estimated_cost', 'why_order', 'contextual_notes', 'skip_if', 'why_worth_it',
+            'travel_minutes_to_next',
         ]));
 
         return redirect()->route('admin.itinerarios.items', $itinerario)

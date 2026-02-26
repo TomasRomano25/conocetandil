@@ -11,12 +11,14 @@ class ItineraryItem extends Model
         'itinerary_id', 'lugar_id', 'day', 'time_block', 'sort_order',
         'custom_title', 'duration_minutes', 'estimated_cost',
         'why_order', 'contextual_notes', 'skip_if', 'why_worth_it',
+        'travel_minutes_to_next',
     ];
 
     protected $casts = [
-        'day'              => 'integer',
-        'sort_order'       => 'integer',
-        'duration_minutes' => 'integer',
+        'day'                    => 'integer',
+        'sort_order'             => 'integer',
+        'duration_minutes'       => 'integer',
+        'travel_minutes_to_next' => 'integer',
     ];
 
     public function itinerary(): BelongsTo
@@ -32,6 +34,21 @@ class ItineraryItem extends Model
     public function displayTitle(): string
     {
         return $this->custom_title ?? $this->lugar?->title ?? '—';
+    }
+
+    public function travelLabel(): ?string
+    {
+        if (! $this->travel_minutes_to_next) return null;
+        $m = $this->travel_minutes_to_next;
+        $h = intdiv($m, 60);
+        $r = $m % 60;
+        if ($h > 0 && $r > 0) return "{$h}h {$r}min";
+        return $h > 0 ? "{$h}h" : "{$m}min";
+    }
+
+    public function travelIcon(): string
+    {
+        return ($this->travel_minutes_to_next ?? 99) <= 8 ? '🚶' : '🚗';
     }
 
     public function formattedDuration(): ?string
