@@ -45,16 +45,17 @@ class PremiumController extends Controller
         $enabledTypes   = json_decode(Configuration::get('itinerary_types_enabled',   json_encode(array_keys($allTypes))), true)   ?? array_keys($allTypes);
         $enabledSeasons = json_decode(Configuration::get('itinerary_seasons_enabled', json_encode(array_keys($allSeasons))), true) ?? array_keys($allSeasons);
 
-        // Fallback: if all disabled, show all
-        if (empty($enabledDays))    $enabledDays    = $allDays;
-        if (empty($enabledTypes))   $enabledTypes   = array_keys($allTypes);
-        if (empty($enabledSeasons)) $enabledSeasons = array_keys($allSeasons);
-
+        // If a category is fully disabled by admin, pass empty array — the view hides the section
         $days    = $enabledDays;
         $types   = array_filter($allTypes,   fn($k) => in_array($k, $enabledTypes),   ARRAY_FILTER_USE_KEY);
         $seasons = array_filter($allSeasons, fn($k) => in_array($k, $enabledSeasons), ARRAY_FILTER_USE_KEY);
 
-        return view('premium.planner', compact('days', 'types', 'seasons'));
+        // Defaults sent as hidden inputs when a section is hidden (so resultados validation still passes)
+        $defaultType   = array_key_first($allTypes);
+        $defaultSeason = array_key_first($allSeasons);
+        $defaultDays   = $allDays[0];
+
+        return view('premium.planner', compact('days', 'types', 'seasons', 'defaultType', 'defaultSeason', 'defaultDays'));
     }
 
     /** Results — match itineraries against questionnaire answers */

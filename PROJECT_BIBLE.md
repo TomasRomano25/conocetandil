@@ -306,6 +306,8 @@ storage/app/
 | promotion_url | string(255) | nullable |
 | latitude | decimal(10,7) | nullable |
 | longitude | decimal(10,7) | nullable |
+| image_focal_x | decimal(5,2) | nullable, 0–100 (%) focal point X for main image |
+| image_focal_y | decimal(5,2) | nullable, 0–100 (%) focal point Y for main image |
 | timestamps | | |
 
 ### `lugar_images`
@@ -315,6 +317,8 @@ storage/app/
 | lugar_id | foreignId | cascadeOnDelete |
 | path | string | storage path |
 | order | integer | default: 0 |
+| focal_x | decimal(5,2) | nullable, 0–100 (%) focal point X |
+| focal_y | decimal(5,2) | nullable, 0–100 (%) focal point Y |
 | timestamps | | |
 
 ### `inicio_sections`
@@ -888,6 +892,17 @@ Stat cards: total Lugares + total Users.
 
 ### Lugares Manager (`/admin/lugares`)
 Full CRUD. Create/Edit form: title, direction, description, main image, gallery (multi-file with drag sort), order, featured, category, rating, phone, website, opening_hours, lat/lng, promotion section.
+
+**Index search**: live search by title/direction with clear button (no page reload — query param `?q=`).
+
+**Gallery drag-sort**: gallery images are drag-sortable in both create and edit. Order saved via `gallery_order[]` hidden inputs. First gallery image is marked "Principal" and used as catalog cover via `cover_image` accessor on `Lugar`. New uploads via file picker also render as drag-sortable previews (DataTransfer API).
+
+**Focal point control** (migration: `add_focal_point_to_lugares_and_images`):
+- Main image: click on the thumbnail in admin edit to set focal point. A crosshair dot indicator shows position. Stored as `image_focal_x` / `image_focal_y` on `lugares`.
+- Gallery images: per-image focal point via a crosshair modal (click to position). Stored as `focal_x` / `focal_y` on `lugar_images`.
+- Real-time `object-position` CSS preview on thumbnails when focal point changes.
+- `cover_focal_point` accessor on `Lugar` model returns `"X% Y%"` string for CSS.
+- Applied in public catalog (`/lugares` cards) and lugar detail page (hero, side images, mobile gallery).
 
 **JSON Bulk Import** (`POST /admin/lugares/import`, route: `admin.lugares.import`):
 - "Importar JSON" button on index page opens a modal with a file picker

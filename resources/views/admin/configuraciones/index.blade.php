@@ -717,7 +717,7 @@
         <div id="section-itinerarios" class="hidden border-t border-gray-100">
             <form method="POST" action="{{ route('admin.configuraciones.itinerarios.update') }}" class="px-6 py-5 space-y-6">
                 @csrf
-                <p class="text-xs text-gray-500">Las opciones deshabilitadas no aparecerán en el cuestionario del Planificador Premium. Si deshabilita todas las opciones de una categoría, se mostrará igual con todas activas.</p>
+                <p class="text-xs text-gray-500">Las opciones deshabilitadas no aparecerán en el cuestionario del Planificador Premium. Si deshabilita <strong>todas</strong> las opciones de una categoría, esa pregunta completa se ocultará y se usará un valor por defecto automáticamente.</p>
 
                 {{-- Days --}}
                 <div>
