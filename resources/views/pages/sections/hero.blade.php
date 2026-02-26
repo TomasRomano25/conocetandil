@@ -2,7 +2,7 @@
 <section class="relative overflow-hidden min-h-[88vh] flex items-end" style="background-color: #0F1F16;">
     {{-- Background --}}
     @if ($heroImage)
-        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        <div class="absolute inset-0 bg-cover bg-top sm:bg-center bg-no-repeat"
              style="background-image: url('{{ asset('storage/' . $heroImage) }}')"></div>
         <div class="absolute inset-0" style="background: linear-gradient(to bottom, rgba(15,31,22,0.4) 0%, rgba(15,31,22,0.7) 60%, rgba(15,31,22,0.92) 100%);"></div>
     @else
