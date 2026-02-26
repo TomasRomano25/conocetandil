@@ -63,12 +63,12 @@
                 <div class="hidden md:flex items-center gap-0.5">
                     @foreach ($navItems as $navItem)
                         <a href="{{ route($navItem->route_name) }}"
-                           class="px-3.5 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs($navItem->route_name) ? 'text-white bg-white/10' : 'text-white/60 hover:text-white hover:bg-white/8' }}">
+                           class="px-3.5 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs($navItem->route_name) ? 'text-white bg-white/10' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                             {{ $navItem->label }}
                         </a>
                     @endforeach
                     <a href="{{ route('premium.upsell') }}"
-                       class="ml-1 px-3.5 py-2 text-sm font-semibold flex items-center gap-1.5 rounded-lg transition-colors {{ request()->is('premium*') ? 'text-amber-300 bg-amber-400/15' : 'text-amber-400/80 hover:text-amber-300 hover:bg-amber-400/10' }}">
+                       class="ml-1 px-3.5 py-2 text-sm font-semibold flex items-center gap-1.5 rounded-lg transition-colors {{ request()->is('premium*') ? 'text-amber-300 bg-amber-400/15' : 'text-amber-300 hover:text-amber-200 hover:bg-amber-400/10' }}">
                         <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                         Premium
                     </a>
@@ -79,7 +79,7 @@
                     @auth
                         <div class="relative" id="user-menu-wrapper">
                             <button id="user-menu-btn"
-                                class="flex items-center gap-2 text-sm font-medium text-white/70 hover:text-white px-3 py-2 rounded-lg hover:bg-white/8 transition-colors">
+                                class="flex items-center gap-2 text-sm font-medium text-white/80 hover:text-white px-3 py-2 rounded-lg hover:bg-white/10 transition-colors">
                                 <div class="w-7 h-7 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                                 </div>
@@ -104,7 +104,7 @@
                             </div>
                         </div>
                     @else
-                        <a href="{{ route('login') }}" class="text-sm font-medium text-white/60 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/8">
+                        <a href="{{ route('login') }}" class="text-sm font-medium text-white/75 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/10">
                             Ingresar
                         </a>
                         <a href="{{ route('register') }}" class="text-sm font-semibold bg-[#2D6A4F] hover:bg-[#52B788] text-white px-4 py-2 rounded-xl transition-colors shadow-sm">
@@ -127,7 +127,7 @@
             <div class="px-4 py-3 space-y-0.5">
                 @foreach ($navItems as $navItem)
                     <a href="{{ route($navItem->route_name) }}"
-                       class="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {{ request()->routeIs($navItem->route_name) ? 'text-white bg-white/10' : 'text-white/60 hover:text-white hover:bg-white/8' }}">
+                       class="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {{ request()->routeIs($navItem->route_name) ? 'text-white bg-white/10' : 'text-white/75 hover:text-white hover:bg-white/10' }}">
                         {{ $navItem->label }}
                     </a>
                 @endforeach
@@ -151,7 +151,7 @@
                             <button type="submit" class="w-full text-left px-3 py-2.5 rounded-xl text-sm text-red-400/80 hover:text-red-400 hover:bg-red-400/10 transition-colors">Cerrar sesión</button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" class="flex items-center px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white hover:bg-white/8 transition-colors">Ingresar</a>
+                        <a href="{{ route('login') }}" class="flex items-center px-3 py-2.5 rounded-xl text-sm text-white/75 hover:text-white hover:bg-white/10 transition-colors">Ingresar</a>
                         <a href="{{ route('register') }}" class="flex items-center px-3 py-2.5 rounded-xl text-sm font-semibold text-[#52B788] hover:bg-[#2D6A4F]/20 transition-colors">Registrarse gratis</a>
                     @endauth
                 </div>
