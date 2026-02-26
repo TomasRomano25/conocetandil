@@ -1,6 +1,6 @@
 # Conoce Tandil — Project Bible
 
-> **Last updated:** 2026-02-22 (MercadoPago integration — payment methods admin card, MP service, MP controller, webhook, checkout views updated)
+> **Last updated:** 2026-02-26 (Floating travel assistant chat, inline checkout auth, dark navbar, hub/planner hero images, itinerary travel time, GA4 verification)
 > **Purpose:** Single source of truth for the entire project. Share this file with developers or AI assistants to provide full context.
 
 ---
@@ -56,8 +56,12 @@
 - Reveal-email UX — masked email on public hotel pages, base64-encoded one-click reveal (bot-scraping resistant)
 - Mobile-optimized with touch carousel, sticky CTA, collapsible content
 - **Premium Experience Module** — membership-gated itinerary planner with day-by-day timelines, contextual editorial notes, and admin CRUD for itineraries
-- **Ecommerce & Membership Checkout** — plan selection, bank transfer checkout, order management with admin approval granting Premium access
+- **Ecommerce & Membership Checkout** — plan selection, bank transfer checkout, order management with admin approval granting Premium access. Guests can register/login inline on the checkout page without leaving the flow.
 - **User Registration & Password Reset** — public registration, forgot password flow using dynamic SMTP config
+- **Floating Travel Assistant Chat** — bottom-right chat bubble guiding visitors toward Premium plans; activatable from admin panel; auto-opens on desktop
+- **Dark Navbar** — `bg-[#0F1A14]/90 backdrop-blur-md` sticky navbar matching hero/footer aesthetic
+- **Hero Images for Planner & Hub** — admin-uploadable hero images for `/premium/planificar` and `/premium/panel` pages
+- **Itinerary Travel Time Connector** — `travel_minutes_to_next` field on `itinerary_items`; public view shows walking/driving pill between activities
 
 ---
 
@@ -447,6 +451,7 @@ storage/app/
 | contextual_notes | text | nullable — weather tips, warnings |
 | skip_if | text | nullable — "Saltá esto si no tenés auto" |
 | why_worth_it | text | nullable — "Vale la pena porque…" |
+| travel_minutes_to_next | smallint | nullable — walking/driving minutes to next activity |
 | timestamps | | |
 
 ### `membership_plans`
@@ -511,8 +516,11 @@ storage/app/
 |--------|-----|-------------------|------|
 | GET | `/premium/planes` | MembershipController@planes | membership.planes |
 | GET | `/premium/checkout/{plan:slug}` | MembershipController@checkout | membership.checkout |
-| POST | `/premium/checkout/{plan:slug}` | MembershipController@store | membership.store |
-| GET | `/premium/pedido/{order}` | MembershipController@confirmacion | membership.confirmacion |
+| POST | `/premium/checkout/{plan:slug}/register` | MembershipController@checkoutRegister | membership.checkout.register |
+| POST | `/premium/checkout/{plan:slug}` | MembershipController@store | membership.store *(auth required)* |
+| GET | `/premium/pedido/{order}` | MembershipController@confirmacion | membership.confirmacion *(auth required)* |
+
+**Note:** GET checkout is public (no auth). Guests see an inline register/login form. On success they are redirected back to checkout (now authenticated).
 
 ### Premium (middleware: auth + premium)
 | Method | URI | Controller@action | Name |
@@ -645,7 +653,7 @@ storage/app/
 - **Methods:** `itemsByDay()` — returns items grouped by day number; `timeBlockLabel(string $block): string`; `timeBlockIcon(string $block): string`
 
 ### `ItineraryItem`
-- **Fillable:** itinerary_id, lugar_id, day, time_block, sort_order, custom_title, duration_minutes, estimated_cost, why_order, contextual_notes, skip_if, why_worth_it
+- **Fillable:** itinerary_id, lugar_id, day, time_block, sort_order, custom_title, duration_minutes, estimated_cost, why_order, contextual_notes, skip_if, why_worth_it, travel_minutes_to_next
 - **Casts:** day, sort_order, duration_minutes (int)
 - **Relationships:** `itinerary()` → belongsTo Itinerary; `lugar()` → belongsTo Lugar
 - **Methods:** `displayTitle(): string` — custom_title ?? lugar->title ?? '—'; `formattedDuration(): ?string` — "2h 30min" format
@@ -972,6 +980,31 @@ Four cards:
 - "Generar backup ahora" button (force-runs command)
 - "Descargar último backup" button (streams file download)
 
+**Métodos de Pago (MercadoPago):**
+- Toggle: enable/disable MercadoPago
+- Sandbox mode toggle
+- MP Public Key, MP Access Token (write-only)
+- "Probar conexión" button — hits `/admin/configuraciones/mercadopago/test` AJAX, calls MP `/users/me` API, returns account email + mode
+
+**Filtros de Itinerarios:**
+- Checkboxes to enable/disable days (1–7), types (nature/gastronomy/adventure/relax/mixed), seasons (summer/winter/all)
+- Disabled options are hidden from the public planner form
+- Stored as JSON in `configurations` table: `itinerary_days_enabled`, `itinerary_types_enabled`, `itinerary_seasons_enabled`
+
+**Imágenes Hero:**
+- Planner hero (`planner_hero_image`): image shown behind the `/premium/planificar` questionnaire
+- Hub hero (`hub_hero_image`): image shown behind the `/premium/panel` welcome card
+- Each has upload + delete. Stored in `storage/app/public/planner/` and `storage/app/public/hub/`
+
+**Asistente de Viaje (Chat):**
+- Toggle `planner_chat_enabled` — enables/disables the floating chat bubble sitewide
+
+**Mantenimiento:**
+- Toggle maintenance mode with IP whitelist
+
+**reCAPTCHA v3:**
+- Site key + secret key
+
 **Cron setup notice** with exact command to add to server crontab.
 
 ---
@@ -1090,6 +1123,7 @@ Each `ItineraryItem` renders:
 - Left: lugar thumbnail (first gallery image)
 - Right: title + duration badge + cost badge + address + why_order text
 - Bottom panel (gray bg): contextual_notes (⚠️), skip_if (⏭️), why_worth_it (⭐), Google Maps link
+- **Travel time connector**: between consecutive activities, a vertical stem + pill shows `travel_minutes_to_next`. Icon: 🚶 if ≤8 min, 🚗 if >8 min. Admin sets value manually per item in the items editor.
 
 ### Membership management (Admin → Usuarios → Edit)
 - Premium status shown with expiry date + diffForHumans
@@ -1117,11 +1151,12 @@ Each `ItineraryItem` renders:
 A full self-service checkout for Premium memberships. Users browse plans, complete a bank transfer checkout, and an admin marks the order complete — which automatically grants Premium access.
 
 ### User flow
-1. `/premium/planes` — browse 4 plan cards (1 mes, 3 meses, 6 meses, 1 año) with prices, features, and a "Más elegido" highlight on the 6-month plan
-2. Click "Suscribirme" → `/premium/checkout/{slug}` (requires auth; non-logged users see "Iniciar sesión para suscribirme")
-3. Checkout page shows bank transfer details (CBU, alias, amount) with copy-to-clipboard buttons and an optional transfer reference field
-4. Submit → `POST /premium/checkout/{slug}` → creates `Order` (status: pending) → redirects to `/premium/pedido/{order}` (confirmation page)
-5. Confirmation page shows order number, bank details reminder, and a 3-step "what happens next" guide
+1. `/premium/planes` — browse plan cards with prices, features, and a "Más elegido" highlight on the 6-month plan
+2. Click "Suscribirme" → `/premium/checkout/{slug}` — **public route, no auth required**
+3. **If guest**: inline register/login card appears at top of checkout. Tab toggle between "Crear cuenta" and "Ya tengo cuenta". On submit → `POST /premium/checkout/{slug}/register` → creates/authenticates user → redirects back to checkout (now logged in). Login errors auto-switch to the login tab.
+4. **If authenticated**: checkout shows bank transfer details (CBU, alias, amount) with copy-to-clipboard buttons and optional transfer reference field
+5. Submit → `POST /premium/checkout/{slug}` → creates `Order` (status: pending) → redirects to `/premium/pedido/{order}` (confirmation page)
+6. Confirmation page shows order number, bank details reminder, and a 3-step "what happens next" guide
 
 ### Admin order flow
 1. `/admin/pedidos` — table of all orders, filterable by status (Todos / Pendientes / Completados / Cancelados), with amber highlight on pending rows
@@ -1605,9 +1640,13 @@ Both run in deploy.sh: `php artisan db:seed --class=HotelPlanSeeder --force && p
 | Contact form | ✅ Functional | Dynamic fields, DB storage, email notification |
 | Email sending | Configurable | SMTP set via Admin Configuraciones; silently fails if not set |
 | Premium Module | ✅ Functional | Membership, planner, itinerary timelines, admin CRUD |
-| Premium payment | ✅ Functional | Bank transfer checkout; admin marks order complete → grants Premium |
-| User registration | ✅ Functional | Public `/register` page; auto-login after registration |
+| Premium payment | ✅ Functional | Bank transfer + MercadoPago; admin marks transfer orders complete → grants Premium |
+| User registration | ✅ Functional | Public `/register` + inline on checkout; auto-login after registration |
 | Password reset | ✅ Functional | `/forgot-password` + `/reset-password/{token}`; uses dynamic SMTP config |
+| Travel assistant chat | ✅ Functional | Floating bubble, 2-step flow → Premium CTA, admin toggle, desktop auto-open |
+| Checkout inline auth | ✅ Functional | Guests register/login directly on checkout page without redirect |
+| Hero images (planner/hub) | ✅ Functional | Admin-uploadable backgrounds for planner and hub pages |
+| Travel time connector | ✅ Functional | `travel_minutes_to_next` on items; 🚶/🚗 pill connector in public itinerary view |
 | Form field creation | Not implemented | Fields added via seeder/tinker; admin can edit but not add new fields yet |
 | Guides pricing/checkout | Static | No payment or cart |
 | Social media links | Placeholder | Footer links go to `#` |
@@ -1737,6 +1776,67 @@ Full MercadoPago Checkout Pro integration for both membership and hotel orders.
 - `installments: 1, default_installments: 1` (no cuotas)
 - `auto_return: approved`
 - `notification_url`: webhook route
+
+---
+
+---
+
+## 26. Floating Travel Assistant Chat
+
+### Overview
+A floating chat bubble in the bottom-right corner that guides visitors toward Premium plans via a short 2-step conversation. Implemented as a pure vanilla JS state machine injected in `layouts/app.blade.php`.
+
+### Visibility rules
+- Only shown when `planner_chat_enabled = '1'` in `configurations`
+- Hidden on all `/admin*` pages
+- Hidden for users with active Premium (`isPremium()`)
+- Hidden on planner/resultados pages
+
+### Conversation flow
+1. "¿Te interesa que te ayudemos a planificar tu viaje a Tandil?" → **¡Sí, me interesa!** / **Ahora no**
+2. (If Sí) "¿Cuántos días vas a estar en Tandil?" → **1 día** / **2 días** / **3+ días**
+3. CTA: "Ver planes Premium" → redirects to `membership.planes`
+
+If user picks "Ahora no" → friendly dismissal message.
+
+### Behavior
+- Bubble appears immediately on page load (no delay), with a slide-up animation
+- **Desktop (≥1024px)**: chat window opens automatically 600ms after page load
+- **Mobile**: user must tap the bubble to open
+- Notification dot on bubble is hidden once opened
+
+### Admin toggle
+`POST /admin/configuraciones/planner-chat` → `ConfigurationController@updatePlannerChat`
+Config key: `planner_chat_enabled` (`'1'`/`'0'`)
+
+---
+
+## 27. Dark Navbar
+
+The public navbar uses a dark glass design consistent with the hero and footer:
+
+```
+bg-[#0F1A14]/90 backdrop-blur-md border-b border-white/[0.06]
+```
+
+- Logo: white text
+- Nav links: `text-white/75` → `text-white` on hover
+- Active link: `text-[#52B788]`
+- Premium badge: always `text-amber-300` (not dimmed)
+- Mobile menu: same dark bg, white text
+
+---
+
+## 28. Hero Images for Planner & Hub
+
+Admin-uploadable hero background images for two Premium pages:
+
+| Page | Config key | Storage path | Admin route |
+|------|-----------|--------------|-------------|
+| `/premium/planificar` | `planner_hero_image` | `storage/app/public/planner/` | `POST /admin/configuraciones/planner-hero` |
+| `/premium/panel` | `hub_hero_image` | `storage/app/public/hub/` | `POST /admin/configuraciones/hub-hero` |
+
+Each has upload + delete. Overlay: when image is set, a dark gradient (`from-[#1A1A1A]/60`) is used instead of the solid green gradient, so the image is visible. Controller methods: `updatePlannerHero()`, `deletePlannerHero()`, `updateHubHero()`, `deleteHubHero()` in `ConfigurationController`.
 
 ---
 
