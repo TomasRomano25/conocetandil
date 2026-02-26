@@ -279,46 +279,28 @@
         // Conversation script
         const steps = [
             {
-                msg: '¡Hola! 👋 ¿Estás planeando visitar Tandil?',
+                msg: '¡Hola! 👋 ¿Te interesa que te ayudemos a planificar tu viaje a Tandil?',
                 options: [
-                    { label: '✈️ Sí, estoy planeando', next: 1 },
-                    { label: '👀 Solo explorando', next: 'explore' },
-                ]
-            },
-            {
-                msg: '¡Genial! ¿Qué tipo de experiencia buscás?',
-                options: [
-                    { label: '🌿 Naturaleza',    next: 2 },
-                    { label: '🧀 Gastronomía',   next: 2 },
-                    { label: '🧗 Aventura',      next: 2 },
-                    { label: '✨ De todo un poco', next: 2 },
-                ]
-            },
-            {
-                msg: '¿Cuántos días vas a estar en Tandil?',
-                options: [
-                    { label: '1 día',  next: 'cta' },
-                    { label: '2 días', next: 'cta' },
-                    { label: '3+ días', next: 'cta' },
+                    { label: '¡Sí, me interesa!', next: 'cta' },
+                    { label: 'Ahora no', next: 'dismiss' },
                 ]
             },
         ];
 
         const specialSteps = {
-            explore: {
-                msg: '¡Perfecto! Explorá todos los lugares de Tandil sin apuro. Cuando quieras planificar un viaje, acá estaremos 🌿',
-                options: [
-                    { label: '📍 Ver lugares', url: '{{ route('lugares') }}' },
-                    { label: 'Cerrar', close: true },
-                ]
-            },
             cta: {
                 msg: '¡Perfecto! Tenemos itinerarios armados para cada perfil. Con Premium podés ver tu plan personalizado día por día 🗺️',
                 options: [
-                    { label: '✦ Ver mi plan personalizado', url: plannerUrl, primary: true },
+                    { label: '✦ Ver planes Premium', url: plannerUrl, primary: true },
                     { label: 'Quizás después', close: true },
                 ]
-            }
+            },
+            dismiss: {
+                msg: '¡Sin problema! Si en algún momento querés planificar tu visita, acá estaremos 🌿',
+                options: [
+                    { label: 'Cerrar', close: true },
+                ]
+            },
         };
 
         let chatOpen = false;
@@ -408,20 +390,23 @@
             }, 800);
         }
 
-        // Show bubble after 3s
-        setTimeout(() => {
-            const assistant = document.getElementById('travel-assistant');
-            if (assistant) {
-                assistant.style.opacity = '0';
-                assistant.style.transform = 'translateY(20px)';
-                assistant.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-                assistant.style.display = 'flex';
-                requestAnimationFrame(() => {
-                    assistant.style.opacity = '1';
-                    assistant.style.transform = 'translateY(0)';
-                });
-            }
-        }, 3000);
+        // Show bubble immediately
+        const assistant = document.getElementById('travel-assistant');
+        if (assistant) {
+            assistant.style.opacity = '0';
+            assistant.style.transform = 'translateY(20px)';
+            assistant.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            assistant.style.display = 'flex';
+            requestAnimationFrame(() => {
+                assistant.style.opacity = '1';
+                assistant.style.transform = 'translateY(0)';
+            });
+        }
+
+        // Auto-open on desktop
+        if (window.innerWidth >= 1024) {
+            setTimeout(() => openChat(), 600);
+        }
 
     })();
     </script>
