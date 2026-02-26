@@ -9,10 +9,12 @@
 <div class="bg-[#1A1A1A] relative overflow-hidden">
     @if($hubHero)
     <div class="absolute inset-0">
-        <img src="{{ Storage::url($hubHero) }}" alt="" class="w-full h-full object-cover object-top sm:object-center opacity-25">
+        <img src="{{ Storage::url($hubHero) }}" alt="" class="w-full h-full object-cover object-top sm:object-center">
     </div>
-    @endif
+    <div class="absolute inset-0 bg-gradient-to-br from-[#1A1A1A]/60 via-[#1A1A1A]/50 to-[#1A1A1A]/70"></div>
+    @else
     <div class="absolute inset-0 bg-gradient-to-br from-[#2D6A4F]/50 via-[#1A1A1A] to-[#1A1A1A]"></div>
+    @endif
     <div class="absolute -right-32 -top-32 w-[500px] h-[500px] rounded-full bg-[#2D6A4F]/10 blur-3xl pointer-events-none"></div>
     <div class="relative max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">

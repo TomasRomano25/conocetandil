@@ -1,5 +1,5 @@
 @php $heroImage = $sections['hero']->image ?? null; @endphp
-<section class="relative overflow-hidden min-h-[88vh] flex items-end" style="background-color: #0F1F16;">
+<section class="relative overflow-hidden min-h-[60vh] sm:min-h-[88vh] flex items-end" style="background-color: #0F1F16;">
     {{-- Background --}}
     @if ($heroImage)
         <div class="absolute inset-0 bg-cover bg-top sm:bg-center bg-no-repeat"
