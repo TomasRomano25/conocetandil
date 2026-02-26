@@ -840,6 +840,59 @@
     </div>
 
     {{-- ══════════════════════════════════════════════════════════
+         ASISTENTE DE VIAJE (CHAT FLOTANTE)
+         ══════════════════════════════════════════════════════════ --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <button type="button" onclick="toggleSection('planner-chat')"
+            class="w-full px-6 py-4 flex items-center gap-3 text-left hover:bg-gray-50 transition group">
+            <div class="w-9 h-9 bg-[#2D6A4F]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-4 4v-4z"/>
+                </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-[#1A1A1A]">Asistente de Viaje</p>
+                <p class="text-xs text-gray-500 mt-0.5">Chat flotante que guía al usuario hacia el Planificador Premium</p>
+            </div>
+            @if($plannerChat === '1')
+                <span class="text-xs font-medium bg-[#2D6A4F]/10 text-[#2D6A4F] px-2 py-1 rounded-full flex-shrink-0">Activo</span>
+            @else
+                <span class="text-xs font-medium bg-gray-100 text-gray-500 px-2 py-1 rounded-full flex-shrink-0">Inactivo</span>
+            @endif
+            <svg id="chevron-planner-chat" class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+
+        <div id="section-planner-chat" class="hidden border-t border-gray-100">
+            <form method="POST" action="{{ route('admin.configuraciones.planner-chat.update') }}" class="px-6 py-5 space-y-4">
+                @csrf
+                <p class="text-xs text-gray-500">Cuando está activo, aparece un botón flotante en la esquina inferior derecha del sitio público. Al hacer clic, guía al visitante con 3 preguntas y lo dirige al Planificador Premium. No aparece en páginas de admin ni para usuarios que ya tienen Premium.</p>
+
+                <div class="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-700">Activar asistente de viaje</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Muestra el chat flotante en todas las páginas públicas</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="planner_chat_enabled" value="1"
+                            class="sr-only peer"
+                            {{ $plannerChat === '1' ? 'checked' : '' }}>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#2D6A4F]"></div>
+                    </label>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit"
+                        class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2.5 px-6 rounded-lg transition text-sm">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════════════════════
          FILTROS DE ITINERARIOS
          ══════════════════════════════════════════════════════════ --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

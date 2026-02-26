@@ -224,6 +224,209 @@
         }
     </script>
 
+    {{-- ═══════════════ PLANNER CHAT ASSISTANT ═══════════════ --}}
+    @php
+        $chatEnabled  = \App\Models\Configuration::get('planner_chat_enabled', '0') === '1';
+        $isAdminPage  = request()->is('admin*');
+        $isUserPremium = auth()->check() && auth()->user()->isPremium();
+        $isPlannerPage = request()->is('premium/planificador*') || request()->is('premium/resultados*');
+    @endphp
+    @if($chatEnabled && !$isAdminPage && !$isUserPremium && !$isPlannerPage)
+    <div id="travel-assistant" class="fixed bottom-6 right-6 z-50 flex-col items-end gap-3" style="display:none; opacity:0;">
+
+        {{-- Chat window --}}
+        <div id="chat-window"
+            class="hidden w-[320px] sm:w-[340px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+            style="max-height: 520px;">
+
+            {{-- Header --}}
+            <div class="bg-[#1A1A1A] px-5 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white text-sm flex-shrink-0">🧭</div>
+                    <div>
+                        <p class="text-sm font-bold text-white leading-none">Asistente de viaje</p>
+                        <p class="text-xs text-white/40 mt-0.5">Conoce Tandil</p>
+                    </div>
+                </div>
+                <button onclick="closeChat()" class="text-white/40 hover:text-white transition p-1 rounded-lg hover:bg-white/10">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            {{-- Messages --}}
+            <div id="chat-messages" class="px-4 py-4 space-y-3 overflow-y-auto" style="max-height: 300px;"></div>
+
+            {{-- Options --}}
+            <div id="chat-options" class="px-4 pb-4 flex flex-wrap gap-2"></div>
+        </div>
+
+        {{-- Bubble button --}}
+        <button id="chat-bubble" onclick="toggleChat()"
+            class="w-14 h-14 bg-[#2D6A4F] hover:bg-[#52B788] active:scale-95 rounded-full shadow-lg shadow-[#2D6A4F]/40 flex items-center justify-center transition-all duration-200 relative">
+            <span id="bubble-icon" class="text-2xl">🧭</span>
+            {{-- Notification dot --}}
+            <span id="bubble-dot" class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-amber-400 rounded-full border-2 border-white flex items-center justify-center">
+                <span class="text-[8px] font-bold text-[#1A1A1A]">1</span>
+            </span>
+        </button>
+    </div>
+
+    <script>
+    (function () {
+        const plannerUrl = '{{ route('premium.planner') }}';
+        const premiumUrl = '{{ route('premium.upsell') }}';
+
+        // Conversation script
+        const steps = [
+            {
+                msg: '¡Hola! 👋 ¿Estás planeando visitar Tandil?',
+                options: [
+                    { label: '✈️ Sí, estoy planeando', next: 1 },
+                    { label: '👀 Solo explorando', next: 'explore' },
+                ]
+            },
+            {
+                msg: '¡Genial! ¿Qué tipo de experiencia buscás?',
+                options: [
+                    { label: '🌿 Naturaleza',    next: 2 },
+                    { label: '🧀 Gastronomía',   next: 2 },
+                    { label: '🧗 Aventura',      next: 2 },
+                    { label: '✨ De todo un poco', next: 2 },
+                ]
+            },
+            {
+                msg: '¿Cuántos días vas a estar en Tandil?',
+                options: [
+                    { label: '1 día',  next: 'cta' },
+                    { label: '2 días', next: 'cta' },
+                    { label: '3+ días', next: 'cta' },
+                ]
+            },
+        ];
+
+        const specialSteps = {
+            explore: {
+                msg: '¡Perfecto! Explorá todos los lugares de Tandil sin apuro. Cuando quieras planificar un viaje, acá estaremos 🌿',
+                options: [
+                    { label: '📍 Ver lugares', url: '{{ route('lugares') }}' },
+                    { label: 'Cerrar', close: true },
+                ]
+            },
+            cta: {
+                msg: '¡Perfecto! Tenemos itinerarios armados para cada perfil. Con Premium podés ver tu plan personalizado día por día 🗺️',
+                options: [
+                    { label: '✦ Ver mi plan personalizado', url: plannerUrl, primary: true },
+                    { label: 'Quizás después', close: true },
+                ]
+            }
+        };
+
+        let chatOpen = false;
+        let started  = false;
+
+        function toggleChat() {
+            chatOpen ? closeChat() : openChat();
+        }
+
+        function openChat() {
+            chatOpen = true;
+            document.getElementById('chat-window').classList.remove('hidden');
+            document.getElementById('bubble-dot').classList.add('hidden');
+            document.getElementById('bubble-icon').textContent = '✕';
+            if (!started) { started = true; setTimeout(() => runStep(0), 300); }
+        }
+
+        function closeChat() {
+            chatOpen = false;
+            document.getElementById('chat-window').classList.add('hidden');
+            document.getElementById('bubble-icon').textContent = '🧭';
+        }
+
+        window.closeChat = closeChat;
+        window.toggleChat = toggleChat;
+
+        function addMessage(text, isUser) {
+            const wrap = document.getElementById('chat-messages');
+            const row  = document.createElement('div');
+            row.className = isUser ? 'flex justify-end' : 'flex justify-start';
+            const bubble = document.createElement('div');
+            bubble.className = isUser
+                ? 'bg-[#2D6A4F] text-white text-sm px-4 py-2.5 rounded-2xl rounded-br-sm max-w-[85%] leading-relaxed'
+                : 'bg-gray-100 text-gray-800 text-sm px-4 py-2.5 rounded-2xl rounded-bl-sm max-w-[85%] leading-relaxed';
+            bubble.textContent = text;
+            bubble.style.opacity = '0';
+            bubble.style.transform = 'translateY(8px)';
+            bubble.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+            row.appendChild(bubble);
+            wrap.appendChild(row);
+            wrap.scrollTop = wrap.scrollHeight;
+            requestAnimationFrame(() => {
+                bubble.style.opacity = '1';
+                bubble.style.transform = 'translateY(0)';
+            });
+        }
+
+        function setOptions(options) {
+            const wrap = document.getElementById('chat-options');
+            wrap.innerHTML = '';
+            wrap.style.opacity = '0';
+            setTimeout(() => {
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.textContent = opt.label;
+                    btn.className = opt.primary
+                        ? 'bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white text-xs font-bold px-4 py-2 rounded-xl transition-all w-full'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-xl transition-all';
+                    btn.addEventListener('click', () => {
+                        if (opt.url)   { window.location.href = opt.url; return; }
+                        if (opt.close) { closeChat(); return; }
+                        addMessage(opt.label, true);
+                        wrap.innerHTML = '';
+                        setTimeout(() => runStep(opt.next), 600);
+                    });
+                    wrap.appendChild(btn);
+                });
+                wrap.style.transition = 'opacity 0.2s ease';
+                wrap.style.opacity = '1';
+            }, 500);
+        }
+
+        function runStep(key) {
+            const step = typeof key === 'string' ? specialSteps[key] : steps[key];
+            if (!step) return;
+            // Typing indicator
+            const wrap = document.getElementById('chat-messages');
+            const typing = document.createElement('div');
+            typing.className = 'flex justify-start';
+            typing.innerHTML = '<div class="bg-gray-100 text-gray-400 text-xs px-4 py-2.5 rounded-2xl rounded-bl-sm">escribiendo...</div>';
+            wrap.appendChild(typing);
+            wrap.scrollTop = wrap.scrollHeight;
+            setTimeout(() => {
+                typing.remove();
+                addMessage(step.msg, false);
+                setOptions(step.options);
+            }, 800);
+        }
+
+        // Show bubble after 3s
+        setTimeout(() => {
+            const assistant = document.getElementById('travel-assistant');
+            if (assistant) {
+                assistant.style.opacity = '0';
+                assistant.style.transform = 'translateY(20px)';
+                assistant.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                assistant.style.display = 'flex';
+                requestAnimationFrame(() => {
+                    assistant.style.opacity = '1';
+                    assistant.style.transform = 'translateY(0)';
+                });
+            }
+        }, 3000);
+
+    })();
+    </script>
+    @endif
+
     @if ($analyticsGtmId || $analyticsGa4Id)
     <script>
     (function () {

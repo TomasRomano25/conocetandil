@@ -88,8 +88,9 @@ class ConfigurationController extends Controller
 
         $plannerHero = Configuration::get('planner_hero_image');
         $hubHero     = Configuration::get('hub_hero_image');
+        $plannerChat = Configuration::get('planner_chat_enabled', '0');
 
-        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha', 'itineraryFilters', 'paymentMethods', 'currentIp', 'maintenanceConfig', 'plannerHero', 'hubHero'));
+        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha', 'itineraryFilters', 'paymentMethods', 'currentIp', 'maintenanceConfig', 'plannerHero', 'hubHero', 'plannerChat'));
     }
 
     public function updateMaintenance(Request $request)
@@ -250,6 +251,14 @@ class ConfigurationController extends Controller
 
         return redirect()->route('admin.configuraciones.index')
             ->with('success', 'Imagen del hero de Mi cuenta eliminada.');
+    }
+
+    public function updatePlannerChat(Request $request)
+    {
+        Configuration::set('planner_chat_enabled', $request->boolean('planner_chat_enabled') ? '1' : '0');
+
+        return redirect()->route('admin.configuraciones.index')
+            ->with('success', 'Configuración del asistente guardada.');
     }
 
     public function updatePaymentMethods(Request $request)
