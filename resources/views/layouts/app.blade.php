@@ -44,10 +44,11 @@
     @php $navItems = \App\Models\NavItem::ordered()->visible()->get(); @endphp
 
     {{-- ═══════════════ NAVBAR ═══════════════ --}}
-    <nav class="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+    <nav class="bg-[#0F1A14]/90 backdrop-blur-md border-b border-white/[0.06] sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-[68px]">
 
+                {{-- Logo --}}
                 <a href="{{ route('inicio') }}" class="flex items-center gap-2.5 flex-shrink-0">
                     <div class="w-8 h-8 rounded-xl bg-[#2D6A4F] flex items-center justify-center flex-shrink-0">
                         <svg class="w-[18px] h-[18px] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,59 +56,65 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
                     </div>
-                    <span class="font-bold text-[#111827] text-[0.9375rem] tracking-tight">Conoce Tandil</span>
+                    <span class="font-bold text-white text-[0.9375rem] tracking-tight">Conoce Tandil</span>
                 </a>
 
+                {{-- Desktop nav links --}}
                 <div class="hidden md:flex items-center gap-0.5">
                     @foreach ($navItems as $navItem)
                         <a href="{{ route($navItem->route_name) }}"
-                           class="px-3.5 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs($navItem->route_name) ? 'text-[#111827] bg-gray-100' : 'text-gray-500 hover:text-[#111827] hover:bg-gray-50' }}">
+                           class="px-3.5 py-2 text-sm font-medium rounded-lg transition-colors {{ request()->routeIs($navItem->route_name) ? 'text-white bg-white/10' : 'text-white/60 hover:text-white hover:bg-white/8' }}">
                             {{ $navItem->label }}
                         </a>
                     @endforeach
                     <a href="{{ route('premium.upsell') }}"
-                       class="ml-1 px-3.5 py-2 text-sm font-semibold flex items-center gap-1.5 rounded-lg transition-colors {{ request()->is('premium*') ? 'text-amber-600 bg-amber-50' : 'text-amber-500 hover:text-amber-600 hover:bg-amber-50' }}">
+                       class="ml-1 px-3.5 py-2 text-sm font-semibold flex items-center gap-1.5 rounded-lg transition-colors {{ request()->is('premium*') ? 'text-amber-300 bg-amber-400/15' : 'text-amber-400/80 hover:text-amber-300 hover:bg-amber-400/10' }}">
                         <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                         Premium
                     </a>
                 </div>
 
+                {{-- Desktop right side --}}
                 <div class="hidden md:flex items-center gap-2">
                     @auth
                         <div class="relative" id="user-menu-wrapper">
                             <button id="user-menu-btn"
-                                class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-[#111827] px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
-                                <div class="w-7 h-7 rounded-full bg-[#2D6A4F]/10 flex items-center justify-center text-[#2D6A4F] font-bold text-xs flex-shrink-0">
+                                class="flex items-center gap-2 text-sm font-medium text-white/70 hover:text-white px-3 py-2 rounded-lg hover:bg-white/8 transition-colors">
+                                <div class="w-7 h-7 rounded-full bg-[#2D6A4F] flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                                 </div>
                                 <span class="max-w-[100px] truncate">{{ auth()->user()->name }}</span>
-                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                <svg class="w-3.5 h-3.5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
                             <div id="user-menu-dropdown"
-                                class="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 hidden z-50">
+                                class="absolute right-0 top-full mt-2 w-52 bg-[#1A2820] rounded-2xl shadow-2xl border border-white/10 py-2 hidden z-50">
                                 @if (auth()->user()->is_admin)
-                                    <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">Panel Admin</a>
+                                    <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-2.5 text-sm text-white/70 hover:text-white hover:bg-white/8 transition-colors">Panel Admin</a>
                                 @elseif (auth()->user()->isPremium())
-                                    <a href="{{ route('premium.hub') }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">Mi cuenta Premium</a>
+                                    <a href="{{ route('premium.hub') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-amber-300/80 hover:text-amber-300 hover:bg-amber-400/10 transition-colors">
+                                        <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                        Mi cuenta Premium
+                                    </a>
                                 @endif
-                                <div class="my-1 border-t border-gray-100"></div>
+                                <div class="my-1 border-t border-white/8"></div>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <button type="submit" class="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">Cerrar sesión</button>
+                                    <button type="submit" class="w-full text-left px-4 py-2.5 text-sm text-red-400/80 hover:text-red-400 hover:bg-red-400/10 transition-colors">Cerrar sesión</button>
                                 </form>
                             </div>
                         </div>
                     @else
-                        <a href="{{ route('login') }}" class="text-sm font-medium text-gray-500 hover:text-[#111827] transition-colors px-3 py-2 rounded-lg hover:bg-gray-50">
+                        <a href="{{ route('login') }}" class="text-sm font-medium text-white/60 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/8">
                             Ingresar
                         </a>
-                        <a href="{{ route('register') }}" class="text-sm font-semibold bg-[#2D6A4F] hover:bg-[#245C43] text-white px-4 py-2 rounded-xl transition-colors shadow-sm">
+                        <a href="{{ route('register') }}" class="text-sm font-semibold bg-[#2D6A4F] hover:bg-[#52B788] text-white px-4 py-2 rounded-xl transition-colors shadow-sm">
                             Registrarse
                         </a>
                     @endauth
                 </div>
 
-                <button id="mobile-menu-btn" class="md:hidden p-2 rounded-xl text-gray-500 hover:text-[#111827] hover:bg-gray-50 transition-colors focus:outline-none">
+                {{-- Mobile hamburger --}}
+                <button id="mobile-menu-btn" class="md:hidden p-2 rounded-xl text-white/60 hover:text-white hover:bg-white/8 transition-colors focus:outline-none">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
@@ -115,33 +122,37 @@
             </div>
         </div>
 
-        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100">
+        {{-- Mobile menu --}}
+        <div id="mobile-menu" class="hidden md:hidden bg-[#0F1A14] border-t border-white/[0.06]">
             <div class="px-4 py-3 space-y-0.5">
                 @foreach ($navItems as $navItem)
                     <a href="{{ route($navItem->route_name) }}"
-                       class="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {{ request()->routeIs($navItem->route_name) ? 'text-[#111827] bg-gray-100' : 'text-gray-600 hover:text-[#111827] hover:bg-gray-50' }}">
+                       class="flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {{ request()->routeIs($navItem->route_name) ? 'text-white bg-white/10' : 'text-white/60 hover:text-white hover:bg-white/8' }}">
                         {{ $navItem->label }}
                     </a>
                 @endforeach
-                <a href="{{ route('premium.upsell') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-amber-500 hover:bg-amber-50 transition-colors">
+                <a href="{{ route('premium.upsell') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold text-amber-400/80 hover:text-amber-300 hover:bg-amber-400/10 transition-colors">
                     <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                     Premium
                 </a>
-                <div class="pt-3 mt-2 border-t border-gray-100 space-y-0.5">
+                <div class="pt-3 mt-2 border-t border-white/[0.06] space-y-0.5">
                     @auth
-                        <p class="px-3 py-1 text-xs text-gray-400 font-medium">{{ auth()->user()->name }}</p>
+                        <p class="px-3 py-1 text-xs text-white/30 font-medium">{{ auth()->user()->name }}</p>
                         @if (auth()->user()->is_admin)
-                            <a href="{{ route('admin.dashboard') }}" class="flex items-center px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">Panel Admin</a>
+                            <a href="{{ route('admin.dashboard') }}" class="flex items-center px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white hover:bg-white/8 transition-colors">Panel Admin</a>
                         @elseif (auth()->user()->isPremium())
-                            <a href="{{ route('premium.hub') }}" class="flex items-center px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">Mi cuenta Premium</a>
+                            <a href="{{ route('premium.hub') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-amber-400/80 hover:text-amber-300 hover:bg-amber-400/10 transition-colors">
+                                <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                                Mi cuenta Premium
+                            </a>
                         @endif
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="w-full text-left px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors">Cerrar sesión</button>
+                            <button type="submit" class="w-full text-left px-3 py-2.5 rounded-xl text-sm text-red-400/80 hover:text-red-400 hover:bg-red-400/10 transition-colors">Cerrar sesión</button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" class="flex items-center px-3 py-2.5 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">Ingresar</a>
-                        <a href="{{ route('register') }}" class="flex items-center px-3 py-2.5 rounded-xl text-sm font-semibold text-[#2D6A4F] hover:bg-[#2D6A4F]/5 transition-colors">Registrarse gratis</a>
+                        <a href="{{ route('login') }}" class="flex items-center px-3 py-2.5 rounded-xl text-sm text-white/60 hover:text-white hover:bg-white/8 transition-colors">Ingresar</a>
+                        <a href="{{ route('register') }}" class="flex items-center px-3 py-2.5 rounded-xl text-sm font-semibold text-[#52B788] hover:bg-[#2D6A4F]/20 transition-colors">Registrarse gratis</a>
                     @endauth
                 </div>
             </div>
