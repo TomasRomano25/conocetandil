@@ -131,6 +131,8 @@ Route::prefix(env('ADMIN_PREFIX', 'admin'))->middleware(['auth', 'admin'])->name
     Route::post('configuraciones/payment', [ConfigurationController::class, 'updatePayment'])->name('configuraciones.payment.update');
     Route::post('configuraciones/recaptcha', [ConfigurationController::class, 'updateRecaptcha'])->name('configuraciones.recaptcha.update');
     Route::post('configuraciones/itinerarios', [ConfigurationController::class, 'updateItineraryFilters'])->name('configuraciones.itinerarios.update');
+    Route::post('configuraciones/planner-hero', [ConfigurationController::class, 'updatePlannerHero'])->name('configuraciones.planner-hero.update');
+    Route::delete('configuraciones/planner-hero', [ConfigurationController::class, 'deletePlannerHero'])->name('configuraciones.planner-hero.delete');
     Route::post('configuraciones/payment-methods', [ConfigurationController::class, 'updatePaymentMethods'])->name('configuraciones.payment-methods.update');
     Route::post('configuraciones/payment-methods/test-mp', [ConfigurationController::class, 'testMercadoPago'])->name('configuraciones.payment-methods.test-mp');
     Route::post('configuraciones/mantenimiento', [ConfigurationController::class, 'updateMaintenance'])->name('configuraciones.mantenimiento.update');

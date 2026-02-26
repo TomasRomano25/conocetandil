@@ -8,6 +8,7 @@ use App\Services\MercadoPagoService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 
 class ConfigurationController extends Controller
 {
@@ -85,7 +86,9 @@ class ConfigurationController extends Controller
             'whitelist' => Configuration::get('maintenance_whitelist', ''),
         ];
 
-        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha', 'itineraryFilters', 'paymentMethods', 'currentIp', 'maintenanceConfig'));
+        $plannerHero = Configuration::get('planner_hero_image');
+
+        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha', 'itineraryFilters', 'paymentMethods', 'currentIp', 'maintenanceConfig', 'plannerHero'));
     }
 
     public function updateMaintenance(Request $request)
@@ -186,6 +189,36 @@ class ConfigurationController extends Controller
 
         return redirect()->route('admin.configuraciones.index')
             ->with('success', 'Filtros de itinerarios guardados correctamente.');
+    }
+
+    public function updatePlannerHero(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
+        ]);
+
+        $existing = Configuration::get('planner_hero_image');
+        if ($existing) {
+            Storage::disk('public')->delete($existing);
+        }
+
+        $path = $request->file('image')->store('planner', 'public');
+        Configuration::set('planner_hero_image', $path);
+
+        return redirect()->route('admin.configuraciones.index')
+            ->with('success', 'Imagen del hero del Planificador actualizada.');
+    }
+
+    public function deletePlannerHero()
+    {
+        $existing = Configuration::get('planner_hero_image');
+        if ($existing) {
+            Storage::disk('public')->delete($existing);
+            Configuration::set('planner_hero_image', null);
+        }
+
+        return redirect()->route('admin.configuraciones.index')
+            ->with('success', 'Imagen del hero eliminada.');
     }
 
     public function updatePaymentMethods(Request $request)

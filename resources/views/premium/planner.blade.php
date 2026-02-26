@@ -3,13 +3,24 @@
 
 @section('content')
 
+@php $plannerHero = \App\Models\Configuration::get('planner_hero_image'); @endphp
+
 {{-- Hero con fondo sutil --}}
 <div class="relative bg-[#1A1A1A] overflow-hidden">
-    {{-- Textura de fondo --}}
+    {{-- Foto de fondo (si está configurada) --}}
+    @if($plannerHero)
+    <div class="absolute inset-0">
+        <img src="{{ Storage::url($plannerHero) }}" alt=""
+            class="w-full h-full object-cover opacity-30">
+    </div>
+    @endif
+    {{-- Textura de fondo (solo cuando no hay foto) --}}
+    @if(!$plannerHero)
     <div class="absolute inset-0 opacity-[0.04]"
         style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 24px 24px;"></div>
-    {{-- Gradiente direccional --}}
-    <div class="absolute inset-0 bg-gradient-to-br from-[#2D6A4F]/40 via-transparent to-transparent"></div>
+    @endif
+    {{-- Gradiente oscurecedor siempre presente --}}
+    <div class="absolute inset-0 bg-gradient-to-br from-[#1A1A1A]/80 via-[#1A1A1A]/60 to-[#2D6A4F]/40"></div>
     {{-- Glow verde sutil --}}
     <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#52B788]/10 rounded-full blur-3xl pointer-events-none"></div>
 
