@@ -3,8 +3,15 @@
 
 @section('content')
 
+@php $hubHero = \App\Models\Configuration::get('hub_hero_image'); @endphp
+
 {{-- ══ HERO HEADER ══ --}}
 <div class="bg-[#1A1A1A] relative overflow-hidden">
+    @if($hubHero)
+    <div class="absolute inset-0">
+        <img src="{{ Storage::url($hubHero) }}" alt="" class="w-full h-full object-cover object-top sm:object-center opacity-25">
+    </div>
+    @endif
     <div class="absolute inset-0 bg-gradient-to-br from-[#2D6A4F]/50 via-[#1A1A1A] to-[#1A1A1A]"></div>
     <div class="absolute -right-32 -top-32 w-[500px] h-[500px] rounded-full bg-[#2D6A4F]/10 blur-3xl pointer-events-none"></div>
     <div class="relative max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">

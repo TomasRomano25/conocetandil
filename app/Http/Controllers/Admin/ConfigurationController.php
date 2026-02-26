@@ -87,8 +87,9 @@ class ConfigurationController extends Controller
         ];
 
         $plannerHero = Configuration::get('planner_hero_image');
+        $hubHero     = Configuration::get('hub_hero_image');
 
-        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha', 'itineraryFilters', 'paymentMethods', 'currentIp', 'maintenanceConfig', 'plannerHero'));
+        return view('admin.configuraciones.index', compact('config', 'latestFile', 'latestSize', 'backupCount', 'smtp', 'payment', 'recaptcha', 'itineraryFilters', 'paymentMethods', 'currentIp', 'maintenanceConfig', 'plannerHero', 'hubHero'));
     }
 
     public function updateMaintenance(Request $request)
@@ -219,6 +220,36 @@ class ConfigurationController extends Controller
 
         return redirect()->route('admin.configuraciones.index')
             ->with('success', 'Imagen del hero eliminada.');
+    }
+
+    public function updateHubHero(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
+        ]);
+
+        $existing = Configuration::get('hub_hero_image');
+        if ($existing) {
+            Storage::disk('public')->delete($existing);
+        }
+
+        $path = $request->file('image')->store('hub', 'public');
+        Configuration::set('hub_hero_image', $path);
+
+        return redirect()->route('admin.configuraciones.index')
+            ->with('success', 'Imagen del hero de Mi cuenta actualizada.');
+    }
+
+    public function deleteHubHero()
+    {
+        $existing = Configuration::get('hub_hero_image');
+        if ($existing) {
+            Storage::disk('public')->delete($existing);
+            Configuration::set('hub_hero_image', null);
+        }
+
+        return redirect()->route('admin.configuraciones.index')
+            ->with('success', 'Imagen del hero de Mi cuenta eliminada.');
     }
 
     public function updatePaymentMethods(Request $request)

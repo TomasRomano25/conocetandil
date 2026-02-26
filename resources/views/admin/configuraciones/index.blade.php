@@ -769,6 +769,77 @@
     </div>
 
     {{-- ══════════════════════════════════════════════════════════
+         HERO DE MI CUENTA
+         ══════════════════════════════════════════════════════════ --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <button type="button" onclick="toggleSection('hub-hero')"
+            class="w-full px-6 py-4 flex items-center gap-3 text-left hover:bg-gray-50 transition group">
+            <div class="w-9 h-9 bg-[#2D6A4F]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-[#1A1A1A]">Imagen de fondo — Mi cuenta</p>
+                <p class="text-xs text-gray-500 mt-0.5">Imagen de fondo del hero en la página de cuenta Premium</p>
+            </div>
+            @if($hubHero)
+            <span class="text-xs font-medium bg-[#2D6A4F]/10 text-[#2D6A4F] px-2 py-1 rounded-full flex-shrink-0">Activa</span>
+            @else
+            <span class="text-xs font-medium bg-gray-100 text-gray-500 px-2 py-1 rounded-full flex-shrink-0">Sin imagen</span>
+            @endif
+            <svg id="chevron-hub-hero" class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+
+        <div id="section-hub-hero" class="hidden border-t border-gray-100">
+            <div class="px-6 py-5 space-y-5">
+                <p class="text-xs text-gray-500">Esta imagen se muestra como fondo en el hero de la página "Mi cuenta" de usuarios Premium. Se recomienda una foto horizontal de alta resolución (mínimo 1400px). Formatos: JPG, PNG, WebP. Máximo 4 MB.</p>
+
+                @if($hubHero)
+                <div class="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50" style="height: 160px;">
+                    <img src="{{ Storage::url($hubHero) }}" alt="Hero actual"
+                        class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end p-3">
+                        <span class="text-xs text-white font-medium">Imagen actual</span>
+                    </div>
+                </div>
+                @else
+                <div class="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center" style="height: 120px;">
+                    <p class="text-sm text-gray-400">Sin imagen configurada — se muestra el fondo oscuro por defecto.</p>
+                </div>
+                @endif
+
+                <form method="POST" action="{{ route('admin.configuraciones.hub-hero.update') }}" enctype="multipart/form-data" class="flex items-end gap-3">
+                    @csrf
+                    <div class="flex-1">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">{{ $hubHero ? 'Reemplazar imagen' : 'Subir imagen' }}</label>
+                        <input type="file" name="image" accept="image/*" required
+                            class="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#2D6A4F]/10 file:text-[#2D6A4F] hover:file:bg-[#2D6A4F]/20 transition">
+                    </div>
+                    <button type="submit"
+                        class="bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-semibold py-2.5 px-5 rounded-lg transition text-sm flex-shrink-0">
+                        Guardar
+                    </button>
+                </form>
+
+                @if($hubHero)
+                <form method="POST" action="{{ route('admin.configuraciones.hub-hero.delete') }}">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit"
+                        onclick="return confirm('¿Eliminar la imagen del hero de Mi cuenta?')"
+                        class="text-xs text-red-500 hover:text-red-700 font-medium transition">
+                        Eliminar imagen actual
+                    </button>
+                </form>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════════════════════
          FILTROS DE ITINERARIOS
          ══════════════════════════════════════════════════════════ --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
