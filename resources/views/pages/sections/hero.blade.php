@@ -14,7 +14,7 @@
     <div class="absolute -right-20 -top-20 w-[400px] h-[400px] rounded-full border border-white/[0.04] pointer-events-none"></div>
 
     {{-- Content --}}
-    <div class="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 pt-40">
+    <div class="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 pt-8">
         <div class="max-w-3xl">
             {{-- Eyebrow --}}
             <div class="flex items-center gap-2 mb-7">
