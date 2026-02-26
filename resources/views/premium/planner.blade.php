@@ -41,6 +41,27 @@
 <section class="bg-gradient-to-b from-gray-50 to-white py-12">
 <div class="max-w-5xl mx-auto px-4 sm:px-6">
 
+    {{-- ══ TRUST BAR — mobile only ══ --}}
+    <div class="flex items-center justify-around lg:hidden bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-4 mb-6">
+        <div class="flex flex-col items-center gap-0.5 text-center">
+            <span class="text-base">👥</span>
+            <p class="text-base font-extrabold text-[#1A1A1A] leading-none">+200</p>
+            <p class="text-[10px] text-gray-400 leading-tight">viajeros<br>planificaron</p>
+        </div>
+        <div class="w-px h-10 bg-gray-100"></div>
+        <div class="flex flex-col items-center gap-0.5 text-center">
+            <span class="text-base">★</span>
+            <p class="text-base font-extrabold text-[#1A1A1A] leading-none">4.9 / 5</p>
+            <p class="text-[10px] text-gray-400 leading-tight">valoración<br>promedio</p>
+        </div>
+        <div class="w-px h-10 bg-gray-100"></div>
+        <div class="flex flex-col items-center gap-0.5 text-center">
+            <span class="text-base">🗺</span>
+            <p class="text-base font-extrabold text-[#1A1A1A] leading-none">+15</p>
+            <p class="text-[10px] text-gray-400 leading-tight">itinerarios<br>optimizados</p>
+        </div>
+    </div>
+
     <div class="flex flex-col lg:flex-row gap-8 items-start">
 
         {{-- ══ FORM CARD ══ --}}
@@ -152,8 +173,8 @@
         {{-- ══ SOCIAL PROOF SIDEBAR ══ --}}
         <aside class="w-full lg:w-72 flex-shrink-0 space-y-4">
 
-            {{-- Trust stats --}}
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            {{-- Trust stats — desktop only (mobile usa trust bar arriba) --}}
+            <div class="hidden lg:block bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <p class="text-xs font-bold text-[#2D6A4F] uppercase tracking-widest mb-4">Por qué funciona</p>
                 <div class="space-y-4">
                     <div class="flex items-start gap-3">
