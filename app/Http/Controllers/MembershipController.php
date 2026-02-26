@@ -10,8 +10,11 @@ use App\Models\Promotion;
 use App\Models\PromotionUse;
 use App\Services\MercadoPagoService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use App\Models\User;
 
 class MembershipController extends Controller
 {
@@ -24,10 +27,62 @@ class MembershipController extends Controller
     public function checkout(MembershipPlan $plan)
     {
         abort_if(! $plan->active, 404);
+
+        // If already authenticated, go straight to checkout
+        if (auth()->check()) {
+            return view('membership.checkout', [
+                'plan'       => $plan,
+                'bankConfig' => $this->bankConfig(),
+            ]);
+        }
+
+        // Guest: show inline auth form
         return view('membership.checkout', [
             'plan'       => $plan,
             'bankConfig' => $this->bankConfig(),
+            'showAuth'   => true,
         ]);
+    }
+
+    public function checkoutRegister(Request $request, MembershipPlan $plan)
+    {
+        abort_if(! $plan->active, 404);
+
+        $mode = $request->input('auth_mode', 'register');
+
+        if ($mode === 'login') {
+            $request->validate([
+                'email'    => 'required|email',
+                'password' => 'required|string',
+            ]);
+
+            if (! Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+                return back()->withErrors(['login_password' => 'Email o contraseña incorrectos.'])->withInput();
+            }
+
+            return redirect()->route('membership.checkout', $plan->slug);
+        }
+
+        // Register mode
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ], [
+            'email.unique'       => 'Ya existe una cuenta con ese email. ¿Querés iniciar sesión?',
+            'password.min'       => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+        ]);
+
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        Auth::login($user);
+
+        return redirect()->route('membership.checkout', $plan->slug);
     }
 
     public function store(Request $request, MembershipPlan $plan)

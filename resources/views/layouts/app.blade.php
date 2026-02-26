@@ -273,7 +273,7 @@
 
     <script>
     (function () {
-        const plannerUrl = '{{ route('premium.planner') }}';
+        const plannerUrl = '{{ route('membership.planes') }}';
         const premiumUrl = '{{ route('premium.upsell') }}';
 
         // Conversation script

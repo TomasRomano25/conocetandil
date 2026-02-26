@@ -87,8 +87,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 // Membership / plans
 Route::get('/premium/planes', [MembershipController::class, 'planes'])->name('membership.planes');
+Route::get('/premium/checkout/{plan:slug}',          [MembershipController::class, 'checkout'])->name('membership.checkout');
+Route::post('/premium/checkout/{plan:slug}/register', [MembershipController::class, 'checkoutRegister'])->name('membership.checkout.register');
 Route::middleware('auth')->group(function () {
-    Route::get('/premium/checkout/{plan:slug}',  [MembershipController::class, 'checkout'])->name('membership.checkout');
     Route::post('/premium/checkout/{plan:slug}', [MembershipController::class, 'store'])->name('membership.store');
     Route::get('/premium/pedido/{order}',        [MembershipController::class, 'confirmacion'])->name('membership.confirmacion');
 });

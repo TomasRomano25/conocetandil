@@ -18,6 +18,99 @@
 
     <h1 class="text-2xl font-bold text-[#1A1A1A] mb-8">Finalizar compra</h1>
 
+    {{-- Inline auth for guests --}}
+    @if (!auth()->check())
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 bg-[#2D6A4F]/10 rounded-full flex items-center justify-center">
+                <svg class="w-4 h-4 text-[#2D6A4F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-bold text-[#1A1A1A] text-sm">Creá tu cuenta para continuar</p>
+                <p class="text-xs text-gray-500">Solo te lleva un momento — sin tarjeta de crédito</p>
+            </div>
+        </div>
+
+        {{-- Toggle tabs --}}
+        <div class="flex gap-1 bg-gray-100 rounded-xl p-1 mb-5">
+            <button type="button" id="tab-btn-register" onclick="switchAuthTab('register')"
+                class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition bg-white text-[#1A1A1A] shadow-sm">
+                Crear cuenta
+            </button>
+            <button type="button" id="tab-btn-login" onclick="switchAuthTab('login')"
+                class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition text-gray-500 hover:text-[#1A1A1A]">
+                Ya tengo cuenta
+            </button>
+        </div>
+
+        {{-- Register form --}}
+        <form id="auth-register-form" method="POST" action="{{ route('membership.checkout.register', $plan->slug) }}">
+            @csrf
+            <input type="hidden" name="auth_mode" value="register">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+                    <input type="text" name="name" value="{{ old('name') }}" required autocomplete="name"
+                        placeholder="Tu nombre"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788] focus:border-transparent @error('name') border-red-400 @enderror">
+                    @error('name')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" name="email" value="{{ old('email') }}" required autocomplete="email"
+                        placeholder="tu@email.com"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788] focus:border-transparent @error('email') border-red-400 @enderror">
+                    @error('email')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                    <input type="password" name="password" required autocomplete="new-password"
+                        placeholder="Mínimo 8 caracteres"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788] focus:border-transparent @error('password') border-red-400 @enderror">
+                    @error('password')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Confirmá la contraseña</label>
+                    <input type="password" name="password_confirmation" required autocomplete="new-password"
+                        placeholder="Repetí la contraseña"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788] focus:border-transparent">
+                </div>
+                <button type="submit"
+                    class="w-full bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-bold py-3.5 rounded-xl transition text-sm">
+                    Crear cuenta y continuar →
+                </button>
+            </div>
+        </form>
+
+        {{-- Login form --}}
+        <form id="auth-login-form" method="POST" action="{{ route('membership.checkout.register', $plan->slug) }}" class="hidden">
+            @csrf
+            <input type="hidden" name="auth_mode" value="login">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" name="email" value="{{ old('email') }}" required autocomplete="email"
+                        placeholder="tu@email.com"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788] focus:border-transparent @error('login_password') border-red-400 @enderror">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                    <input type="password" name="password" required autocomplete="current-password"
+                        placeholder="Tu contraseña"
+                        class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788] focus:border-transparent @error('login_password') border-red-400 @enderror">
+                    @error('login_password')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+                <button type="submit"
+                    class="w-full bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white font-bold py-3.5 rounded-xl transition text-sm">
+                    Iniciar sesión y continuar →
+                </button>
+            </div>
+        </form>
+    </div>
+    @endif
+
     @if(session('error'))
     <div class="mb-6 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 flex items-start gap-2">
         <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -30,6 +123,7 @@
     </div>
     @endif
 
+    @if (auth()->check())
     <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
 
         {{-- Left: Payment methods --}}
@@ -289,14 +383,41 @@
                     @endforeach
                 </div>
 
+                @if (auth()->check())
                 <div class="mt-5 pt-4 border-t border-gray-100 text-center">
                     <p class="text-xs text-gray-400">Cuenta: <strong>{{ auth()->user()->email }}</strong></p>
                 </div>
+                @endif
             </div>
         </div>
     </div>
 
 </div>
+    @else
+    {{-- Guest: compact plan summary --}}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Tu plan</p>
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="font-bold text-[#1A1A1A]">{{ $plan->name }}</p>
+                <p class="text-xs text-gray-400">{{ $plan->durationLabel() }} de acceso Premium</p>
+            </div>
+            <span class="font-bold text-[#2D6A4F] text-lg">{{ $plan->formattedEffectivePrice() }}</span>
+        </div>
+        @if (!empty($plan->features))
+        <div class="mt-4 pt-4 border-t border-gray-100 space-y-2">
+            @foreach ($plan->features as $feature)
+            <div class="flex items-start gap-2 text-xs text-gray-500">
+                <svg class="w-3.5 h-3.5 text-[#2D6A4F] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                {{ $feature }}
+            </div>
+            @endforeach
+        </div>
+        @endif
+    </div>
+    @endif
 </section>
 
 <script>
@@ -416,5 +537,35 @@ function validateCoupon() {
 });
 @endif
 </script>
+
+@if (!auth()->check())
+<script>
+function switchAuthTab(tab) {
+    var regForm  = document.getElementById('auth-register-form');
+    var logForm  = document.getElementById('auth-login-form');
+    var btnReg   = document.getElementById('tab-btn-register');
+    var btnLog   = document.getElementById('tab-btn-login');
+
+    if (tab === 'register') {
+        regForm.classList.remove('hidden');
+        logForm.classList.add('hidden');
+        btnReg.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition bg-white text-[#1A1A1A] shadow-sm';
+        btnLog.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition text-gray-500 hover:text-[#1A1A1A]';
+    } else {
+        regForm.classList.add('hidden');
+        logForm.classList.remove('hidden');
+        btnLog.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition bg-white text-[#1A1A1A] shadow-sm';
+        btnReg.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition text-gray-500 hover:text-[#1A1A1A]';
+    }
+}
+@php
+    // If there were login errors, pre-switch to login tab
+    $openLoginTab = $errors->has('login_password');
+@endphp
+@if ($openLoginTab)
+document.addEventListener('DOMContentLoaded', function() { switchAuthTab('login'); });
+@endif
+</script>
+@endif
 
 @endsection
