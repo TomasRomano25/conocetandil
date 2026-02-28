@@ -1,6 +1,6 @@
 # Conoce Tandil — Project Bible
 
-> **Last updated:** 2026-02-26 (Floating travel assistant chat, inline checkout auth, dark navbar, hub/planner hero images, itinerary travel time, GA4 verification)
+> **Last updated:** 2026-02-27 (is_popular badge on plans, membership sale/discount UI, week-based duration for membership plans)
 > **Purpose:** Single source of truth for the entire project. Share this file with developers or AI assistants to provide full context.
 
 ---
@@ -462,9 +462,13 @@ storage/app/
 | slug | string | unique — used in URL (e.g. "1-mes") |
 | description | text | nullable |
 | price | decimal(10,2) | Price in ARS |
-| duration_months | integer | How many months of premium access |
+| sale_price | decimal(10,2) | nullable — discounted price; shown with strikethrough original |
+| sale_label | string(50) | nullable — discount label text (e.g. "Black Friday", "-20%") |
+| duration_months | integer | Numeric duration value |
+| duration_unit | string(10) | `months` (default) or `weeks` — controls addMonths/addWeeks on Order::complete() |
 | features | json | nullable — array of feature strings for plan card |
 | active | boolean | default: true — controls visibility on /premium/planes |
+| is_popular | boolean | default: false — shows "★ Más elegido" badge on plan card |
 | sort_order | integer | default: 0 |
 | timestamps | | |
 
@@ -759,9 +763,10 @@ storage/app/
 
 ### `Admin\MembershipPlanController`
 - `index()` — all plans with orders_count
-- `store(Request)` — creates new plan
-- `update(Request, MembershipPlan)` — updates plan fields
+- `store(Request)` — creates new plan (includes `duration_unit`)
+- `update(Request, MembershipPlan)` — updates plan fields including `sale_price`, `sale_label`, `is_popular`, `duration_unit`
 - `destroy(MembershipPlan)` — deletes plan (only if no orders)
+- `updateSale(Request, MembershipPlan)` — dedicated endpoint for sale price (POST `/admin/planes/{plan}/sale`)
 
 ### `Admin\ConfigurationController`
 - `index()` — reads backup config + SMTP config + payment config (`bank_*` keys), lists backup files, passes all stats to view
@@ -1304,6 +1309,9 @@ A full hotel directory system where hotel owners register their property, choose
 | has_rooms | boolean | Rooms section enabled |
 | has_gallery_captions | boolean | Gallery captions enabled |
 | is_featured | boolean | Featured placement in catalog |
+| is_popular | boolean | Shows "★ Más elegido" badge on public plan page |
+| sale_price | decimal(10,2) | nullable — discounted price |
+| sale_label | string(50) | nullable — discount label text |
 | duration_months | smallint | Subscription length |
 | is_active | boolean | Visible in public plan selector |
 | sort_order | smallint | |
