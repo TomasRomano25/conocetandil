@@ -26,87 +26,77 @@
     @if ($plans->isEmpty())
         <div class="text-center py-20 text-gray-500">No hay planes disponibles en este momento.</div>
     @else
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         @foreach ($plans as $plan)
         @php
             $popular = $plan->is_popular;
             $onSale  = $plan->hasSale();
+            $pct     = $onSale ? round((1 - $plan->effective_price / (float)$plan->price) * 100) : 0;
         @endphp
-        <div class="relative flex flex-col bg-white rounded-2xl border-2 {{ $popular ? 'border-[#2D6A4F] shadow-2xl scale-[1.02]' : 'border-gray-200 shadow-sm' }} overflow-hidden transition-transform">
+        <div class="flex flex-col bg-white rounded-2xl overflow-hidden border-2 shadow-sm
+            {{ $popular ? 'border-[#2D6A4F] shadow-lg' : 'border-gray-200' }}">
 
-            {{-- Badges top bar --}}
-            @if ($popular)
-                <div class="bg-[#2D6A4F] text-white text-xs font-bold text-center py-1.5 tracking-widest uppercase">
-                    ★ Más elegido
-                </div>
-            @elseif ($onSale)
-                <div class="bg-amber-500 text-white text-xs font-bold text-center py-1.5 tracking-widest uppercase">
-                    🏷 {{ $plan->sale_label ?? 'Oferta especial' }}
-                </div>
-            @endif
-
-            <div class="p-6 flex flex-col flex-1">
-
-                <h3 class="text-lg font-bold text-[#1A1A1A] mb-1">{{ $plan->name }}</h3>
-                @if ($plan->description)
-                    <p class="text-xs text-gray-400 mb-4 leading-relaxed">{{ $plan->description }}</p>
+            {{-- Top ribbon: siempre presente, misma altura --}}
+            <div class="h-7 flex items-center justify-center text-xs font-bold tracking-widest uppercase
+                {{ $popular ? 'bg-[#2D6A4F] text-white' : ($onSale ? 'bg-amber-500 text-white' : 'bg-transparent') }}">
+                @if ($popular) ★ Más elegido
+                @elseif ($onSale) 🏷 {{ $plan->sale_label ?? 'Oferta especial' }}
                 @endif
+            </div>
 
-                {{-- Pricing block --}}
-                <div class="mb-5">
-                    @if ($onSale)
-                        {{-- Discount badge --}}
-                        @php
-                            $pct = round((1 - $plan->effective_price / (float)$plan->price) * 100);
-                        @endphp
-                        <div class="inline-flex items-center gap-1.5 bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full mb-2">
-                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M17.707 9.293l-7-7A1 1 0 0010 2H4a2 2 0 00-2 2v6a1 1 0 00.293.707l7 7a1 1 0 001.414 0l7-7a1 1 0 000-1.414zM6 7a1 1 0 110-2 1 1 0 010 2z" clip-rule="evenodd"/></svg>
-                            −{{ $pct }}% OFF
-                            @if ($plan->sale_label) · {{ $plan->sale_label }}@endif
-                        </div>
-                        <div class="flex items-baseline gap-2">
-                            <span class="text-3xl font-bold text-[#2D6A4F]">{{ $plan->formattedEffectivePrice() }}</span>
-                            <s class="text-gray-400 text-sm line-through">{{ $plan->formattedPrice() }}</s>
-                        </div>
-                        <p class="text-xs text-gray-400 mt-0.5">/ {{ $plan->durationLabel() }}</p>
-                        @if ($plan->duration_months > 1 && $plan->duration_unit === 'months')
-                            <p class="text-xs text-[#52B788] font-semibold mt-1">
-                                ≈ ${{ number_format($plan->effective_price / $plan->duration_months, 0, ',', '.') }} por mes
-                            </p>
-                        @endif
-                    @else
-                        <span class="text-3xl font-bold text-[#2D6A4F]">{{ $plan->formattedEffectivePrice() }}</span>
-                        <span class="text-sm text-gray-400 ml-1">/ {{ $plan->durationLabel() }}</span>
-                        @if ($plan->duration_months > 1 && $plan->duration_unit === 'months')
-                            <p class="text-xs text-gray-400 mt-0.5">
-                                ≈ ${{ number_format($plan->effective_price / $plan->duration_months, 0, ',', '.') }} por mes
-                            </p>
-                        @endif
+            <div class="p-5 flex flex-col flex-1">
+
+                {{-- Nombre y descripción: altura fija con clamp --}}
+                <div class="mb-4 min-h-[3.5rem]">
+                    <h3 class="font-bold text-[#1A1A1A] text-base leading-tight">{{ $plan->name }}</h3>
+                    @if ($plan->description)
+                        <p class="text-xs text-gray-400 mt-1 leading-relaxed line-clamp-2">{{ $plan->description }}</p>
                     @endif
                 </div>
 
-                @if ($plan->features)
-                <ul class="space-y-2 mb-6 flex-1">
-                    @foreach ($plan->features as $feature)
+                {{-- Precio: bloque de altura fija --}}
+                <div class="mb-1">
+                    @if ($onSale)
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-2xl font-bold text-[#2D6A4F]">{{ $plan->formattedEffectivePrice() }}</span>
+                            <s class="text-gray-400 text-xs">{{ $plan->formattedPrice() }}</s>
+                            <span class="bg-amber-100 text-amber-700 text-xs font-bold px-1.5 py-0.5 rounded-md">-{{ $pct }}%</span>
+                        </div>
+                    @else
+                        <span class="text-2xl font-bold text-[#2D6A4F]">{{ $plan->formattedEffectivePrice() }}</span>
+                    @endif
+                </div>
+
+                {{-- Duración: siempre presente --}}
+                <p class="text-xs text-gray-400 mb-1">/ {{ $plan->durationLabel() }}</p>
+
+                {{-- Precio por mes: reservar espacio siempre --}}
+                <div class="h-4 mb-4">
+                    @if ($plan->duration_months > 1 && $plan->duration_unit === 'months')
+                        <p class="text-xs text-[#52B788] font-semibold">
+                            ≈ ${{ number_format($plan->effective_price / $plan->duration_months, 0, ',', '.') }}/mes
+                        </p>
+                    @endif
+                </div>
+
+                {{-- Features: flex-1 para empujar el botón al fondo --}}
+                <ul class="space-y-2 flex-1 mb-5">
+                    @forelse ($plan->features ?? [] as $feature)
                     <li class="flex items-start gap-2 text-sm text-gray-600">
                         <svg class="w-4 h-4 {{ $popular ? 'text-[#2D6A4F]' : 'text-gray-400' }} flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
                         {{ $feature }}
                     </li>
-                    @endforeach
+                    @empty
+                    @endforelse
                 </ul>
-                @else
-                    <div class="flex-1"></div>
-                @endif
 
                 <a href="{{ route('membership.checkout', $plan->slug) }}"
-                    class="block text-center font-bold py-3 rounded-xl transition text-sm mt-auto
+                    class="block text-center font-bold py-2.5 rounded-xl transition text-sm
                         {{ $popular
                             ? 'bg-[#2D6A4F] hover:bg-[#1A1A1A] text-white'
-                            : ($onSale
-                                ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                                : 'bg-gray-100 hover:bg-[#2D6A4F] hover:text-white text-[#1A1A1A]') }}">
+                            : 'border border-[#2D6A4F] text-[#2D6A4F] hover:bg-[#2D6A4F] hover:text-white' }}">
                     Suscribirme
                 </a>
             </div>
