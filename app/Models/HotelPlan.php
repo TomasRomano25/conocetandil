@@ -9,7 +9,7 @@ class HotelPlan extends Model
     protected $fillable = [
         'name', 'slug', 'description', 'price', 'sale_price', 'sale_label', 'tier',
         'max_images', 'has_services', 'has_rooms', 'has_gallery_captions',
-        'is_featured', 'duration_months', 'is_active', 'sort_order',
+        'is_featured', 'is_popular', 'duration_months', 'is_active', 'sort_order',
     ];
 
     protected function casts(): array
@@ -23,6 +23,7 @@ class HotelPlan extends Model
             'has_rooms'           => 'boolean',
             'has_gallery_captions'=> 'boolean',
             'is_featured'         => 'boolean',
+            'is_popular'          => 'boolean',
             'duration_months'     => 'integer',
             'is_active'           => 'boolean',
             'sort_order'          => 'integer',

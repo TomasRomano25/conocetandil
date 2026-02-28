@@ -65,7 +65,7 @@
                   </tr>
                   <tr style="border-bottom:1px solid #e8e8e4;">
                     <td style="padding:12px 16px;font-size:13px;color:#666;">Duración</td>
-                    <td style="padding:12px 16px;font-size:13px;color:#1A1A1A;font-weight:600;text-align:right;">{{ $order->plan->duration_months }} {{ $order->plan->duration_months === 1 ? 'mes' : 'meses' }}</td>
+                    <td style="padding:12px 16px;font-size:13px;color:#1A1A1A;font-weight:600;text-align:right;">{{ $order->plan->durationLabel() }}</td>
                   </tr>
                   <tr style="border-bottom:1px solid #e8e8e4;">
                     <td style="padding:12px 16px;font-size:13px;color:#666;">Monto pagado</td>

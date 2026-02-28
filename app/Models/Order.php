@@ -55,13 +55,18 @@ class Order extends Model
     public function complete(): void
     {
         $user  = $this->user;
-        $months = $this->plan->duration_months;
+        $plan  = $this->plan;
+        $n     = $plan->duration_months;
 
         $base = ($user->premium_expires_at && $user->premium_expires_at->isFuture())
             ? $user->premium_expires_at
             : now();
 
-        $user->update(['premium_expires_at' => $base->addMonths($months)]);
+        $expires = ($plan->duration_unit === 'weeks')
+            ? $base->addWeeks($n)
+            : $base->addMonths($n);
+
+        $user->update(['premium_expires_at' => $expires]);
 
         $this->update([
             'status'       => 'completed',

@@ -8,7 +8,7 @@ class MembershipPlan extends Model
 {
     protected $fillable = [
         'name', 'slug', 'description', 'price', 'sale_price', 'sale_label',
-        'duration_months', 'features', 'active', 'sort_order',
+        'duration_months', 'duration_unit', 'features', 'active', 'is_popular', 'sort_order',
     ];
 
     protected $casts = [
@@ -17,6 +17,7 @@ class MembershipPlan extends Model
         'duration_months' => 'integer',
         'features'        => 'array',
         'active'          => 'boolean',
+        'is_popular'      => 'boolean',
         'sort_order'      => 'integer',
     ];
 
@@ -27,12 +28,18 @@ class MembershipPlan extends Model
 
     public function durationLabel(): string
     {
-        return match ($this->duration_months) {
+        $n = $this->duration_months;
+
+        if ($this->duration_unit === 'weeks') {
+            return $n === 1 ? '1 semana' : "{$n} semanas";
+        }
+
+        return match ($n) {
             1       => '1 mes',
             3       => '3 meses',
             6       => '6 meses',
             12      => '1 año',
-            default => $this->duration_months . ' meses',
+            default => "{$n} meses",
         };
     }
 

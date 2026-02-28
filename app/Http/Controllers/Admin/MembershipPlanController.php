@@ -22,6 +22,7 @@ class MembershipPlanController extends Controller
             'description'     => 'nullable|string',
             'price'           => 'required|numeric|min:0',
             'duration_months' => 'required|integer|min:1',
+            'duration_unit'   => 'required|in:months,weeks',
             'sort_order'      => 'nullable|integer',
         ]);
 
@@ -37,11 +38,17 @@ class MembershipPlanController extends Controller
             'name'            => 'required|string|max:100',
             'description'     => 'nullable|string',
             'price'           => 'required|numeric|min:0',
+            'sale_price'      => 'nullable|numeric|min:0',
+            'sale_label'      => 'nullable|string|max:50',
             'duration_months' => 'required|integer|min:1',
+            'duration_unit'   => 'required|in:months,weeks',
             'sort_order'      => 'nullable|integer',
         ]);
 
-        $data['active'] = $request->boolean('active');
+        $data['active']      = $request->boolean('active');
+        $data['is_popular']  = $request->boolean('is_popular');
+        $data['sale_price']  = $request->filled('sale_price') ? $request->input('sale_price') : null;
+        $data['sale_label']  = $request->input('sale_label') ?: null;
 
         $plan->update($data);
 

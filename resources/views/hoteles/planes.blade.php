@@ -13,8 +13,10 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             @foreach ($plans as $plan)
             @php $isDiamond = $plan->tier === 3; @endphp
-            <div class="rounded-2xl border-2 p-7 relative bg-white {{ $isDiamond ? 'border-amber-400 shadow-xl' : 'border-gray-200' }}">
-                @if ($isDiamond)
+            <div class="rounded-2xl border-2 p-7 relative bg-white {{ $plan->is_popular ? 'border-[#52B788] shadow-xl ring-2 ring-[#52B788]/20' : ($isDiamond ? 'border-amber-400 shadow-xl' : 'border-gray-200') }}">
+                @if ($plan->is_popular)
+                    <span class="absolute -top-3 left-6 bg-[#2D6A4F] text-white text-xs font-bold px-3 py-1 rounded-full">★ Más elegido</span>
+                @elseif ($isDiamond)
                     <span class="absolute -top-3 left-6 bg-amber-400 text-white text-xs font-bold px-3 py-1 rounded-full">✦ Más completo</span>
                 @endif
                 <p class="text-xs font-bold {{ $isDiamond ? 'text-amber-500' : 'text-[#2D6A4F]' }} uppercase tracking-widest mb-2">{{ $plan->tierLabel() }}</p>

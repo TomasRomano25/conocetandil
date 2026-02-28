@@ -31,6 +31,7 @@ class HotelPlanController extends Controller
         $data['has_rooms']            = $request->boolean('has_rooms');
         $data['has_gallery_captions'] = $request->boolean('has_gallery_captions');
         $data['is_featured']          = $request->boolean('is_featured');
+        $data['is_popular']           = $request->boolean('is_popular');
 
         HotelPlan::create($data);
 
@@ -54,6 +55,7 @@ class HotelPlanController extends Controller
         $data['has_rooms']            = $request->boolean('has_rooms');
         $data['has_gallery_captions'] = $request->boolean('has_gallery_captions');
         $data['is_featured']          = $request->boolean('is_featured');
+        $data['is_popular']           = $request->boolean('is_popular');
         $data['is_active']            = $request->boolean('is_active');
 
         $hotelPlan->update($data);
