@@ -8,9 +8,9 @@
     {{-- Hero --}}
     <div class="planes-hero">
         <div class="planes-hero__inner">
-            <p class="planes-hero__eyebrow">Acceso Premium</p>
-            <h1 class="planes-hero__title">Elegí la duración ideal<br>para tu viaje.</h1>
-            <p class="planes-hero__sub">Pagás solo por el tiempo que necesitás. Sin renovación automática.</p>
+            <p class="planes-hero__eyebrow">Elegí tu acceso</p>
+            <h1 class="planes-hero__title">Explorá Tandil<br>como nunca antes.</h1>
+            <p class="planes-hero__sub">Pagás solo por el tiempo que necesitás.</p>
         </div>
     </div>
 
@@ -29,17 +29,17 @@
                     $onSale  = $plan->hasSale();
                 @endphp
 
-                <div class="plan-card {{ $popular ? 'plan-card--popular' : 'plan-card--secondary' }}">
+                <div class="plan-card {{ $popular ? 'plan-card--popular' : '' }}">
 
                     @if ($popular)
                         <div class="plan-glow"></div>
                     @endif
 
-                    {{-- Badge: fila siempre presente --}}
+                    {{-- Badge row: altura fija en todas las cards --}}
                     <div class="plan-badge-row">
                         @if ($popular)
                             <span class="plan-badge plan-badge--popular">
-                                <svg width="9" height="9" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg width="10" height="10" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                 Más elegido
                             </span>
                         @elseif ($onSale)
@@ -66,12 +66,14 @@
                             <div class="plan-price-main">
                                 <span class="plan-price-currency">$</span>
                                 <span class="plan-price-amount">{{ number_format($plan->effective_price, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="plan-price-meta">
                                 @if ($onSale)
                                     <s class="plan-price-original">{{ $plan->formattedPrice() }}</s>
                                 @endif
+                                <span class="plan-price-duration">/ {{ $plan->durationLabel() }}</span>
                             </div>
-                            <p class="plan-price-access">Acceso completo por {{ $plan->durationLabel() }}</p>
-                            {{-- Precio por mes: espacio fijo reservado --}}
+                            {{-- Altura fija reservada para precio por mes --}}
                             <div class="plan-price-permonth">
                                 @if ($plan->duration_months > 1 && $plan->duration_unit === 'months')
                                     ≈ ${{ number_format($plan->effective_price / $plan->duration_months, 0, ',', '.') }} por mes
@@ -95,12 +97,8 @@
                         {{-- CTA --}}
                         <a href="{{ route('membership.checkout', $plan->slug) }}"
                             class="plan-cta {{ $popular ? 'plan-cta--popular' : 'plan-cta--default' }}">
-                            {{ $popular ? 'Comenzar mi plan' : 'Suscribirme' }}
+                            Suscribirme
                         </a>
-
-                        @if ($popular)
-                            <p class="plan-cta-note">Pago único · Sin renovación automática</p>
-                        @endif
 
                     </div>
                 </div>
@@ -110,7 +108,7 @@
             @endif
 
             <div class="planes-footer">
-                <p>💳 Pago por transferencia bancaria · Acceso activado dentro de las 24 hs</p>
+                <p>💳 Pago por transferencia bancaria · Acceso activado en 24 hs</p>
                 <p>¿Dudas? <a href="{{ route('contacto') }}">Contactanos</a></p>
             </div>
 
@@ -120,129 +118,122 @@
 </div>
 
 <style>
-/* ─── Wrapper ──────────────────────────────────────── */
+/* ─── Wrapper ──────────────────────────────────────────── */
 .planes-wrapper {
-    background: linear-gradient(160deg, #0f1a14 0%, #16281e 50%, #1e3529 100%);
+    background: linear-gradient(160deg, #0f1a14 0%, #16281e 45%, #1e3529 100%);
     min-height: 100vh;
 }
 
-/* ─── Hero ─────────────────────────────────────────── */
-.planes-hero { padding: 5rem 1.5rem 3rem; text-align: center; }
-.planes-hero__inner { max-width: 620px; margin: 0 auto; }
+/* ─── Hero ─────────────────────────────────────────────── */
+.planes-hero {
+    padding: 5rem 1.5rem 3.5rem;
+    text-align: center;
+}
+.planes-hero__inner { max-width: 640px; margin: 0 auto; }
 .planes-hero__eyebrow {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: #52B788;
     margin-bottom: 1rem;
 }
 .planes-hero__title {
-    font-size: clamp(2rem, 5vw, 3.25rem);
+    font-size: clamp(2rem, 5vw, 3.5rem);
     font-weight: 800;
     line-height: 1.1;
     letter-spacing: -0.03em;
-    color: #fff;
-    margin-bottom: 0.85rem;
+    color: #ffffff;
+    margin-bottom: 1rem;
 }
 .planes-hero__sub {
-    font-size: 0.95rem;
-    color: rgba(255,255,255,0.38);
+    font-size: 1rem;
+    color: rgba(255,255,255,0.45);
 }
 
-/* ─── Section ──────────────────────────────────────── */
-.planes-section { padding: 0 1.25rem 5rem; }
-.planes-container { max-width: 1080px; margin: 0 auto; }
-.planes-empty { text-align: center; padding: 5rem 0; color: rgba(255,255,255,0.3); font-size: 0.9rem; }
+/* ─── Section ──────────────────────────────────────────── */
+.planes-section { padding: 0 1.5rem 5rem; }
+.planes-container { max-width: 1024px; margin: 0 auto; }
+.planes-empty { text-align: center; padding: 5rem 0; color: rgba(255,255,255,0.3); }
 
-/* ─── Grid ─────────────────────────────────────────── */
+/* ─── Grid ─────────────────────────────────────────────── */
 .planes-grid {
     display: grid;
     gap: 1rem;
-    align-items: end; /* las cards se alinean desde abajo → el popular puede ser más alto sin romper layout */
+    align-items: stretch;
 }
-.planes-grid--1 { grid-template-columns: minmax(0, 420px); justify-content: center; }
+.planes-grid--1 { grid-template-columns: minmax(0, 400px); justify-content: center; }
 .planes-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .planes-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .planes-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-
-@media (max-width: 860px) {
+@media (max-width: 900px) {
     .planes-grid--3,
-    .planes-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+    .planes-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 540px) {
+@media (max-width: 560px) {
     .planes-grid--2,
     .planes-grid--3,
-    .planes-grid--4 { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+    .planes-grid--4 { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* ─── Card base ────────────────────────────────────── */
+/* ─── Card base ─────────────────────────────────────────── */
 .plan-card {
     position: relative;
     display: flex;
     flex-direction: column;
-    border-radius: 1.125rem;
+    border-radius: 1.25rem;
     overflow: hidden;
-    transition: box-shadow 0.25s;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: border-color 0.25s, box-shadow 0.25s;
+}
+.plan-card:hover {
+    border-color: rgba(255,255,255,0.13);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
 }
 
-/* Cards secundarias: apagadas, sin protagonismo */
-.plan-card--secondary {
-    background: rgba(255,255,255,0.035);
-    border: 1px solid rgba(255,255,255,0.07);
-}
-.plan-card--secondary:hover {
-    box-shadow: 0 6px 28px rgba(0,0,0,0.25);
-    border-color: rgba(255,255,255,0.11);
-}
-
-/* Card popular: grande, brillante, dominante */
+/* ─── Card popular ──────────────────────────────────────── */
 .plan-card--popular {
-    background: rgba(82,183,136,0.08);
-    border: 1px solid rgba(82,183,136,0.4);
+    background: rgba(82,183,136,0.06);
+    border: 1.5px solid rgba(82,183,136,0.45);
     box-shadow:
-        0 20px 60px rgba(0,0,0,0.45),
-        0 0 80px rgba(45,106,79,0.18);
-    /* Extra padding para que sea más grande que las demás */
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+        0 8px 32px rgba(0,0,0,0.3),
+        0 0 48px rgba(45,106,79,0.15);
 }
 .plan-card--popular:hover {
+    border-color: rgba(82,183,136,0.65);
     box-shadow:
-        0 24px 70px rgba(0,0,0,0.5),
-        0 0 90px rgba(82,183,136,0.22);
-    border-color: rgba(82,183,136,0.55);
+        0 12px 40px rgba(0,0,0,0.35),
+        0 0 60px rgba(82,183,136,0.18);
 }
 
-/* Glow radial verde detrás del popular */
+/* Glow radial detrás del popular */
 .plan-glow {
     position: absolute;
-    top: -40px; left: -40px; right: -40px;
-    height: 220px;
+    inset: 0;
     pointer-events: none;
-    background: radial-gradient(ellipse at 50% 0%, rgba(82,183,136,0.22) 0%, transparent 68%);
+    background: radial-gradient(ellipse at 50% 10%, rgba(82,183,136,0.12) 0%, transparent 65%);
     z-index: 0;
 }
 
-/* ─── Badge row: altura fija en todas las cards ─────── */
+/* ─── Badge row: altura fija en TODAS las cards ─────────── */
 .plan-badge-row {
-    height: 2.5rem;
+    height: 2.25rem;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     z-index: 1;
-    flex-shrink: 0;
 }
 .plan-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    font-size: 0.6rem;
+    gap: 0.35rem;
+    font-size: 0.65rem;
     font-weight: 800;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    padding: 0.28rem 0.75rem;
+    padding: 0.3rem 0.85rem;
     border-radius: 999px;
 }
 .plan-badge--popular {
@@ -252,221 +243,167 @@
 }
 .plan-badge--sale {
     background: rgba(255,255,255,0.05);
-    color: rgba(255,255,255,0.35);
-    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.09);
 }
 
-/* ─── Body ─────────────────────────────────────────── */
+/* ─── Body ──────────────────────────────────────────────── */
 .plan-body {
     display: flex;
     flex-direction: column;
     flex: 1;
-    padding: 0 1.35rem 1.5rem;
+    padding: 0 1.5rem 1.75rem;
     position: relative;
     z-index: 1;
 }
-.plan-card--popular .plan-body {
-    padding: 0 1.75rem 2rem; /* más respiración en el popular */
-}
 
-/* ─── Nombre ────────────────────────────────────────── */
+/* ─── Nombre ────────────────────────────────────────────── */
 .plan-name {
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.4rem;
     letter-spacing: -0.01em;
-    margin-bottom: 0.35rem;
-    color: rgba(255,255,255,0.55); /* secundario: tenue */
-}
-.plan-card--popular .plan-name {
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: #ffffff; /* popular: blanco total */
 }
 
-/* ─── Descripción ───────────────────────────────────── */
+/* ─── Descripción: altura fija ──────────────────────────── */
 .plan-desc-wrap {
-    height: 2.4rem;
-    margin-bottom: 1.1rem;
+    height: 2.5rem;
+    margin-bottom: 1.25rem;
     overflow: hidden;
 }
 .plan-desc {
-    font-size: 0.72rem;
-    color: rgba(255,255,255,0.25); /* secundario: muy tenue */
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.38);
     line-height: 1.5;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
-.plan-card--popular .plan-desc {
-    color: rgba(255,255,255,0.45); /* popular: más visible */
-    font-size: 0.8rem;
-}
 
-/* ─── Divisor ───────────────────────────────────────── */
+/* ─── Divisor ───────────────────────────────────────────── */
 .plan-divider {
     height: 1px;
-    background: rgba(255,255,255,0.06);
-    margin-bottom: 1.1rem;
+    background: rgba(255,255,255,0.07);
+    margin-bottom: 1.25rem;
 }
 .plan-card--popular .plan-divider {
-    background: rgba(82,183,136,0.2);
+    background: rgba(82,183,136,0.18);
 }
 
-/* ─── Precio ────────────────────────────────────────── */
-.plan-price-block { margin-bottom: 1.35rem; }
-
+/* ─── Precio ────────────────────────────────────────────── */
+.plan-price-block { margin-bottom: 1.5rem; }
 .plan-price-main {
     display: flex;
     align-items: flex-start;
-    gap: 0.15rem;
+    gap: 0.2rem;
     line-height: 1;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
 }
 .plan-price-currency {
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 600;
-    margin-top: 0.35rem;
-    color: rgba(255,255,255,0.35); /* secundario */
-}
-.plan-card--popular .plan-price-currency {
-    font-size: 1.1rem;
-    color: rgba(255,255,255,0.5);
-    margin-top: 0.55rem;
+    color: rgba(255,255,255,0.45);
+    margin-top: 0.4rem;
 }
 .plan-price-amount {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 800;
     letter-spacing: -0.04em;
-    color: rgba(255,255,255,0.55); /* secundario: apagado */
-}
-.plan-card--popular .plan-price-amount {
-    font-size: 3rem; /* popular: precio dominante */
     color: #ffffff;
 }
+.plan-price-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
 .plan-price-original {
-    font-size: 0.7rem;
-    color: rgba(255,255,255,0.2);
-    text-decoration: line-through;
-    align-self: flex-end;
-    margin-bottom: 0.3rem;
-    margin-left: 0.3rem;
-}
-/* Línea de acceso (solo visible, más clara en popular) */
-.plan-price-access {
-    font-size: 0.72rem;
-    color: rgba(255,255,255,0.28);
-    margin-bottom: 0.2rem;
-}
-.plan-card--popular .plan-price-access {
-    font-size: 0.8rem;
-    color: rgba(255,255,255,0.5);
-    font-weight: 500;
-}
-/* Precio por mes: altura fija reservada */
-.plan-price-permonth {
-    height: 1.1rem;
-    font-size: 0.68rem;
-    color: rgba(82,183,136,0.5); /* secundario: muy apagado */
-}
-.plan-card--popular .plan-price-permonth {
-    color: #52B788; /* popular: verde brillante */
-    font-weight: 600;
     font-size: 0.75rem;
+    color: rgba(255,255,255,0.25);
+    text-decoration: line-through;
+}
+.plan-price-duration {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.38);
+}
+.plan-price-permonth {
+    height: 1.25rem;
+    font-size: 0.7rem;
+    color: #52B788;
+    margin-top: 0.35rem;
 }
 
-/* ─── Features ──────────────────────────────────────── */
+/* ─── Features ──────────────────────────────────────────── */
 .plan-features {
     list-style: none;
     padding: 0;
-    margin: 0 0 1.5rem;
+    margin: 0 0 1.75rem;
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.55rem;
+    gap: 0.65rem;
 }
 .plan-feature {
     display: flex;
     align-items: flex-start;
-    gap: 0.55rem;
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.3); /* secundario: tenue */
+    gap: 0.6rem;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.55);
     line-height: 1.4;
 }
-.plan-card--popular .plan-feature {
-    font-size: 0.82rem;
-    color: rgba(255,255,255,0.7); /* popular: legible */
-    gap: 0.65rem;
-}
 .plan-feature__icon {
-    width: 0.875rem;
-    height: 0.875rem;
-    flex-shrink: 0;
-    margin-top: 0.1rem;
-    color: rgba(82,183,136,0.4); /* secundario: apagado */
-}
-.plan-card--popular .plan-feature__icon {
     width: 1rem;
     height: 1rem;
-    color: #52B788; /* popular: verde vivo */
+    flex-shrink: 0;
+    color: #52B788;
+    margin-top: 0.05rem;
 }
 
-/* ─── CTA ───────────────────────────────────────────── */
+/* ─── CTA ───────────────────────────────────────────────── */
 .plan-cta {
     display: block;
     text-align: center;
+    font-size: 0.875rem;
     font-weight: 700;
+    padding: 0.75rem 1rem;
     border-radius: 0.75rem;
     letter-spacing: 0.01em;
     transition: all 0.2s;
     text-decoration: none;
 }
-/* Secundario: outline muy sutil, casi no visible */
-.plan-cta--default {
-    font-size: 0.8rem;
-    padding: 0.6rem 1rem;
-    background: transparent;
-    color: rgba(255,255,255,0.35);
-    border: 1px solid rgba(255,255,255,0.1);
-}
-.plan-cta--default:hover {
-    color: rgba(255,255,255,0.7);
-    border-color: rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.04);
-}
-/* Popular: sólido, grande, llamativo */
 .plan-cta--popular {
-    font-size: 0.95rem;
-    padding: 0.9rem 1rem;
     background: #2D6A4F;
     color: #ffffff;
-    box-shadow: 0 4px 20px rgba(45,106,79,0.5);
+    box-shadow: 0 4px 16px rgba(45,106,79,0.45);
 }
 .plan-cta--popular:hover {
-    background: #52B788;
-    box-shadow: 0 6px 28px rgba(82,183,136,0.4);
+    background: #3a8563;
+    box-shadow: 0 6px 22px rgba(45,106,79,0.5);
+}
+.plan-cta--default {
+    background: transparent;
+    color: rgba(255,255,255,0.55);
+    border: 1px solid rgba(255,255,255,0.12);
+}
+.plan-cta--default:hover {
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.8);
+    border-color: rgba(255,255,255,0.2);
 }
 
-/* Nota bajo CTA del popular */
-.plan-cta-note {
-    margin-top: 0.65rem;
-    text-align: center;
-    font-size: 0.65rem;
-    color: rgba(255,255,255,0.22);
-    letter-spacing: 0.04em;
-}
-
-/* ─── Footer ────────────────────────────────────────── */
+/* ─── Footer ────────────────────────────────────────────── */
 .planes-footer {
-    margin-top: 3.5rem;
+    margin-top: 3rem;
     text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: 0.35rem;
 }
-.planes-footer p { font-size: 0.75rem; color: rgba(255,255,255,0.2); }
-.planes-footer a { color: rgba(82,183,136,0.7); text-decoration: none; font-weight: 500; }
-.planes-footer a:hover { color: #52B788; }
+.planes-footer p { font-size: 0.8rem; color: rgba(255,255,255,0.25); }
+.planes-footer a { color: #52B788; text-decoration: none; font-weight: 500; }
+.planes-footer a:hover { text-decoration: underline; }
 </style>
 
 @endsection
