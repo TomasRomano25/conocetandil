@@ -3,138 +3,433 @@
 
 @section('content')
 
-{{-- Hero --}}
-<section class="bg-[#1A1A1A] text-white relative overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-br from-[#2D6A4F]/60 to-[#1A1A1A]"></div>
-    <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <span class="inline-flex items-center gap-1.5 bg-white/10 text-amber-300 text-xs font-bold px-4 py-1.5 rounded-full border border-white/20 mb-6 tracking-widest uppercase">
-            ✦ Premium
-        </span>
-        <h1 class="text-3xl md:text-5xl font-bold mb-5 leading-tight tracking-tight">
-            Elegí tu plan y<br>empezá a explorar Tandil.
-        </h1>
-        <p class="text-gray-300 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
-            Acceso completo al planificador de itinerarios, curado por días, tipo de experiencia y mucho más.
-        </p>
-    </div>
-</section>
+<div class="planes-wrapper">
 
-{{-- Plans --}}
-<section class="py-16 bg-gray-50">
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-
-    @if ($plans->isEmpty())
-        <div class="text-center py-20 text-gray-400">No hay planes disponibles en este momento.</div>
-    @else
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-{{ $plans->count() <= 3 ? $plans->count() : '4' }} gap-4 lg:gap-5 items-stretch">
-        @foreach ($plans as $plan)
-        @php
-            $popular = $plan->is_popular;
-            $onSale  = $plan->hasSale();
-            $pct     = $onSale ? round((1 - $plan->effective_price / (float) $plan->price) * 100) : 0;
-        @endphp
-
-        <div class="relative flex flex-col rounded-2xl overflow-hidden
-            {{ $popular
-                ? 'bg-[#1A1A1A] text-white shadow-2xl ring-1 ring-white/10'
-                : 'bg-white text-[#1A1A1A] shadow-sm border border-gray-200 hover:shadow-md transition-shadow' }}">
-
-            {{-- Ribbon: ocupa espacio fijo en todas las cards --}}
-            <div class="h-8 flex items-center justify-center shrink-0">
-                @if ($popular)
-                    <span class="flex items-center gap-1.5 bg-[#52B788] text-white text-[10px] font-extrabold px-3 py-1 rounded-full tracking-widest uppercase">
-                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                        Más elegido
-                    </span>
-                @elseif ($onSale)
-                    <span class="flex items-center gap-1 bg-amber-500 text-white text-[10px] font-extrabold px-3 py-1 rounded-full tracking-widest uppercase">
-                        −{{ $pct }}% OFF
-                        @if ($plan->sale_label) · {{ $plan->sale_label }}@endif
-                    </span>
-                @endif
-            </div>
-
-            <div class="flex flex-col flex-1 px-6 pb-7">
-
-                {{-- Nombre --}}
-                <h3 class="text-lg font-bold mb-1 {{ $popular ? 'text-white' : 'text-[#1A1A1A]' }}">
-                    {{ $plan->name }}
-                </h3>
-
-                {{-- Descripción: altura fija --}}
-                <div class="h-9 mb-5">
-                    @if ($plan->description)
-                        <p class="text-xs leading-relaxed line-clamp-2 {{ $popular ? 'text-gray-400' : 'text-gray-500' }}">
-                            {{ $plan->description }}
-                        </p>
-                    @endif
-                </div>
-
-                {{-- Divisor --}}
-                <div class="border-t {{ $popular ? 'border-white/10' : 'border-gray-100' }} mb-5"></div>
-
-                {{-- Precio --}}
-                <div class="mb-1">
-                    @if ($onSale)
-                        <div class="flex items-baseline gap-2 flex-wrap">
-                            <span class="text-3xl font-extrabold tracking-tight {{ $popular ? 'text-white' : 'text-[#2D6A4F]' }}">
-                                {{ $plan->formattedEffectivePrice() }}
-                            </span>
-                            <s class="text-sm {{ $popular ? 'text-gray-500' : 'text-gray-400' }}">{{ $plan->formattedPrice() }}</s>
-                        </div>
-                    @else
-                        <span class="text-3xl font-extrabold tracking-tight {{ $popular ? 'text-white' : 'text-[#2D6A4F]' }}">
-                            {{ $plan->formattedEffectivePrice() }}
-                        </span>
-                    @endif
-                </div>
-
-                {{-- Duración + precio por mes: altura fija --}}
-                <div class="h-9 mb-6">
-                    <p class="text-xs {{ $popular ? 'text-gray-400' : 'text-gray-400' }}">/ {{ $plan->durationLabel() }}</p>
-                    @if ($plan->duration_months > 1 && $plan->duration_unit === 'months')
-                        <p class="text-xs font-semibold mt-0.5 {{ $popular ? 'text-[#52B788]' : 'text-[#52B788]' }}">
-                            ≈ ${{ number_format($plan->effective_price / $plan->duration_months, 0, ',', '.') }} por mes
-                        </p>
-                    @endif
-                </div>
-
-                {{-- Features: flex-1 empuja el botón siempre al fondo --}}
-                <ul class="space-y-2.5 flex-1 mb-7">
-                    @forelse ($plan->features ?? [] as $feature)
-                    <li class="flex items-start gap-2.5 text-sm {{ $popular ? 'text-gray-300' : 'text-gray-600' }}">
-                        <svg class="w-4 h-4 shrink-0 mt-0.5 {{ $popular ? 'text-[#52B788]' : 'text-[#52B788]' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                        </svg>
-                        {{ $feature }}
-                    </li>
-                    @empty
-                    @endforelse
-                </ul>
-
-                {{-- CTA --}}
-                <a href="{{ route('membership.checkout', $plan->slug) }}"
-                    class="block text-center font-bold py-3 rounded-xl text-sm transition-all duration-200
-                        {{ $popular
-                            ? 'bg-[#52B788] hover:bg-[#2D6A4F] text-white'
-                            : 'bg-[#1A1A1A] hover:bg-[#2D6A4F] text-white' }}">
-                    Suscribirme
-                </a>
-            </div>
+    {{-- Hero --}}
+    <div class="planes-hero">
+        <div class="planes-hero__inner">
+            <p class="planes-hero__eyebrow">Elegí tu acceso</p>
+            <h1 class="planes-hero__title">Explorá Tandil<br>como nunca antes.</h1>
+            <p class="planes-hero__sub">Pagás solo por el tiempo que necesitás.</p>
         </div>
-        @endforeach
     </div>
 
-    @endif
+    {{-- Plans --}}
+    <div class="planes-section">
+        <div class="planes-container">
 
-    {{-- Footer note --}}
-    <div class="mt-12 text-center space-y-1">
-        <p class="text-sm text-gray-400">💳 Pago por transferencia bancaria. Tu acceso se activa dentro de las 24 hs.</p>
-        <p class="text-sm text-gray-400">¿Dudas? <a href="{{ route('contacto') }}" class="text-[#2D6A4F] hover:underline font-medium">Contactanos</a></p>
+            @if ($plans->isEmpty())
+                <p class="planes-empty">No hay planes disponibles en este momento.</p>
+            @else
+
+            <div class="planes-grid planes-grid--{{ min($plans->count(), 4) }}">
+                @foreach ($plans as $plan)
+                @php
+                    $popular = $plan->is_popular;
+                    $onSale  = $plan->hasSale();
+                @endphp
+
+                <div class="plan-card {{ $popular ? 'plan-card--popular' : '' }}">
+
+                    @if ($popular)
+                        <div class="plan-glow"></div>
+                    @endif
+
+                    {{-- Badge row: siempre ocupa espacio --}}
+                    <div class="plan-badge-row">
+                        @if ($popular)
+                            <span class="plan-badge plan-badge--popular">
+                                <svg width="10" height="10" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                Más elegido
+                            </span>
+                        @elseif ($onSale)
+                            <span class="plan-badge plan-badge--sale">Precio lanzamiento</span>
+                        @endif
+                    </div>
+
+                    <div class="plan-body">
+
+                        {{-- Nombre --}}
+                        <h3 class="plan-name">{{ $plan->name }}</h3>
+
+                        {{-- Descripción --}}
+                        <div class="plan-desc-wrap">
+                            @if ($plan->description)
+                                <p class="plan-desc">{{ $plan->description }}</p>
+                            @endif
+                        </div>
+
+                        <div class="plan-divider"></div>
+
+                        {{-- Precio --}}
+                        <div class="plan-price-block">
+                            <div class="plan-price-main">
+                                <span class="plan-price-currency">$</span>
+                                <span class="plan-price-amount">{{ number_format($plan->effective_price, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="plan-price-meta">
+                                @if ($onSale)
+                                    <s class="plan-price-original">{{ $plan->formattedPrice() }}</s>
+                                @endif
+                                <span class="plan-price-duration">/ {{ $plan->durationLabel() }}</span>
+                            </div>
+                            {{-- Precio por mes: espacio reservado --}}
+                            <div class="plan-price-permonth">
+                                @if ($plan->duration_months > 1 && $plan->duration_unit === 'months')
+                                    ≈ ${{ number_format($plan->effective_price / $plan->duration_months, 0, ',', '.') }} por mes
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Features --}}
+                        <ul class="plan-features">
+                            @forelse ($plan->features ?? [] as $feature)
+                            <li class="plan-feature">
+                                <svg class="plan-feature__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                {{ $feature }}
+                            </li>
+                            @empty
+                            @endforelse
+                        </ul>
+
+                        {{-- CTA --}}
+                        <a href="{{ route('membership.checkout', $plan->slug) }}"
+                            class="plan-cta {{ $popular ? 'plan-cta--popular' : 'plan-cta--default' }}">
+                            Suscribirme
+                        </a>
+
+                    </div>
+                </div>
+                @endforeach
+            </div>
+
+            @endif
+
+            <div class="planes-footer">
+                <p>💳 Pago por transferencia bancaria · Acceso activado en 24 hs</p>
+                <p>¿Dudas? <a href="{{ route('contacto') }}">Contactanos</a></p>
+            </div>
+
+        </div>
     </div>
 
 </div>
-</section>
+
+<style>
+/* ─── Wrapper ──────────────────────────────────────────── */
+.planes-wrapper {
+    background: linear-gradient(160deg, #0f1a14 0%, #16281e 45%, #1e3529 100%);
+    min-height: 100vh;
+}
+
+/* ─── Hero ─────────────────────────────────────────────── */
+.planes-hero {
+    padding: 5rem 1.5rem 3.5rem;
+    text-align: center;
+}
+.planes-hero__inner {
+    max-width: 640px;
+    margin: 0 auto;
+}
+.planes-hero__eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #52B788;
+    margin-bottom: 1rem;
+}
+.planes-hero__title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: #ffffff;
+    margin-bottom: 1rem;
+}
+.planes-hero__sub {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.45);
+    font-weight: 400;
+}
+
+/* ─── Section ──────────────────────────────────────────── */
+.planes-section {
+    padding: 0 1.5rem 5rem;
+}
+.planes-container {
+    max-width: 1024px;
+    margin: 0 auto;
+}
+.planes-empty {
+    text-align: center;
+    padding: 5rem 0;
+    color: rgba(255,255,255,0.3);
+}
+
+/* ─── Grid ─────────────────────────────────────────────── */
+.planes-grid {
+    display: grid;
+    gap: 1rem;
+    align-items: stretch;
+}
+.planes-grid--1 { grid-template-columns: minmax(0, 400px); justify-content: center; }
+.planes-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.planes-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.planes-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@media (max-width: 900px) {
+    .planes-grid--3,
+    .planes-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+    .planes-grid--2,
+    .planes-grid--3,
+    .planes-grid--4 { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ─── Card base ─────────────────────────────────────────── */
+.plan-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.plan-card:hover {
+    border-color: rgba(255,255,255,0.14);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+/* ─── Card popular ──────────────────────────────────────── */
+.plan-card--popular {
+    background: rgba(82, 183, 136, 0.07);
+    border-color: rgba(82, 183, 136, 0.35);
+    box-shadow:
+        0 10px 40px rgba(0,0,0,0.35),
+        0 0 60px rgba(62, 145, 95, 0.12);
+}
+.plan-card--popular:hover {
+    border-color: rgba(82, 183, 136, 0.55);
+    box-shadow:
+        0 14px 50px rgba(0,0,0,0.4),
+        0 0 70px rgba(62, 145, 95, 0.18);
+}
+
+/* Glow radial detrás del card popular */
+.plan-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 0%, rgba(82,183,136,0.18) 0%, transparent 70%);
+    z-index: 0;
+}
+
+/* ─── Badge row ─────────────────────────────────────────── */
+.plan-badge-row {
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+.plan-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+}
+.plan-badge--popular {
+    background: rgba(82, 183, 136, 0.18);
+    color: #52B788;
+    border: 1px solid rgba(82, 183, 136, 0.35);
+}
+.plan-badge--sale {
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.45);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ─── Body ──────────────────────────────────────────────── */
+.plan-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 0 1.5rem 1.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* ─── Nombre ────────────────────────────────────────────── */
+.plan-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.01em;
+}
+
+/* ─── Descripción: altura fija ──────────────────────────── */
+.plan-desc-wrap {
+    height: 2.5rem;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+}
+.plan-desc {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.35);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ─── Divisor ───────────────────────────────────────────── */
+.plan-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+    margin-bottom: 1.25rem;
+}
+
+/* ─── Precio ────────────────────────────────────────────── */
+.plan-price-block {
+    margin-bottom: 1.5rem;
+}
+.plan-price-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.2rem;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+}
+.plan-price-currency {
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    margin-top: 0.4rem;
+}
+.plan-price-amount {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: #ffffff;
+}
+.plan-price-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.plan-price-original {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.25);
+    text-decoration: line-through;
+}
+.plan-price-duration {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.35);
+}
+/* Altura fija para precio-por-mes */
+.plan-price-permonth {
+    height: 1.25rem;
+    font-size: 0.7rem;
+    color: #52B788;
+    margin-top: 0.35rem;
+}
+
+/* ─── Features ──────────────────────────────────────────── */
+.plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.75rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+.plan-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.4;
+}
+.plan-feature__icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: #52B788;
+    margin-top: 0.05rem;
+}
+.plan-card--popular .plan-feature {
+    color: rgba(255,255,255,0.75);
+}
+
+/* ─── CTA ───────────────────────────────────────────────── */
+.plan-cta {
+    display: block;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    letter-spacing: 0.01em;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+.plan-cta--popular {
+    background: #2D6A4F;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(45, 106, 79, 0.4);
+}
+.plan-cta--popular:hover {
+    background: #52B788;
+    box-shadow: 0 6px 20px rgba(82, 183, 136, 0.35);
+}
+.plan-cta--default {
+    background: transparent;
+    color: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.12);
+}
+.plan-cta--default:hover {
+    background: rgba(255,255,255,0.06);
+    color: #ffffff;
+    border-color: rgba(255,255,255,0.2);
+}
+
+/* ─── Footer ────────────────────────────────────────────── */
+.planes-footer {
+    margin-top: 3rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.planes-footer p {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.25);
+}
+.planes-footer a {
+    color: #52B788;
+    text-decoration: none;
+    font-weight: 500;
+}
+.planes-footer a:hover {
+    text-decoration: underline;
+}
+</style>
 
 @endsection
