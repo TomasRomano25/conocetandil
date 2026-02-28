@@ -115,6 +115,33 @@
                             @endif
                         </div>
 
+                        {{-- Beneficios --}}
+                        <div class="bg-[#2D6A4F]/5 border border-[#2D6A4F]/20 rounded-lg p-4 mb-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <p class="text-xs font-bold text-[#2D6A4F] uppercase tracking-wide">Beneficios del plan</p>
+                                <button type="button" onclick="addFeature({{ $plan->id }})"
+                                    class="text-xs font-semibold text-[#2D6A4F] hover:text-[#1A1A1A] flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                    Agregar
+                                </button>
+                            </div>
+                            <ul id="features-list-{{ $plan->id }}" class="space-y-2">
+                                @forelse ($plan->features ?? [] as $i => $feature)
+                                <li class="flex items-center gap-2">
+                                    <svg class="w-3.5 h-3.5 text-[#52B788] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    <input type="text" name="features[]" value="{{ $feature }}"
+                                        class="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788] bg-white">
+                                    <button type="button" onclick="this.closest('li').remove()"
+                                        class="text-gray-300 hover:text-red-500 transition shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                </li>
+                                @empty
+                                <li class="text-xs text-gray-400 italic">Sin beneficios aún. Hacé clic en "Agregar".</li>
+                                @endforelse
+                            </ul>
+                        </div>
+
                         <div class="flex items-center gap-4 flex-wrap">
                             <label class="flex items-center gap-2 text-sm">
                                 <input type="checkbox" name="active" value="1" {{ $plan->active ? 'checked' : '' }}
@@ -206,6 +233,30 @@
 <script>
 function toggleEdit(id) {
     document.getElementById('edit-' + id).classList.toggle('hidden');
+}
+
+function addFeature(planId) {
+    const list = document.getElementById('features-list-' + planId);
+    // Quitar el placeholder vacío si existe
+    const empty = list.querySelector('li.italic-placeholder');
+    if (empty) empty.remove();
+
+    const li = document.createElement('li');
+    li.className = 'flex items-center gap-2';
+    li.innerHTML = `
+        <svg class="w-3.5 h-3.5 text-[#52B788] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+        </svg>
+        <input type="text" name="features[]" placeholder="Ej: Acceso completo al planificador"
+            class="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#52B788] bg-white" autofocus>
+        <button type="button" onclick="this.closest('li').remove()"
+            class="text-gray-300 hover:text-red-500 transition shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>`;
+    list.appendChild(li);
+    li.querySelector('input').focus();
 }
 </script>
 @endsection

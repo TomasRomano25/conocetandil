@@ -43,12 +43,18 @@ class MembershipPlanController extends Controller
             'duration_months' => 'required|integer|min:1',
             'duration_unit'   => 'required|in:months,weeks',
             'sort_order'      => 'nullable|integer',
+            'features'        => 'nullable|array',
+            'features.*'      => 'string|max:200',
         ]);
 
         $data['active']      = $request->boolean('active');
         $data['is_popular']  = $request->boolean('is_popular');
         $data['sale_price']  = $request->filled('sale_price') ? $request->input('sale_price') : null;
         $data['sale_label']  = $request->input('sale_label') ?: null;
+        $data['features']    = array_values(array_filter(
+            $request->input('features', []),
+            fn ($f) => trim($f) !== ''
+        ));
 
         $plan->update($data);
 
